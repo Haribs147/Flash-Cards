@@ -1,0 +1,5 @@
+.main-content {
+  /* Odsuwamy główną treść w prawo o szerokość sidebara + padding */
+  margin-left: 100px;
+  padding: 24px;
+}
