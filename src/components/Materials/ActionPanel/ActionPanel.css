@@ -2,7 +2,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
 }
 
 .action-buttons {
@@ -36,26 +35,4 @@
 .action-btn.secondary:hover {
   background-color: #E53888;
   border-color: #E53888;
-}
-
-.action-search {
-  position: relative;
-  width: 300px;
-}
-
-.action-search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #888;
-}
-
-.action-search-input {
-  width: 100%;
-  padding: 10px 16px 10px 40px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
 }

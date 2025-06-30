@@ -1,5 +1,5 @@
-import { FiSearch } from "react-icons/fi";
 import './ActionPanel.css';
+import SearchInput from "../../common/SearchInput/SearchInput";
 
 type ActionPanelProps = {
     searchTerm: string;
@@ -26,16 +26,11 @@ const ActionPanel = ({
                     Nowy Zestaw Fiszek
                 </button>
             </div>
-            <div className="action-search">
-                <FiSearch className="action-search-icon" size={20} />
-                <input
-                    type="text"
-                    placeholder={placeholder}
-                    className="action-search-input"
-                    value={searchTerm}
-                    onChange={ (e) => onSearchChange(e.target.value)}
-                />
-            </div>
+            <SearchInput 
+                value={searchTerm}
+                onChange={onSearchChange}
+                placeholder={placeholder}
+            />
         </div>
     );
 };

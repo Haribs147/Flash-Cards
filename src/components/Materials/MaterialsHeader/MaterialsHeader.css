@@ -22,8 +22,8 @@
   cursor: pointer;
   color: #666;
   position: relative;
-  bottom: -1px; /* Trik, aby border przycisku nachodził na border kontenera */
-  border-bottom: 2px solid transparent; /* Niewidoczny border */
+  bottom: -1px;
+  border-bottom: 2px solid transparent;
 }
 
 .tab-button.active {
