@@ -7,17 +7,42 @@ import RecentSetsList from "./Lists/RecentSetsList";
 import SharedSetsList from "./Lists/SharedSetsList";
 import SearchInput from "../common/SearchInput/SearchInput";
 
+const initialItems  = [
+  { id: 'f1', type: 'folder', name: 'Folder 1' },
+  { id: 'f2', type: 'folder', name: 'Folder 2' },
+  { id: 'f3', type: 'folder', name: 'Folder 3' },
+  { id: 's1', type: 'set', name: 'Fiszki 1' },
+];
+
 const MaterialsView = () => {
     const [activeTab, setActiveTab] = useState('Foldery');
     const [searchTerm, setSearchTerm] = useState('');
+    const [items, setItems] = useState(initialItems);
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
     const handleNewFolder = () => {
         console.log("here logic of creating a new folder");
+        if (isCreatingFolder){
+            return;
+        }
+        setIsCreatingFolder(true);
     }
-
+    
     const handleNewSet = () => {
         console.log("here logic of creating a new set");
     }
+
+    const handleCreateFolder = (folderName: string) => {
+        if (folderName.trim() !== '') {
+            const newFolder = {
+                id: `f-${Date.now()}`,
+                type: 'folder',
+                name: folderName.trim(),
+            };
+            setItems([newFolder, ...items]);
+        }
+        setIsCreatingFolder(false);
+    };
 
     const getSearchPlaceholder = () => {
         switch (activeTab) {
@@ -60,7 +85,12 @@ const MaterialsView = () => {
                 return <SharedSetsList searchTerm={searchTerm} />;
             case 'Foldery':
             default:
-                return <FolderList searchTerm={searchTerm} />;
+                return <FolderList 
+                            items={items}
+                            searchTerm={searchTerm}
+                            isCreating={isCreatingFolder}
+                            onCreate={handleCreateFolder}
+                             />;
             }
     };
 

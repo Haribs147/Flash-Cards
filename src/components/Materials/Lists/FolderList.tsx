@@ -1,23 +1,22 @@
 import { FiFolder, FiFileText } from "react-icons/fi";
 import './FolderList.css';
-
-const mockItems = [
-  { id: 'f1', type: 'folder', name: 'Folder 1' },
-  { id: 'f2', type: 'folder', name: 'Folder 2' },
-  { id: 'f3', type: 'folder', name: 'Folder 3' },
-  { id: 's1', type: 'set', name: 'Fiszki 1' },
-];
+import NewFolderInput from "../CreateFolder";
 
 type FolderListProps = {
+    items: Array<{id: string, type: string, name: string}>;
     searchTerm: string;
+    isCreating: boolean;
+    onCreate: (name: string) => void;
 }
 
-const FolderList = ({searchTerm}: FolderListProps) => {
-    const filteredItems = mockItems.filter(item =>
+const FolderList = ({items, searchTerm, isCreating, onCreate}: FolderListProps) => {
+    const filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     return (
         <div className="item-list">
+            {isCreating && <NewFolderInput onCreate={onCreate} />}
+
             {filteredItems.map(item => (
                 <div key = {item.id} className="list-item">
                     <div className="item-icon">
