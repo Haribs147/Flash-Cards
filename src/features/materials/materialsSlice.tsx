@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 // Define a type for a single item
-interface MaterialItem {
+export interface MaterialItem {
   id: string;
   type: 'folder' | 'set';
   name: string;

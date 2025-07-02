@@ -1,9 +1,10 @@
 import { FiFolder, FiFileText } from "react-icons/fi";
 import './FolderList.css';
 import NewFolderInput from "../CreateFolderButton/CreateFolder";
+import type { MaterialItem } from "../../../features/materials/materialsSlice";
 
 type FolderListProps = {
-    items: Array<{id: string, type: string, name: string}>;
+    items: MaterialItem[];
     searchTerm: string;
     isCreating: boolean;
     onCreate: (name: string) => void;
