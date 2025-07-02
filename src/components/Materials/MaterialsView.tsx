@@ -1,4 +1,3 @@
-import {useState} from "react";
 import MaterialsHeader from "./MaterialsHeader/MaterialsHeader";
 import ActionPanel from "./ActionPanel/ActionPanel";
 import './MaterialsView.css';
@@ -6,26 +5,19 @@ import FolderList from "./Lists/FolderList";
 import RecentSetsList from "./Lists/RecentSetsList";
 import SharedSetsList from "./Lists/SharedSetsList";
 import SearchInput from "../common/SearchInput/SearchInput";
-
-const initialItems  = [
-  { id: 'f1', type: 'folder', name: 'Folder 1' },
-  { id: 'f2', type: 'folder', name: 'Folder 2' },
-  { id: 'f3', type: 'folder', name: 'Folder 3' },
-  { id: 's1', type: 'set', name: 'Fiszki 1' },
-];
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { addFolder, setActiveTab, setIsCreating, setSearchTerm } from "../../features/materials/materialsSlice";
 
 const MaterialsView = () => {
-    const [activeTab, setActiveTab] = useState('Foldery');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [items, setItems] = useState(initialItems);
-    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const dispatch = useAppDispatch();
+    const { items, activeTab, searchTerm, isCreatingFolder } = useAppSelector((state) => state.materials);
 
     const handleNewFolder = () => {
         console.log("here logic of creating a new folder");
-        if (isCreatingFolder){
+        if (isCreatingFolder) {
             return;
         }
-        setIsCreatingFolder(true);
+        dispatch(setIsCreating(true));
     }
     
     const handleNewSet = () => {
@@ -33,15 +25,7 @@ const MaterialsView = () => {
     }
 
     const handleCreateFolder = (folderName: string) => {
-        if (folderName.trim() !== '') {
-            const newFolder = {
-                id: `f-${Date.now()}`,
-                type: 'folder',
-                name: folderName.trim(),
-            };
-            setItems([newFolder, ...items]);
-        }
-        setIsCreatingFolder(false);
+        dispatch(addFolder(folderName));
     };
 
     const getSearchPlaceholder = () => {
@@ -63,14 +47,14 @@ const MaterialsView = () => {
                 return <ActionPanel
                             searchTerm={searchTerm}
                             placeholder={placeholder}
-                            onSearchChange={setSearchTerm}
+                            onSearchChange={(value) => dispatch(setSearchTerm(value))}
                             onNewFolderClick={handleNewFolder}
                             onNewSetClick={handleNewSet}
                         />
             default:
                 return <SearchInput 
                             value={searchTerm}
-                            onChange={setSearchTerm}
+                            onChange={(value) => dispatch(setSearchTerm(value))}
                             placeholder={placeholder}
                         />
             }
@@ -96,7 +80,7 @@ const MaterialsView = () => {
 
     return(
         <div className="materials-view">
-            <MaterialsHeader activeTab={activeTab} onTabChange={setActiveTab}/>
+            <MaterialsHeader activeTab={activeTab} onTabChange={(tab) => dispatch(setActiveTab(tab))}/>
             {renderActionPanel()}
             {renderList()}
         </div>

@@ -1,6 +1,6 @@
 import { FiFolder, FiFileText } from "react-icons/fi";
 import './FolderList.css';
-import NewFolderInput from "../CreateFolder";
+import NewFolderInput from "../CreateFolderButton/CreateFolder";
 
 type FolderListProps = {
     items: Array<{id: string, type: string, name: string}>;
