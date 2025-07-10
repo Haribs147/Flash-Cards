@@ -5,6 +5,7 @@ import Navbar from './components/Navbar/Navbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import MaterialsView from './components/Materials/MaterialsView';
 import NewSetView from './components/NewSet/NewSetView';
+import FlashcardSetView from './components/FlashcardSet/FlashcardSetView';
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MaterialsView />} />
           <Route path="/new-set" element={<NewSetView />} />
+          <Route path="/set/:setId" element={<FlashcardSetView />} />
         </Routes>
       </main>
     </div>
