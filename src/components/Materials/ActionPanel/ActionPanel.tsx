@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import './ActionPanel.css';
 import SearchInput from "../../common/SearchInput/SearchInput";
 
@@ -6,7 +7,6 @@ type ActionPanelProps = {
     placeholder: string;
     onSearchChange: (value: string) => void;
     onNewFolderClick: () => void;
-    onNewSetClick: () => void;
 }
 
 const ActionPanel = ({
@@ -14,15 +14,20 @@ const ActionPanel = ({
     placeholder,
     onSearchChange,
     onNewFolderClick,
-    onNewSetClick,
 }: ActionPanelProps) => {
+
+    const navigate = useNavigate();
+    const handleNewSetClick = () => {
+        navigate('/new-set');
+    };
+    
     return (
         <div className="action-panel">
             <div className="action-buttons">
                 <button className="action-btn primary" onClick={onNewFolderClick}>
                     Nowy Folder
                 </button>
-                <button className="action-btn secondary" onClick={onNewSetClick}>
+                <button className="action-btn secondary" onClick={handleNewSetClick}>
                     Nowy Zestaw Fiszek
                 </button>
             </div>

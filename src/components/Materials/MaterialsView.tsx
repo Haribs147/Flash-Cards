@@ -19,10 +19,6 @@ const MaterialsView = () => {
         }
         dispatch(setIsCreating(true));
     }
-    
-    const handleNewSet = () => {
-        console.log("here logic of creating a new set");
-    }
 
     const handleCreateFolder = (folderName: string) => {
         dispatch(addFolder(folderName));
@@ -49,7 +45,6 @@ const MaterialsView = () => {
                             placeholder={placeholder}
                             onSearchChange={(value) => dispatch(setSearchTerm(value))}
                             onNewFolderClick={handleNewFolder}
-                            onNewSetClick={handleNewSet}
                         />
             default:
                 return <SearchInput 
