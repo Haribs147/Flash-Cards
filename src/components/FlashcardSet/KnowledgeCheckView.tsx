@@ -1,11 +1,10 @@
 import { useParams } from 'react-router-dom';
-import './FlashcardSetView.css';
 import SetHeader from './SetHeader/SetHeader';
-import SetActionButtons from './SetActionButtons/SetActionButtons';
 import FlashcardViewer from './FlashcardViewer/FlashcardViewer';
+import ProgressBar from './ProgressBar/ProgressBar';
+import './FlashcardSetView.css'; // We can reuse the same layout styles
 
-const FlashcardSetView = () => {
-    // In a real app, you'd use this ID to fetch the actual set data
+const KnowledgeCheckView = () => {
     const { setId } = useParams();
 
     // Placeholder data
@@ -18,6 +17,12 @@ const FlashcardSetView = () => {
     const currentCard = {
         text: "Jakiś tekst do fiszki"
     };
+    
+    const progress = {
+        incorrect: 5,
+        correct: 3,
+        total: 15 // Example total
+    };
 
     return (
         <div className="flashcard-set-view">
@@ -27,10 +32,14 @@ const FlashcardSetView = () => {
                 initial={set.initial}
             />
             <div className="divider"></div>
-            <SetActionButtons setId={setId}/>
+            <ProgressBar
+                correct={progress.correct}
+                incorrect={progress.incorrect}
+                total={progress.total}
+            />
             <FlashcardViewer cardText={currentCard.text} />
         </div>
     );
 };
 
-export default FlashcardSetView;
+export default KnowledgeCheckView;
