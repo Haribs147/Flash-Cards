@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import SetHeader from './SetHeader/SetHeader';
 import FlashcardViewer from './FlashcardViewer/FlashcardViewer';
 import ProgressBar from './ProgressBar/ProgressBar';
@@ -6,6 +6,7 @@ import './FlashcardSetView.css'; // We can reuse the same layout styles
 
 const KnowledgeCheckView = () => {
     const { setId } = useParams();
+    const navigate = useNavigate();
 
     // Placeholder data
     const set = {
@@ -30,6 +31,7 @@ const KnowledgeCheckView = () => {
                 title={set.title}
                 description={set.description}
                 initial={set.initial}
+                onBackClick={() => navigate(-1)}
             />
             <div className="divider"></div>
             <ProgressBar

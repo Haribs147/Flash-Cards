@@ -1,4 +1,4 @@
-import { FiEdit, FiShare2, FiX } from 'react-icons/fi';
+import { FiEdit, FiShare2, FiX, FiCopy } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import './SetHeader.css';
 
@@ -6,9 +6,10 @@ type SetHeaderProps = {
     title: string;
     description: string;
     initial: string;
+    onBackClick: () => void;
 };
 
-const SetHeader = ({ title, description, initial }: SetHeaderProps) => {
+const SetHeader = ({ title, description, initial, onBackClick  }: SetHeaderProps) => {
     return (
         <header className="set-header">
             <div className="set-avatar">{initial}</div>
@@ -18,8 +19,9 @@ const SetHeader = ({ title, description, initial }: SetHeaderProps) => {
             </div>
             <div className="set-header-actions">
                 <button className="icon-btn"><FiEdit/></button>
+                <button className="icon-btn"><FiCopy/></button>
                 <button className="icon-btn"><FiShare2/></button>
-                <Link to="/" className="icon-btn close-link"><FiX/></Link>
+                <button  onClick={onBackClick} className="icon-btn close-link"><FiX/></button >
             </div>
         </header>
     );

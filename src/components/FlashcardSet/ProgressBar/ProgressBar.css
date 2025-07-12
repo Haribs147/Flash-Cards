@@ -4,15 +4,15 @@
     gap: 12px;
     width: 100%;
     max-width: 900px;
-    margin: 24px 0 32px;
+    margin: 3% 0 32px;
 }
 .progress-bar {
     flex-grow: 1;
     display: flex;
-    height: 24px;
+    height: 36px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
-    border-radius: 12px;
+    border-radius: 16px;
     position: relative;
     overflow: hidden;
 }

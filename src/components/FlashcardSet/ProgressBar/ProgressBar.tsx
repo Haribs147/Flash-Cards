@@ -16,7 +16,6 @@ const ProgressBar = ({ correct, incorrect, total }: ProgressBarProps) => {
             <div className="progress-bar">
                 <div className="progress-incorrect" style={{ width: `${incorrectPercent}%` }}></div>
                 <div className="progress-correct" style={{ width: `${correctPercent}%` }}></div>
-                <span className="progress-label-center">Ile zostało/ile jest</span>
             </div>
             <span className="progress-label-end">{total}</span>
         </div>

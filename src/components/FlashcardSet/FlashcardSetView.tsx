@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './FlashcardSetView.css';
 import SetHeader from './SetHeader/SetHeader';
 import SetActionButtons from './SetActionButtons/SetActionButtons';
@@ -6,6 +6,7 @@ import FlashcardViewer from './FlashcardViewer/FlashcardViewer';
 
 const FlashcardSetView = () => {
     // In a real app, you'd use this ID to fetch the actual set data
+    const navigate = useNavigate();
     const { setId } = useParams();
 
     // Placeholder data
@@ -25,6 +26,7 @@ const FlashcardSetView = () => {
                 title={set.title}
                 description={set.description}
                 initial={set.initial}
+                onBackClick={() => navigate(-1)}
             />
             <div className="divider"></div>
             <SetActionButtons setId={setId}/>
