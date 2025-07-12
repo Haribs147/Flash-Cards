@@ -28,11 +28,11 @@
 }
 
 .action-btn.secondary {
-  background-color: #E53888;
+  background-color: #e53888;
   color: white;
-  border-color: #E53888;
+  border-color: #e53888;
 }
 .action-btn.secondary:hover {
-  background-color: #E53888;
-  border-color: #E53888;
+  background-color: #e53888;
+  border-color: #e53888;
 }
