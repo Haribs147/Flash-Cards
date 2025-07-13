@@ -28,7 +28,7 @@ export const InteractiveImage = (props: ReactNodeViewProps) => {
   };
 
   return (
-    <NodeViewWrapper className="interactive-image-wrapper">
+    <NodeViewWrapper data-drag-handle className="interactive-image-wrapper">
       {node.attrs.src ? (
         <img {...node.attrs} />
       ) : (
