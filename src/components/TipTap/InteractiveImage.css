@@ -1,11 +1,13 @@
 .interactive-image-wrapper {
   display: inline-block;
+  width: 100%;
 }
 
 .interactive-image-wrapper img {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+  display: block;
 }
 
 .image-placeholder {
@@ -21,6 +23,7 @@
   color: #888;
   background-color: #fafafa;
   transition: background-color 0.2s, color 0.2s;
+  box-sizing: border-box;
 }
 
 .image-placeholder:hover {

@@ -13,7 +13,7 @@ import {
   FaHighlighter,
   FaImages,
 } from "react-icons/fa";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { uploadImageToServer } from "../../api/imageUpload";
 import type { Editor } from "@tiptap/react";
 
@@ -23,6 +23,9 @@ type MenuBarProps = {
 
 const MenuBar = ({ editor }: MenuBarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showGridInput, setShowGridInput] = useState(false);
+  const [gridCols, setGridCols] = useState(2);
+
   if (!editor) {
     return null;
   }
@@ -42,24 +45,29 @@ const MenuBar = ({ editor }: MenuBarProps) => {
   };
 
   const addImageGrid = () => {
+    if (gridCols < 1 || gridCols > 8) {
+      alert("Please enter a valid number between 1 and 8.");
+      return;
+    }
+
+    const imageNodes = Array.from({ length: gridCols }, () => ({
+      type: "image",
+      attrs: { src: null },
+    }));
+
     editor
       .chain()
       .focus()
       .insertContent({
         type: "imageGrid",
-        content: [
-          {
-            type: "image",
-            attrs: { src: null }, // Tworzy pierwszy pusty, klikalny obrazek
-          },
-          {
-            type: "image",
-            attrs: { src: null }, // Tworzy drugi pusty, klikalny obrazek
-          },
-        ],
+        attrs: { cols: gridCols },
+        content: imageNodes,
       })
       .run();
+
+    setShowGridInput(false);
   };
+
   return (
     <div className="menu-bar">
       <input
@@ -128,9 +136,27 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <button onClick={() => fileInputRef.current?.click()}>
         <FaImage />
       </button>
-      <button onClick={addImageGrid}>
-        <FaImages />
-      </button>
+      <div className="grid-button-wrapper">
+        <button
+          onClick={() => {
+            setShowGridInput(!showGridInput);
+          }}
+        >
+          <FaImages />
+        </button>
+        {showGridInput && (
+          <div className="grid-input-popup">
+            <label>Columns:</label>
+            <input
+              type="number"
+              value={gridCols}
+              onChange={(e) => setGridCols(Number(e.target.value))}
+              autoFocus
+            />
+            <button onClick={addImageGrid}>Create</button>
+          </div>
+        )}
+      </div>
       <button onClick={() => editor.chain().focus().undo().run()}>
         <FaUndo />
       </button>
