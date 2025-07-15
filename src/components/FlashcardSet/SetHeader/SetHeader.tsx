@@ -78,12 +78,10 @@ const SetHeader = ({
               <ul className="person-list">
                 <li className="person-item">
                   <span>Michał Jagodziński</span>
-                  {/* MODIFIED: Owner role is now plain text */}
                   <span className="owner-text">Właściciel</span>
                 </li>
                 <li className="person-item">
                   <span>Magda Brudnowska</span>
-                  {/* MODIFIED: Roles are now dropdown menus */}
                   <select className="role-select">
                     <option value="editor">Edytujący</option>
                     <option value="viewer">Wyświetlający</option>
