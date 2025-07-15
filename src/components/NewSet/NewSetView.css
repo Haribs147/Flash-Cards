@@ -132,3 +132,32 @@
   padding-left: 4px;
   letter-spacing: 0.5px;
 }
+
+.add-flashcard-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.add-flashcard-btn {
+  background-color: #e53888;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-flashcard-btn:hover {
+  background-color: #c42a72;
+}
+
+.flashcard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 30px;
+}

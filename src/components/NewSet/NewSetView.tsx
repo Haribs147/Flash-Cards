@@ -1,12 +1,50 @@
 import { Link } from "react-router-dom";
 import { FiX } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./NewSetView.css";
 import TiptapEditor from "../TipTap/TipTapEditor";
 
 const NewSetView = () => {
-  const [cardTerm, setCardTerm] = useState("");
-  const [cardDefinition, setCardDefinition] = useState("");
+  const [flashcards, setFlashcards] = useState([
+    { id: 1, term: "", definition: "" },
+  ]);
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      buttonRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [flashcards]);
+
+  const addFlashcard = () => {
+    const maxId =
+      flashcards.length > 0
+        ? Math.max(...flashcards.map((card) => card.id))
+        : 0;
+
+    const newCard = {
+      id: maxId + 1,
+      term: "",
+      definition: "",
+    };
+
+    setFlashcards([...flashcards, newCard]);
+  };
+
+  const handleCardChange = (id: number, field: string, value: string) => {
+    setFlashcards(
+      flashcards.map((card) =>
+        card.id === id ? { ...card, [field]: value } : card
+      )
+    );
+  };
+
   return (
     <div className="new-set-view">
       <div className="new-set-header">
@@ -37,26 +75,43 @@ const NewSetView = () => {
         </div>
         <div className="divider"></div>
       </div>
-      <div className="flashcard-editor-section">
-        <span className="flashcard-number">1</span>
-        <div className="flashcard-inputs">
-          <div className="editor-wrapper">
-            <TiptapEditor
-              content={cardTerm}
-              onChange={setCardTerm}
-              placeholder="Wpisz pojęcie (awers)"
-            />
-            <div className="editor-label">POJĘCIE</div>
+      <div className="flashcard-list">
+        {flashcards.map((card, index) => (
+          <div key={card.id} className="flashcard-editor-section">
+            <span className="flashcard-number">{index + 1}</span>
+            <div className="flashcard-inputs">
+              <div className="editor-wrapper">
+                <TiptapEditor
+                  content={card.term}
+                  onChange={(newContent) =>
+                    handleCardChange(card.id, "term", newContent)
+                  }
+                  placeholder="Wpisz pojęcie (awers)"
+                />
+                <div className="editor-label">POJĘCIE</div>
+              </div>
+              <div className="editor-wrapper">
+                <TiptapEditor
+                  content={card.definition}
+                  onChange={(newContent) =>
+                    handleCardChange(card.id, "term", newContent)
+                  }
+                  placeholder="Wpisz definicję (rewers)"
+                />
+                <div className="editor-label">DEFINICJA</div>
+              </div>
+            </div>
           </div>
-          <div className="editor-wrapper">
-            <TiptapEditor
-              content={cardDefinition}
-              onChange={setCardDefinition}
-              placeholder="Wpisz definicję (rewers)"
-            />
-            <div className="editor-label">DEFINICJA</div>
-          </div>
-        </div>
+        ))}
+      </div>
+      <div className="add-flashcard-wrapper">
+        <button
+          ref={buttonRef}
+          onClick={addFlashcard}
+          className="add-flashcard-btn"
+        >
+          Dodaj Fiszkę
+        </button>
       </div>
     </div>
   );
