@@ -10,15 +10,14 @@ const NewSetView = () => {
   ]);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const isInitialMount = useRef(true);
+  const scrollOnNextRender = useRef(false);
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-    } else {
+    if (scrollOnNextRender.current) {
       buttonRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
+      scrollOnNextRender.current = false;
     }
   }, [flashcards]);
 
@@ -33,6 +32,8 @@ const NewSetView = () => {
       term: "",
       definition: "",
     };
+
+    scrollOnNextRender.current = true;
 
     setFlashcards([...flashcards, newCard]);
   };
