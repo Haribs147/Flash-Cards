@@ -5,11 +5,9 @@ import SetActionButtons from "./SetActionButtons/SetActionButtons";
 import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
 
 const FlashcardSetView = () => {
-  // In a real app, you'd use this ID to fetch the actual set data
   const navigate = useNavigate();
   const { setId } = useParams();
 
-  // Placeholder data
   const set = {
     title: "Nazwa zestawu fiszek",
     description: `Opis zestawu fiszek (ID: ${setId})`,

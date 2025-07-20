@@ -2,13 +2,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import SetHeader from "./SetHeader/SetHeader";
 import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
 import ProgressBar from "./ProgressBar/ProgressBar";
-import "./FlashcardSetView.css"; // We can reuse the same layout styles
+import "./FlashcardSetView.css";
 
 const KnowledgeCheckView = () => {
   const { setId } = useParams();
   const navigate = useNavigate();
 
-  // Placeholder data
   const set = {
     title: "Nazwa zestawu fiszek",
     description: `Opis zestawu fiszek (ID: ${setId})`,
@@ -22,7 +21,7 @@ const KnowledgeCheckView = () => {
   const progress = {
     incorrect: 5,
     correct: 3,
-    total: 15, // Example total
+    total: 15,
   };
 
   return (
