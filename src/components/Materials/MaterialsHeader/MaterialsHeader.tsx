@@ -16,7 +16,7 @@ const MaterialsHeader = ({ activeTab, onTabChange }: MaterialsHeaderProps) => {
           <button
             key={tab}
             className={`tab-button ${activeTab === tab ? "active" : ""}`}
-            onClick={() => onTabChange(tab)}
+            onMouseDown={() => onTabChange(tab)}
           >
             {tab}
           </button>

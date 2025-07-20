@@ -26,7 +26,10 @@ const ActionPanel = ({
         <button className="action-btn primary" onClick={onNewFolderClick}>
           Nowy Folder
         </button>
-        <button className="action-btn secondary" onClick={handleNewSetClick}>
+        <button
+          className="action-btn secondary"
+          onMouseDown={handleNewSetClick}
+        >
           Nowy Zestaw Fiszek
         </button>
       </div>

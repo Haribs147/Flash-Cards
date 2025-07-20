@@ -22,6 +22,7 @@ const MaterialsView = () => {
   const handleNewFolder = () => {
     console.log("here logic of creating a new folder");
     if (isCreatingFolder) {
+      dispatch(setIsCreating(false));
       return;
     }
     dispatch(setIsCreating(true));

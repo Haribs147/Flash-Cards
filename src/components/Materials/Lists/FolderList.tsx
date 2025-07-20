@@ -36,7 +36,7 @@ const FolderList = ({
         <div
           key={item.id}
           className="list-item"
-          onClick={() => handleItemClick(item)}
+          onMouseDown={() => handleItemClick(item)}
         >
           <div className="item-icon">
             {item.type === "folder" ? (
