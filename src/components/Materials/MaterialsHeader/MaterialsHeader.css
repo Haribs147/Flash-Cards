@@ -29,7 +29,7 @@
 .tab-button.active {
   color: #1a1a1a;
   font-weight: 600;
-  border-bottom-color: #E53888;
+  border-bottom-color: #e53888;
 }
 
 .tab-button:hover:not(.active) {

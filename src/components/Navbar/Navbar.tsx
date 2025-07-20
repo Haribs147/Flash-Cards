@@ -1,10 +1,9 @@
-import { FiMenu } from 'react-icons/fi';
-import './Navbar.css';
+import { FiMenu } from "react-icons/fi";
+import "./Navbar.css";
 
 const Navbar = () => {
   return (
     <nav className="navbar">
-
       <div className="navbar-left">
         <button className="navbar-button">
           <FiMenu size={24} />

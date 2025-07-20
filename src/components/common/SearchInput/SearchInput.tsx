@@ -1,5 +1,5 @@
-import { FiSearch } from 'react-icons/fi';
-import './SearchInput.css';
+import { FiSearch } from "react-icons/fi";
+import "./SearchInput.css";
 
 type SearchInputProps = {
   value: string;

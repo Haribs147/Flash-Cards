@@ -41,8 +41,8 @@ const NewSetView = () => {
   const handleCardChange = (id: number, field: string, value: string) => {
     setFlashcards(
       flashcards.map((card) =>
-        card.id === id ? { ...card, [field]: value } : card
-      )
+        card.id === id ? { ...card, [field]: value } : card,
+      ),
     );
   };
 
