@@ -5,32 +5,32 @@ import SetActionButtons from "./SetActionButtons/SetActionButtons";
 import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
 
 const FlashcardSetView = () => {
-  const navigate = useNavigate();
-  const { setId } = useParams();
+    const navigate = useNavigate();
+    const { setId } = useParams();
 
-  const set = {
-    title: "Nazwa zestawu fiszek",
-    description: `Opis zestawu fiszek (ID: ${setId})`,
-    initial: "M",
-  };
+    const set = {
+        title: "Nazwa zestawu fiszek",
+        description: `Opis zestawu fiszek (ID: ${setId})`,
+        initial: "M",
+    };
 
-  const currentCard = {
-    text: "Jakiś tekst do fiszki",
-  };
+    const currentCard = {
+        text: "Jakiś tekst do fiszki",
+    };
 
-  return (
-    <div className="flashcard-set-view">
-      <SetHeader
-        title={set.title}
-        description={set.description}
-        initial={set.initial}
-        onBackClick={() => navigate(-1)}
-      />
-      <div className="divider"></div>
-      <SetActionButtons setId={setId} />
-      <FlashcardViewer cardText={currentCard.text} />
-    </div>
-  );
+    return (
+        <div className="flashcard-set-view">
+            <SetHeader
+                title={set.title}
+                description={set.description}
+                initial={set.initial}
+                onBackClick={() => navigate(-1)}
+            />
+            <div className="divider"></div>
+            <SetActionButtons setId={setId} />
+            <FlashcardViewer cardText={currentCard.text} />
+        </div>
+    );
 };
 
 export default FlashcardSetView;

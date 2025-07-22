@@ -3,9 +3,9 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { InteractiveImage } from "./InteractiveImage";
 
 export const CustomImage = Image.extend({
-  draggable: true,
+    draggable: true,
 
-  addNodeView() {
-    return ReactNodeViewRenderer(InteractiveImage);
-  },
+    addNodeView() {
+        return ReactNodeViewRenderer(InteractiveImage);
+    },
 });

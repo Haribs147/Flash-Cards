@@ -1,25 +1,25 @@
 .shared-actions {
-  margin-left: auto; /* Przesuwa przyciski na prawą stronę */
-  display: flex;
-  gap: 8px;
+    margin-left: auto; /* Przesuwa przyciski na prawą stronę */
+    display: flex;
+    gap: 8px;
 }
 
 .shared-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
 }
 
 .shared-btn.accept {
-  background-color: #28a745; /* Zielony */
+    background-color: #28a745; /* Zielony */
 }
 
 .shared-btn.reject {
-  background-color: #dc3545; /* Czerwony */
+    background-color: #dc3545; /* Czerwony */
 }

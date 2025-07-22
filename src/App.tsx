@@ -9,23 +9,26 @@ import FlashcardSetView from "./components/FlashcardSet/FlashcardSetView";
 import KnowledgeCheckView from "./components/FlashcardSet/KnowledgeCheckView";
 
 function App() {
-  const [activePage, setActivePage] = useState("home");
+    const [activePage, setActivePage] = useState("home");
 
-  return (
-    <div className="App">
-      <Navbar />
-      <Sidebar activeItem={activePage} onItemClick={setActivePage} />
+    return (
+        <div className="App">
+            <Navbar />
+            <Sidebar activeItem={activePage} onItemClick={setActivePage} />
 
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<MaterialsView />} />
-          <Route path="/new-set" element={<NewSetView />} />
-          <Route path="/set/:setId" element={<FlashcardSetView />} />
-          <Route path="/set/:setId/check" element={<KnowledgeCheckView />} />
-        </Routes>
-      </main>
-    </div>
-  );
+            <main className="main-content">
+                <Routes>
+                    <Route path="/" element={<MaterialsView />} />
+                    <Route path="/new-set" element={<NewSetView />} />
+                    <Route path="/set/:setId" element={<FlashcardSetView />} />
+                    <Route
+                        path="/set/:setId/check"
+                        element={<KnowledgeCheckView />}
+                    />
+                </Routes>
+            </main>
+        </div>
+    );
 }
 
 export default App;
