@@ -2,41 +2,52 @@ import { FiFolder, FiFileText } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import "./FolderList.css";
 import NewFolderInput from "../CreateFolderButton/CreateFolder";
-import type { MaterialItem } from "../../../features/materials/materialsSlice";
+import {
+    setCurrentFolderId,
+    type MaterialItem,
+} from "../../../features/materials/materialsSlice";
+import { useAppDispatch } from "../../../app/hooks";
 
 type FolderListProps = {
-    items: MaterialItem[];
-    searchTerm: string;
+    filteredItems: MaterialItem[];
     isCreating: boolean;
     onCreate: (name: string) => void;
 };
 
 const FolderList = ({
-    items,
-    searchTerm,
+    filteredItems,
     isCreating,
     onCreate,
 }: FolderListProps) => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
     const handleItemClick = (item: MaterialItem) => {
         if (item.type === "set") {
             navigate(`/set/${item.id}`);
+        } else {
+            dispatch(setCurrentFolderId(item.id));
         }
     };
 
-    const filteredItems = items.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    const handleDragStart = (
+        e: React.DragEvent<HTMLDivElement>,
+        itemId: string,
+    ) => {
+        e.dataTransfer.setData("text/plain", itemId);
+    };
+
     return (
         <div className="item-list">
             {isCreating && <NewFolderInput onCreate={onCreate} />}
 
             {filteredItems.map((item) => (
                 <div
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(e, item.id)}
                     key={item.id}
                     className="list-item"
-                    onMouseDown={() => handleItemClick(item)}
+                    onClick={() => handleItemClick(item)}
                 >
                     <div className="item-icon">
                         {item.type === "folder" ? (

@@ -5,14 +5,13 @@ import {
     moveItem,
 } from "../../../features/materials/materialsSlice";
 import "./Breadcrumbs.css";
-import { current } from "@reduxjs/toolkit";
 
 const BreadcrumbsSegment = ({
     id,
     name,
     isLast,
 }: {
-    id: string;
+    id: string | null;
     name: string;
     isLast: boolean;
 }) => {
@@ -24,7 +23,7 @@ const BreadcrumbsSegment = ({
         setIsOver(true);
     };
 
-    const handleDragLeave = (e: React.DragEvent<HTMLSpanElement>) => {
+    const handleDragLeave = () => {
         setIsOver(false);
     };
 
@@ -45,7 +44,7 @@ const BreadcrumbsSegment = ({
 
     return (
         <span
-            className={}
+            className={`breadcrumb-segment ${isLast ? "active" : ""} ${isOver ? "drop-target" : ""}`}
             onClick={handleClick}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -83,7 +82,20 @@ const Breadcrumbs = () => {
         return path;
     }, [items, currentFolderId]);
 
-    return <div></div>;
+    return (
+        <nav className="breadcrumbs-nav">
+            {breadcrumbPath.map((crumb, index) => (
+                <span key={crumb.id || "root"}>
+                    <BreadcrumbsSegment
+                        id={crumb.id}
+                        name={crumb.name}
+                        isLast={index === breadcrumbPath.length - 1}
+                    />
+                    {index < breadcrumbPath.length - 1 && " / "}
+                </span>
+            ))}
+        </nav>
+    );
 };
 
 export default Breadcrumbs;

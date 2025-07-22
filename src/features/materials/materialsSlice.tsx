@@ -18,7 +18,7 @@ interface MaterialsState {
 }
 
 const initialItems: MaterialItem[] = [
-    { id: "f1", type: "folder", name: "Folder 1", parentId: null },
+    { id: "f1", type: "folder", name: "Folder 1", parentId: "f2" },
     { id: "f2", type: "folder", name: "Folder 2", parentId: null },
     { id: "f3", type: "folder", name: "Folder 3", parentId: null },
     { id: "s1", type: "set", name: "Fiszki 1", parentId: null },

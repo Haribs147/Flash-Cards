@@ -12,12 +12,12 @@ import {
     setIsCreating,
     setSearchTerm,
 } from "../../features/materials/materialsSlice";
+import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
 
 const MaterialsView = () => {
     const dispatch = useAppDispatch();
-    const { items, activeTab, searchTerm, isCreatingFolder } = useAppSelector(
-        (state) => state.materials,
-    );
+    const { items, activeTab, searchTerm, isCreatingFolder, currentFolderId } =
+        useAppSelector((state) => state.materials);
 
     const handleNewFolder = () => {
         console.log("here logic of creating a new folder");
@@ -31,6 +31,12 @@ const MaterialsView = () => {
     const handleCreateFolder = (folderName: string) => {
         dispatch(addFolder(folderName));
     };
+
+    const filteredItems = items
+        .filter((item) => currentFolderId === item.parentId)
+        .filter((item) =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
 
     const getSearchPlaceholder = () => {
         switch (activeTab) {
@@ -79,8 +85,7 @@ const MaterialsView = () => {
             default:
                 return (
                     <FolderList
-                        items={items}
-                        searchTerm={searchTerm}
+                        filteredItems={filteredItems}
                         isCreating={isCreatingFolder}
                         onCreate={handleCreateFolder}
                     />
@@ -95,6 +100,7 @@ const MaterialsView = () => {
                 onTabChange={(tab) => dispatch(setActiveTab(tab))}
             />
             {renderActionPanel()}
+            <Breadcrumbs />
             {renderList()}
         </div>
     );
