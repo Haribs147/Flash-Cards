@@ -16,6 +16,7 @@ type FolderListProps = {
     onCreate: (name: string) => void;
     setDraggedItemId: (id: string) => void;
     draggedItemId: string;
+    setDraggedItemParentId: (parentId: string | null) => void;
 };
 
 const FolderListItem = ({
@@ -26,7 +27,7 @@ const FolderListItem = ({
 }: {
     item: MaterialItem;
     onClick: (item: MaterialItem) => void;
-    onDragStart: (itemId: string) => void;
+    onDragStart: (item: MaterialItem) => void;
     draggedItemId: string;
 }) => {
     const [isOver, setIsOver] = useState(false);
@@ -59,7 +60,7 @@ const FolderListItem = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDragDrop}
-            onDragStart={() => onDragStart(item.id)}
+            onDragStart={() => onDragStart(item)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
             onClick={() => onClick(item)}
@@ -82,6 +83,7 @@ const FolderList = ({
     onCreate,
     setDraggedItemId,
     draggedItemId,
+    setDraggedItemParentId,
 }: FolderListProps) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -94,8 +96,9 @@ const FolderList = ({
         }
     };
 
-    const handleDragStart = (itemId: string) => {
-        setDraggedItemId(itemId);
+    const handleDragStart = (item: MaterialItem) => {
+        setDraggedItemId(item.id);
+        setDraggedItemParentId(item.parentId);
     };
 
     return (

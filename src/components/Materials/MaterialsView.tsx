@@ -21,6 +21,9 @@ const MaterialsView = () => {
         useAppSelector((state) => state.materials);
 
     const [draggedItemId, setDraggedItemId] = useState("");
+    const [draggedItemParentId, setDraggedItemParentId] = useState<
+        string | null
+    >("");
 
     const handleNewFolder = () => {
         console.log("here logic of creating a new folder");
@@ -93,6 +96,7 @@ const MaterialsView = () => {
                         onCreate={handleCreateFolder}
                         setDraggedItemId={setDraggedItemId}
                         draggedItemId={draggedItemId}
+                        setDraggedItemParentId={setDraggedItemParentId}
                     />
                 );
         }
@@ -105,7 +109,10 @@ const MaterialsView = () => {
                 onTabChange={(tab) => dispatch(setActiveTab(tab))}
             />
             {renderActionPanel()}
-            <Breadcrumbs draggedItemId={draggedItemId} />
+            <Breadcrumbs
+                draggedItemId={draggedItemId}
+                draggedItemParentId={draggedItemParentId}
+            />
             {renderList()}
         </div>
     );

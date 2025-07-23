@@ -11,18 +11,22 @@ const BreadcrumbsSegment = ({
     name,
     isLast,
     draggedItemId,
+    draggedItemParentId,
 }: {
     id: string | null;
+    draggedItemId: string | null;
     name: string;
     isLast: boolean;
-    draggedItemId: string;
+    draggedItemParentId: string | null;
 }) => {
     const dispatch = useAppDispatch();
     const [isOver, setIsOver] = useState(false);
 
     const handleDragOver = (e: React.DragEvent<HTMLSpanElement>) => {
         e.preventDefault();
-        setIsOver(true);
+        if (id != draggedItemParentId) {
+            setIsOver(true);
+        }
     };
 
     const handleDragLeave = () => {
@@ -56,7 +60,13 @@ const BreadcrumbsSegment = ({
     );
 };
 
-const Breadcrumbs = ({ draggedItemId }: { draggedItemId: string }) => {
+const Breadcrumbs = ({
+    draggedItemId,
+    draggedItemParentId,
+}: {
+    draggedItemId: string;
+    draggedItemParentId: string | null;
+}) => {
     const { items, currentFolderId } = useAppSelector(
         (state) => state.materials,
     );
@@ -92,6 +102,7 @@ const Breadcrumbs = ({ draggedItemId }: { draggedItemId: string }) => {
                         name={crumb.name}
                         isLast={index === breadcrumbPath.length - 1}
                         draggedItemId={draggedItemId}
+                        draggedItemParentId={draggedItemParentId}
                     />
                     {index < breadcrumbPath.length - 1 && " / "}
                 </span>
