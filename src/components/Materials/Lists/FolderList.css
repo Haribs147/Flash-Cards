@@ -29,3 +29,8 @@
     font-size: 16px;
     color: #333;
 }
+
+.list-item.drop-target {
+    border: 2px dashed #e53888;
+    background-color: #fdf4f8;
+}
