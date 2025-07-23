@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 32px;
+    margin-top: 24px;
 }
 
 .list-item {
@@ -31,7 +31,7 @@
 }
 
 .list-item.drop-target {
-    border: 2px dashed #e53888;
+    outline: 2px dashed #e53888;
     background-color: #fdf4f8;
 }
 

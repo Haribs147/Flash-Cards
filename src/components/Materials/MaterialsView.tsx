@@ -109,10 +109,12 @@ const MaterialsView = () => {
                 onTabChange={(tab) => dispatch(setActiveTab(tab))}
             />
             {renderActionPanel()}
-            <Breadcrumbs
-                draggedItemId={draggedItemId}
-                draggedItemParentId={draggedItemParentId}
-            />
+            {activeTab === "Foldery" && (
+                <Breadcrumbs
+                    draggedItemId={draggedItemId}
+                    draggedItemParentId={draggedItemParentId}
+                />
+            )}
             {renderList()}
         </div>
     );
