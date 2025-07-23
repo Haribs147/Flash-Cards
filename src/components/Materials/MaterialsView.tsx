@@ -13,11 +13,14 @@ import {
     setSearchTerm,
 } from "../../features/materials/materialsSlice";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
+import { useState } from "react";
 
 const MaterialsView = () => {
     const dispatch = useAppDispatch();
     const { items, activeTab, searchTerm, isCreatingFolder, currentFolderId } =
         useAppSelector((state) => state.materials);
+
+    const [draggedItemId, setDraggedItemId] = useState("");
 
     const handleNewFolder = () => {
         console.log("here logic of creating a new folder");
@@ -88,6 +91,8 @@ const MaterialsView = () => {
                         filteredItems={filteredItems}
                         isCreating={isCreatingFolder}
                         onCreate={handleCreateFolder}
+                        setDraggedItemId={setDraggedItemId}
+                        draggedItemId={draggedItemId}
                     />
                 );
         }
@@ -100,7 +105,7 @@ const MaterialsView = () => {
                 onTabChange={(tab) => dispatch(setActiveTab(tab))}
             />
             {renderActionPanel()}
-            <Breadcrumbs />
+            <Breadcrumbs draggedItemId={draggedItemId} />
             {renderList()}
         </div>
     );

@@ -34,3 +34,8 @@
     border: 2px dashed #e53888;
     background-color: #fdf4f8;
 }
+
+.list-item .item-icon,
+.list-item .item-name {
+    pointer-events: none;
+}

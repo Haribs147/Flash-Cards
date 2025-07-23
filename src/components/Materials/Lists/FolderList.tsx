@@ -14,16 +14,20 @@ type FolderListProps = {
     filteredItems: MaterialItem[];
     isCreating: boolean;
     onCreate: (name: string) => void;
+    setDraggedItemId: (id: string) => void;
+    draggedItemId: string;
 };
 
 const FolderListItem = ({
     item,
     onClick,
     onDragStart,
+    draggedItemId,
 }: {
     item: MaterialItem;
     onClick: (item: MaterialItem) => void;
-    onDragStart: (e: React.DragEvent<HTMLDivElement>, itemId: string) => void;
+    onDragStart: (itemId: string) => void;
+    draggedItemId: string;
 }) => {
     const [isOver, setIsOver] = useState(false);
     const dispatch = useAppDispatch();
@@ -31,7 +35,6 @@ const FolderListItem = ({
     const handleDragDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsOver(false);
-        const draggedItemId = e.dataTransfer.getData("text/plain");
         if (item.type === "folder" && item.id != draggedItemId) {
             dispatch(
                 moveItem({ itemId: draggedItemId, targetFolderId: item.id }),
@@ -41,11 +44,7 @@ const FolderListItem = ({
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const draggedItemId = e.dataTransfer.getData("text/plain");
         if (item.type === "folder" && item.id != draggedItemId) {
-            console.log(
-                "item.id = " + item.id + "draggedItemId = " + draggedItemId,
-            );
             setIsOver(true);
         }
     };
@@ -60,7 +59,7 @@ const FolderListItem = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDragDrop}
-            onDragStart={(e) => onDragStart(e, item.id)}
+            onDragStart={() => onDragStart(item.id)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
             onClick={() => onClick(item)}
@@ -81,6 +80,8 @@ const FolderList = ({
     filteredItems,
     isCreating,
     onCreate,
+    setDraggedItemId,
+    draggedItemId,
 }: FolderListProps) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -93,11 +94,8 @@ const FolderList = ({
         }
     };
 
-    const handleDragStart = (
-        e: React.DragEvent<HTMLDivElement>,
-        itemId: string,
-    ) => {
-        e.dataTransfer.setData("text/plain", itemId);
+    const handleDragStart = (itemId: string) => {
+        setDraggedItemId(itemId);
     };
 
     return (
@@ -109,6 +107,7 @@ const FolderList = ({
                     item={item}
                     onClick={handleItemClick}
                     onDragStart={handleDragStart}
+                    draggedItemId={draggedItemId}
                 />
             ))}
         </div>
