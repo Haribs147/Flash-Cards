@@ -6,8 +6,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import MenuBar from "./MenuBar";
 import { CustomImage } from "./custom-image-extension";
 import { ImageGrid } from "./image-grid-extension";
-
-import "./TiptapEditor.css";
+import "./TipTapEditor.css";
 
 type TiptapEditorProps = {
     content: string;

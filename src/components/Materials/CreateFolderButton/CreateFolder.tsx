@@ -23,10 +23,6 @@ const NewFolderInput = ({ onCreate }: NewFolderInputProps) => {
         }
     };
 
-    const handleBlur = () => {
-        onCreate("");
-    };
-
     return (
         <div className="list-item new-item">
             <div className="item-icon">
@@ -38,7 +34,6 @@ const NewFolderInput = ({ onCreate }: NewFolderInputProps) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onBlur={handleBlur}
                 placeholder="Wpisz nazwę folderu i naciśnij Enter"
                 className="new-item-input"
             />

@@ -25,6 +25,7 @@ const ActionPanel = ({
             <div className="action-buttons">
                 <button
                     className="action-btn primary"
+                    id="new-folder-button"
                     onClick={onNewFolderClick}
                 >
                     Nowy Folder

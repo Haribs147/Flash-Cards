@@ -9,14 +9,18 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
     addFolder,
     setActiveTab,
+    setCurrentFolderId,
     setIsCreating,
     setSearchTerm,
+    type MaterialItem,
 } from "../../features/materials/materialsSlice";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const MaterialsView = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
     const { items, activeTab, searchTerm, isCreatingFolder, currentFolderId } =
         useAppSelector((state) => state.materials);
 
@@ -37,6 +41,53 @@ const MaterialsView = () => {
     const handleCreateFolder = (folderName: string) => {
         dispatch(addFolder(folderName));
     };
+
+    const handleItemClick = (type: string, id: string) => {
+        if (type === "set") {
+            navigate(`/set/${id}`);
+        } else {
+            dispatch(setCurrentFolderId(id));
+        }
+    };
+
+    // Use effect to handle creating folder button onBlur
+    useEffect(() => {
+        const handleGlobalMouseDown = (event: MouseEvent) => {
+            if (!isCreatingFolder) {
+                return;
+            }
+
+            const target = event.target as HTMLElement;
+            const clickedItemDiv = target.closest<HTMLElement>(
+                ".list-item:not(.new-item)",
+            );
+
+            if (clickedItemDiv) {
+                const id = clickedItemDiv.dataset.id;
+                const type = clickedItemDiv.dataset.type;
+                console.log("id = " + id);
+                console.log("type = " + type);
+                if (id && type) {
+                    handleItemClick(type, id);
+                }
+            }
+
+            if (target.closest("#new-folder-button")) {
+                return;
+            }
+
+            if (target.closest(".new-item")) {
+                return;
+            }
+
+            dispatch(setIsCreating(false));
+        };
+        document.addEventListener("mousedown", handleGlobalMouseDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handleGlobalMouseDown);
+        };
+    }, [isCreatingFolder, dispatch]);
 
     const filteredItems = items
         .filter((item) => currentFolderId === item.parentId)
@@ -97,6 +148,7 @@ const MaterialsView = () => {
                         setDraggedItemId={setDraggedItemId}
                         draggedItemId={draggedItemId}
                         setDraggedItemParentId={setDraggedItemParentId}
+                        handleItemClick={handleItemClick}
                     />
                 );
         }

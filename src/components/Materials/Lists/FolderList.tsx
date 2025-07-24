@@ -17,16 +17,17 @@ type FolderListProps = {
     setDraggedItemId: (id: string) => void;
     draggedItemId: string;
     setDraggedItemParentId: (parentId: string | null) => void;
+    handleItemClick: (type: string, id: string) => void;
 };
 
 const FolderListItem = ({
     item,
-    onClick,
+    handleItemClick,
     onDragStart,
     draggedItemId,
 }: {
     item: MaterialItem;
-    onClick: (item: MaterialItem) => void;
+    handleItemClick: (type: string, id: string) => void;
     onDragStart: (item: MaterialItem) => void;
     draggedItemId: string;
 }) => {
@@ -63,7 +64,9 @@ const FolderListItem = ({
             onDragStart={() => onDragStart(item)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
-            onClick={() => onClick(item)}
+            onClick={() => handleItemClick(item.type, item.id)}
+            data-id={item.id}
+            data-type={item.type}
         >
             <div className="item-icon">
                 {item.type === "folder" ? (
@@ -84,18 +87,8 @@ const FolderList = ({
     setDraggedItemId,
     draggedItemId,
     setDraggedItemParentId,
+    handleItemClick,
 }: FolderListProps) => {
-    const navigate = useNavigate();
-    const dispatch = useAppDispatch();
-
-    const handleItemClick = (item: MaterialItem) => {
-        if (item.type === "set") {
-            navigate(`/set/${item.id}`);
-        } else {
-            dispatch(setCurrentFolderId(item.id));
-        }
-    };
-
     const handleDragStart = (item: MaterialItem) => {
         setDraggedItemId(item.id);
         setDraggedItemParentId(item.parentId);
@@ -108,7 +101,7 @@ const FolderList = ({
             {filteredItems.map((item) => (
                 <FolderListItem
                     item={item}
-                    onClick={handleItemClick}
+                    handleItemClick={handleItemClick}
                     onDragStart={handleDragStart}
                     draggedItemId={draggedItemId}
                 />
