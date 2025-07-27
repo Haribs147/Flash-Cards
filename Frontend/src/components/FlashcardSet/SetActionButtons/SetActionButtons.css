@@ -1,0 +1,20 @@
+.set-main-actions {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0 32px;
+    align-self: stretch;
+}
+.action-btn-pink {
+    width: 200px;
+    background-color: #f6c7dd;
+    color: black;
+    border: 1px solid #e53888;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.action-btn-pink:hover {
+    background-color: #fd9bc8;
+}
