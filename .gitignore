@@ -30,3 +30,4 @@ __pycache__/
 .env
 
 databasechangelog.csv
+liquibase.properties
