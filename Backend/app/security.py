@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -15,7 +15,6 @@ PEPPER = settings.PEPPER
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -33,12 +32,16 @@ def create_acces_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+def get_current_user(request: Request, db: Session = Depends(get_db)):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+        token = request.cookies.get("acces_token")
+        if token is None:
+             raise credentials_exception
+
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")

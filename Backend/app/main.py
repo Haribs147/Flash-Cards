@@ -1,9 +1,13 @@
 from typing import Annotated
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_csrf_protect import CsrfProtect
+from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+
+from .config import settings
 
 from .database import SessionLocal, User, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
@@ -12,6 +16,17 @@ from .security import get_password_hash, verify_password, create_acces_token, ge
 app = FastAPI(title="Flashcard_backend")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
+
+class CsrfSettings(BaseModel):
+    secret_key: str = settings.CSRF_SECRET_KEY
+
+@CsrfProtect.load_config
+def get_csrf_config():
+    return CsrfSettings()
+
+@app.exception_handler(CsrfProtectError)
+def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
+    return Response(status_code=exc.status_code, content=exc.message)
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -36,7 +51,9 @@ def is_password_strong(password: str):
         return False
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+def register_user(user_in: UserCreate, db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):
+    #csrf_protect.validate_csrf(Request)
+    
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -50,15 +67,21 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "User registered successfully"}
 
-@app.post("/login", response_model=Token)
-def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == form_data.email).first()
+@app.post("/login")
+def login_for_access_token(response: Response, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):
+    db_user = db.query(User).filter(User.email == form_data.username).first()
 
     if not db_user or not verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorecct email or password")
     
     access_token = create_acces_token(data={"sub": db_user.email})
-    return{"access_token": access_token, "token_type": "bearer"}
+
+    csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=1800)
+    
+    csrf_protect.set_csrf_cookie(signed_csrf_token, response)
+
+    return{"message": "Login succesfull", "csrf_token": csrf_token}
 
 @app.get("/users/me", response_model=UserCreate)
 def read_users_me(current_user: User= Depends(get_current_user)):
