@@ -40,7 +40,7 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    if is_password_strong(user_in.password):
+    if not is_password_strong(user_in.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is not stron enough, it must be at least 8 characters long and contain: upper letter, lower letter, number and special character")
 
     hashed_password = get_password_hash(user_in.password)
