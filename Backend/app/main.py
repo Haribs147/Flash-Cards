@@ -51,7 +51,7 @@ def is_password_strong(password: str):
         return False
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):    
+def register_user(response: Response, user_in: UserCreate, db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):    
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -63,7 +63,13 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db), csrf_prote
 
     db.add(new_user)
     db.commit()
-    return {"message": "User registered successfully"}
+
+    access_token = create_acces_token(data={"sub", new_user.email})
+    csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="lax", max_age=1800)
+    csrf_protect.set_csrf_cookie(signed_csrf_token, response)
+
+    return {"message": "User registered successfully", "csrf_token": csrf_token}
 
 @app.post("/login")
 def login_for_access_token(response: Response, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):
