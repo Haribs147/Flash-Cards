@@ -38,7 +38,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        token = request.cookies.get("acces_token")
+        token = request.cookies.get("access_token")
         if token is None:
              raise credentials_exception
 
