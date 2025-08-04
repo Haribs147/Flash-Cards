@@ -15,7 +15,7 @@ from .security import get_password_hash, verify_password, create_acces_token, ge
 
 app = FastAPI(title="Flashcard_backend")
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
 
 class CsrfSettings(BaseModel):
     secret_key: str = settings.CSRF_SECRET_KEY
@@ -49,6 +49,7 @@ def is_password_strong(password: str):
         return False
     if not any (char in special_characters for char in password):
         return False
+    return True
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(response: Response, user_in: UserCreate, db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):    
@@ -64,7 +65,7 @@ def register_user(response: Response, user_in: UserCreate, db: Session = Depends
     db.add(new_user)
     db.commit()
 
-    access_token = create_acces_token(data={"sub", new_user.email})
+    access_token = create_acces_token(data={"sub": new_user.email})
     csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="lax", max_age=1800)
     csrf_protect.set_csrf_cookie(signed_csrf_token, response)
