@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import FastAPI, Depends, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -36,28 +36,30 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-def is_password_strong(password: str):
+def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
 
     if len(password) < 8:
-        return False
+        return "Hasło musi mieć co najmniej 8 znaków."
     if not any (char.isdigit() for char in password):
-        return False
+        return "Hasło musi zawierać co najmniej jedną cyfrę."
     if not any (char.isupper() for char in password):
-        return False
+        return "Hasło musi zawierać co najmniej jedną wielką literę."
     if not any (char.islower() for char in password):
-        return False
+        return "Hasło musi zawierać co najmniej jedną małą literę."
     if not any (char in special_characters for char in password):
-        return False
-    return True
+        return "Hasło musi zawierać co najmniej jeden znak specjalny."
+    return None
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(response: Response, user_in: UserCreate, db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):    
     db_user = db.query(User).filter(User.email == user_in.email).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    if not is_password_strong(user_in.password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is not stron enough, it must be at least 8 characters long and contain: upper letter, lower letter, number and special character")
+        raise HTTPException(status_code=400, detail="Email zajęty")
+    
+    password_error = validate_password(user_in.password)
+    if password_error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=password_error)
 
     hashed_password = get_password_hash(user_in.password)
     new_user = User(email=user_in.email, password=hashed_password)
@@ -77,7 +79,7 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
     db_user = db.query(User).filter(User.email == form_data.username).first()
 
     if not db_user or not verify_password(form_data.password, db_user.password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorecct email or password")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nieprawidłowy email lub hasło")
     
     access_token = create_acces_token(data={"sub": db_user.email})
 
