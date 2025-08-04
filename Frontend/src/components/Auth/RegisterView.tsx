@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../../features/auth/authSlice";
+import { clearAuthError, registerUser } from "../../features/auth/authSlice";
 import "./Auth.css";
 
 const RegisterView = () => {
@@ -11,6 +11,13 @@ const RegisterView = () => {
     const navigate = useNavigate();
 
     const { isAuthenticated, error } = useAppSelector((state) => state.auth);
+
+    useEffect(() => {
+        return () => {
+            dispatch(clearAuthError());
+        };
+    }, [dispatch]);
+
     useEffect(() => {
         if (isAuthenticated) {
             navigate("/");

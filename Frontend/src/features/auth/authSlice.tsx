@@ -93,10 +93,18 @@ export const authSlice = createSlice({
             state.csrfToken = action.payload;
             setCsrfHeader(action.payload);
         },
+        clearAuthError: (state) => {
+            state.error = null;
+        },
     },
     extraReducers: (builder) => {
         builder
             .addCase(loginUser.rejected, (state: AuthState, action) => {
+                state.error = action.payload as string;
+            })
+            .addCase(registerUser.rejected, (state: AuthState, action) => {
+                state.isAuthenticated = false;
+                state.user = null;
                 state.error = action.payload as string;
             })
             .addCase(
@@ -120,5 +128,5 @@ export const authSlice = createSlice({
     },
 });
 
-export const { setCsrfToken } = authSlice.actions;
+export const { setCsrfToken, clearAuthError } = authSlice.actions;
 export default authSlice.reducer;
