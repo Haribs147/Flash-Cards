@@ -25,7 +25,7 @@ const LoginView = () => {
     return (
         <div className="auth-container">
             <form className="auth-form" onSubmit={handleSubmit}>
-                <h1>Login</h1>
+                <h1>Logowanie</h1>
                 <div className="input-group">
                     <input
                         type="email"
@@ -50,11 +50,11 @@ const LoginView = () => {
                 </div>
                 {error && <p className="error-message">{error}</p>}
                 <button type="submit" className="auth-button">
-                    Login
+                    Zaloguj się
                 </button>
                 <p className="auth-link">
-                    Don't have an account?{" "}
-                    <Link to="/register">Register here</Link>
+                    Nie masz konta?{" "}
+                    <Link to="/register">Zarejstruj się tutaj</Link>
                 </p>
             </form>
         </div>

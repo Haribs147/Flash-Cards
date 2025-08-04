@@ -25,7 +25,7 @@ const RegisterView = () => {
     return (
         <div className="auth-container">
             <form className="auth-form" onSubmit={handleSubmit}>
-                <h1>Register</h1>
+                <h1>Rejstracja</h1>
                 <div className="input-group">
                     <input
                         type="email"
@@ -50,10 +50,11 @@ const RegisterView = () => {
                 </div>
                 {error && <p className="error-message">{error}</p>}
                 <button type="submit" className="auth-button">
-                    Register
+                    Zarejstruj się
                 </button>
                 <p className="auth-link">
-                    Already have an account? <Link to="/login">Login here</Link>
+                    Posiadasz już konto?{" "}
+                    <Link to="/login">Zaloguj się tutaj</Link>
                 </p>
             </form>
         </div>
