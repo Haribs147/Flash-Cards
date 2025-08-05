@@ -31,6 +31,15 @@ def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    repeatPassword: str
+
+class UserOut(BaseModel):
+    email: EmailStr
+
+class LoginResponse(BaseModel):
+    message: str
+    csrf_token: str
+    user: UserOut
 
 class Token(BaseModel):
     access_token: str
@@ -57,6 +66,9 @@ def register_user(response: Response, user_in: UserCreate, db: Session = Depends
     if db_user:
         raise HTTPException(status_code=400, detail="Email zajęty")
     
+    if user_in.password != user_in.repeatPassword:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Hasła się różnią")
+
     password_error = validate_password(user_in.password)
     if password_error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=password_error)
@@ -74,7 +86,7 @@ def register_user(response: Response, user_in: UserCreate, db: Session = Depends
 
     return {"message": "User registered successfully", "csrf_token": csrf_token}
 
-@app.post("/login")
+@app.post("/login", response_model=LoginResponse)
 def login_for_access_token(response: Response, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db), csrf_protect: CsrfProtect = Depends()):
     db_user = db.query(User).filter(User.email == form_data.username).first()
 
@@ -88,8 +100,8 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
     
     csrf_protect.set_csrf_cookie(signed_csrf_token, response)
 
-    return{"message": "Login succesfull", "csrf_token": csrf_token}
+    return{"message": "Login succesfull", "csrf_token": csrf_token, "user": db_user}
 
-@app.get("/users/me", response_model=UserCreate)
+@app.get("/users/me", response_model=UserOut)
 def read_users_me(current_user: User= Depends(get_current_user)):
     return current_user

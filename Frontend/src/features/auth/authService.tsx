@@ -1,15 +1,21 @@
 import axios from "axios";
 
-export interface UserCredentials {
+export interface LoginCredentials {
     email: string;
     password: string;
+}
+
+export interface RegisterCredentials {
+    email: string;
+    password: string;
+    repeatPassword: string;
 }
 
 const API_URL = "http://localhost:8000";
 
 axios.defaults.withCredentials = true;
 
-export const loginUserApi = async (credentials: UserCredentials) => {
+export const loginUserApi = async (credentials: LoginCredentials) => {
     const params = new URLSearchParams();
     params.append("username", credentials.email);
     params.append("password", credentials.password);
@@ -18,10 +24,11 @@ export const loginUserApi = async (credentials: UserCredentials) => {
     return respone.data;
 };
 
-export const registerUserApi = async (credentails: UserCredentials) => {
+export const registerUserApi = async (credentails: RegisterCredentials) => {
     const response = await axios.post(`${API_URL}/register`, {
         email: credentails.email,
         password: credentails.password,
+        repeatPassword: credentails.repeatPassword,
     });
     return response.data;
 };

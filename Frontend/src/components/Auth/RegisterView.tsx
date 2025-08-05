@@ -7,6 +7,8 @@ import "./Auth.css";
 const RegisterView = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [repeatPassword, setRepeatPassword] = useState("");
+
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
@@ -26,7 +28,7 @@ const RegisterView = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch(registerUser({ email, password }));
+        dispatch(registerUser({ email, password, repeatPassword }));
     };
 
     return (
@@ -51,7 +53,18 @@ const RegisterView = () => {
                         className="auth-input"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
+                        placeholder="Hasło"
+                        required
+                    />
+                </div>
+                <div className="input-group">
+                    <input
+                        type="password"
+                        id="password"
+                        className="auth-input"
+                        value={repeatPassword}
+                        onChange={(e) => setRepeatPassword(e.target.value)}
+                        placeholder="Powtórz hasło"
                         required
                     />
                 </div>

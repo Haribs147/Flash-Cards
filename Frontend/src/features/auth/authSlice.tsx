@@ -9,7 +9,8 @@ import {
     logoutUserApi,
     registerUserApi,
     setCsrfHeader,
-    type UserCredentials,
+    type LoginCredentials,
+    type RegisterCredentials,
 } from "./authService";
 
 interface User {
@@ -32,12 +33,11 @@ const initialState: AuthState = {
 
 export const loginUser = createAsyncThunk(
     "auth/login",
-    async (credentials: UserCredentials, { dispatch, rejectWithValue }) => {
+    async (credentials: LoginCredentials, { dispatch, rejectWithValue }) => {
         try {
             const data = await loginUserApi(credentials);
             dispatch(setCsrfToken(data.csrf_token));
-            await dispatch(checkAuthStatus());
-            return data;
+            return data.user;
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.detail || "Login failed",
@@ -48,7 +48,7 @@ export const loginUser = createAsyncThunk(
 
 export const registerUser = createAsyncThunk(
     "auth/register",
-    async (credentials: UserCredentials, { dispatch, rejectWithValue }) => {
+    async (credentials: RegisterCredentials, { dispatch, rejectWithValue }) => {
         try {
             const data = await registerUserApi(credentials);
             dispatch(setCsrfToken(data.csrf_token));
@@ -99,6 +99,14 @@ export const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(
+                loginUser.fulfilled,
+                (state: AuthState, action: PayloadAction<User>) => {
+                    state.isAuthenticated = true;
+                    state.user = action.payload;
+                    state.error = null;
+                },
+            )
             .addCase(loginUser.rejected, (state: AuthState, action) => {
                 state.error = action.payload as string;
             })
