@@ -41,10 +41,17 @@ const AppChildren = () => {
 
 function App() {
     const dispatch = useAppDispatch();
+    const authStatus = useAppSelector((state) => state.auth.status);
 
     useEffect(() => {
-        dispatch(checkAuthStatus());
-    }, [dispatch]);
+        if (authStatus == "idle") {
+            dispatch(checkAuthStatus());
+        }
+    }, [authStatus, dispatch]);
+
+    if (authStatus == "loading" || authStatus == "idle") {
+        return <div className="App"></div>;
+    }
 
     return (
         <div className="App">

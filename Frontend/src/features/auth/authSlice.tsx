@@ -22,6 +22,7 @@ interface AuthState {
     isAuthenticated: boolean;
     csrfToken: string | null;
     error: string | null;
+    status: "idle" | "loading" | "succeded" | "failed";
 }
 
 const initialState: AuthState = {
@@ -29,6 +30,7 @@ const initialState: AuthState = {
     isAuthenticated: false,
     csrfToken: null,
     error: null,
+    status: "idle",
 };
 
 export const loginUser = createAsyncThunk(
@@ -121,11 +123,16 @@ export const authSlice = createSlice({
                     state.isAuthenticated = true;
                     state.user = action.payload;
                     state.error = null;
+                    state.status = "succeded";
                 },
             )
+            .addCase(checkAuthStatus.pending, (state: AuthState) => {
+                state.status = "loading";
+            })
             .addCase(checkAuthStatus.rejected, (state: AuthState) => {
                 state.isAuthenticated = false;
                 state.user = null;
+                state.status = "failed";
             })
             .addCase(logoutUser.fulfilled, (state: AuthState) => {
                 state.isAuthenticated = false;
