@@ -54,4 +54,50 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="4" author="Michal">
+        <createTable tableName="materials">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_material_owner" references="users(id)"/>
+            </column>
+            <column name="parent_id" type="INT">
+                <constraints nullable="true" foreignKeyName="fk_material_parent" references="materials(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="5" author="Michal">
+        <dropForeignKeyConstraint baseTableName="flashcards" constraintName="fk_flashcard_set"/>
+
+        <dropPrimaryKey tableName="flashcard_sets" constraintName="flashcard_sets_pkey"/>
+        <addPrimaryKey tableName="flashcard_sets" columnNames="id" constraintName="pk_flashcard_sets"/>
+
+        <addForeignKeyConstraint 
+            baseTableName="flashcard_sets" 
+            baseColumnNames="id" 
+            constraintName="fk_set_material" 
+            referencedTableName="materials" 
+            referencedColumnNames="id"
+        />
+
+        <dropColumn tableName="flashcard_sets" columnName="name"/>
+        <dropColumn tableName="flashcard_sets" columnName="owner_id"/>
+    </changeSet>
+
+    <changeSet id="6" author="Michal">
+        <addForeignKeyConstraint
+            baseTableName="flashcards" 
+            baseColumnNames="set_id" 
+            constraintName="fk_flashcard_set" 
+            referencedTableName="flashcard_sets" 
+            referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>
