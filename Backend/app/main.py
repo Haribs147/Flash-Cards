@@ -61,6 +61,9 @@ class FolderCreate(BaseModel):
     name: str
     parent_id: Optional[int] = None
 
+class MaterialRename(BaseModel):
+    name: str
+
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
 
@@ -158,3 +161,34 @@ def move_material(item_id: int, move_data: MaterialMove, db: Session = Depends(g
     db.commit()
     db.refresh(item_to_move)
     return item_to_move
+
+@app.patch("/materials/rename/{item_id}", response_model=MaterialOut)
+def rename_material(item_id: int, data: MaterialRename, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    item_to_rename = db.query(Material).filter(Material.id == item_id).first()
+
+    if not item_to_rename:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if item_to_rename.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to move this item")
+    
+    item_to_rename.name = data.name
+
+    db.commit()
+    db.refresh(item_to_rename)
+    return item_to_rename
+
+@app.delete("materials/delete/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_material(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    item_to_delete = db.query(Material).filter(Material.id == item_id).first()
+    
+    if not item_to_delete:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if item_to_delete.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to move this item")
+    
+    db.delete(item_to_delete)
+    db.commit()
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
