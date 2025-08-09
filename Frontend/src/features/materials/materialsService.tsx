@@ -32,3 +32,21 @@ export const moveItemApi = async (data: {
     );
     return response.data;
 };
+
+export const renameItemApi = async (data: {
+    itemId: number;
+    newName: string;
+}) => {
+    const { itemId, newName } = data;
+    const response = await axios.patch(`${API_URL}/materials/${itemId}`, {
+        name: newName,
+    });
+    return response;
+};
+
+export const deleteItemApi = async (itemId: number) => {
+    const response = await axios.delete<MaterialItem>(
+        `${API_URL}/materials/${itemId}`,
+    );
+    return response;
+};

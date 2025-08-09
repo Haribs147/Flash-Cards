@@ -54,15 +54,13 @@ class MaterialOut(BaseModel):
     class Config:
         orm_mode = True
 
-class MaterialMove(BaseModel):
+class MaterialUpdate(BaseModel):
     parent_id: Optional[int] = None
+    name: Optional[str] = None
 
 class FolderCreate(BaseModel):
     name: str
     parent_id: Optional[int] = None
-
-class MaterialRename(BaseModel):
-    name: str
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -145,40 +143,28 @@ def create_new_folder( folder_data: FolderCreate, db: Session = Depends(get_db),
     return new_material
 
 @app.patch("/materials/{item_id}", response_model=MaterialOut)
-def move_material(item_id: int, move_data: MaterialMove, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    item_to_move = db.query(Material).filter(Material.id == item_id).first()
+def move_material(item_id: int, update_data: MaterialUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    item_to_update = db.query(Material).filter(Material.id == item_id).first()
 
-    if not item_to_move:
+    if not item_to_update:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    if item_to_move.owner_id != current_user.id:
+    if item_to_update.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to move this item")
     
-    if item_id == move_data.parent_id:
-        raise HTTPException(status_code=400, detail="Cannot move folder into itself")
-    
-    item_to_move.parent_id = move_data.parent_id
-    db.commit()
-    db.refresh(item_to_move)
-    return item_to_move
+    if update_data.name is not None:
+        item_to_update.name = update_data.name
 
-@app.patch("/materials/rename/{item_id}", response_model=MaterialOut)
-def rename_material(item_id: int, data: MaterialRename, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    item_to_rename = db.query(Material).filter(Material.id == item_id).first()
-
-    if not item_to_rename:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    if item_to_rename.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to move this item")
-    
-    item_to_rename.name = data.name
+    if update_data.parent_id is not None:
+        if item_id == update_data.parent_id:
+            raise HTTPException(status_code=400, detail="Cannot move folder into itself")
+        item_to_update.parent_id = update_data.parent_id
 
     db.commit()
-    db.refresh(item_to_rename)
-    return item_to_rename
+    db.refresh(item_to_update)
+    return item_to_update
 
-@app.delete("materials/delete/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("materials/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_material(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_to_delete = db.query(Material).filter(Material.id == item_id).first()
     
