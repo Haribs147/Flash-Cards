@@ -1,10 +1,8 @@
 import { FiFolder, FiFileText } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 import "./FolderList.css";
 import NewFolderInput from "../CreateFolderButton/CreateFolder";
 import {
     moveItem,
-    setCurrentFolderId,
     type MaterialItem,
 } from "../../../features/materials/materialsSlice";
 import { useAppDispatch } from "../../../app/hooks";
@@ -13,11 +11,12 @@ import { useState } from "react";
 type FolderListProps = {
     filteredItems: MaterialItem[];
     isCreating: boolean;
-    onCreate: (name: string) => void;
-    setDraggedItemId: (id: string) => void;
-    draggedItemId: string;
-    setDraggedItemParentId: (parentId: string | null) => void;
-    handleItemClick: (type: string, id: string) => void;
+    currentFolderId: number | null;
+    onCreate: (name: string, currentFolderId: number | null) => void;
+    setDraggedItemId: (id: number) => void;
+    draggedItemId: number;
+    setDraggedItemParentId: (parentId: number | null) => void;
+    handleItemClick: (item_type: string, id: number) => void;
 };
 
 const FolderListItem = ({
@@ -27,9 +26,9 @@ const FolderListItem = ({
     draggedItemId,
 }: {
     item: MaterialItem;
-    handleItemClick: (type: string, id: string) => void;
+    handleItemClick: (item_type: string, id: number) => void;
     onDragStart: (item: MaterialItem) => void;
-    draggedItemId: string;
+    draggedItemId: number;
 }) => {
     const [isOver, setIsOver] = useState(false);
     const dispatch = useAppDispatch();
@@ -37,7 +36,7 @@ const FolderListItem = ({
     const handleDragDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsOver(false);
-        if (item.type === "folder" && item.id != draggedItemId) {
+        if (item.item_type === "folder" && item.id != draggedItemId) {
             dispatch(
                 moveItem({ itemId: draggedItemId, targetFolderId: item.id }),
             );
@@ -46,7 +45,7 @@ const FolderListItem = ({
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        if (item.type === "folder" && item.id != draggedItemId) {
+        if (item.item_type === "folder" && item.id != draggedItemId) {
             setIsOver(true);
         }
     };
@@ -64,12 +63,12 @@ const FolderListItem = ({
             onDragStart={() => onDragStart(item)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
-            onClick={() => handleItemClick(item.type, item.id)}
+            onClick={() => handleItemClick(item.item_type, item.id)}
             data-id={item.id}
-            data-type={item.type}
+            data-type={item.item_type}
         >
             <div className="item-icon">
-                {item.type === "folder" ? (
+                {item.item_type === "folder" ? (
                     <FiFolder size={22} />
                 ) : (
                     <FiFileText size={22} />
@@ -83,6 +82,7 @@ const FolderListItem = ({
 const FolderList = ({
     filteredItems,
     isCreating,
+    currentFolderId,
     onCreate,
     setDraggedItemId,
     draggedItemId,
@@ -91,12 +91,17 @@ const FolderList = ({
 }: FolderListProps) => {
     const handleDragStart = (item: MaterialItem) => {
         setDraggedItemId(item.id);
-        setDraggedItemParentId(item.parentId);
+        setDraggedItemParentId(item.parent_id);
     };
 
     return (
         <div className="item-list">
-            {isCreating && <NewFolderInput onCreate={onCreate} />}
+            {isCreating && (
+                <NewFolderInput
+                    onCreate={onCreate}
+                    currentFolderId={currentFolderId}
+                />
+            )}
 
             {filteredItems.map((item) => (
                 <FolderListItem

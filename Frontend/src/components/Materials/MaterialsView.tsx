@@ -7,7 +7,8 @@ import SharedSetsList from "./Lists/SharedSetsList";
 import SearchInput from "../common/SearchInput/SearchInput";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
-    addFolder,
+    createFolder,
+    fetchAllMaterials,
     setActiveTab,
     setCurrentFolderId,
     setIsCreating,
@@ -21,16 +22,28 @@ import { useNavigate } from "react-router-dom";
 const MaterialsView = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { items, activeTab, searchTerm, isCreatingFolder, currentFolderId } =
-        useAppSelector((state) => state.materials);
+    const {
+        items,
+        activeTab,
+        searchTerm,
+        isCreatingFolder,
+        currentFolderId,
+        status,
+        error,
+    } = useAppSelector((state) => state.materials);
 
-    const [draggedItemId, setDraggedItemId] = useState("");
+    const [draggedItemId, setDraggedItemId] = useState(-1);
     const [draggedItemParentId, setDraggedItemParentId] = useState<
-        string | null
-    >("");
+        number | null
+    >(null);
+
+    useEffect(() => {
+        if (status === "idle") {
+            dispatch(fetchAllMaterials());
+        }
+    }, [status, dispatch]);
 
     const handleNewFolder = () => {
-        console.log("here logic of creating a new folder");
         if (isCreatingFolder) {
             dispatch(setIsCreating(false));
             return;
@@ -38,12 +51,21 @@ const MaterialsView = () => {
         dispatch(setIsCreating(true));
     };
 
-    const handleCreateFolder = (folderName: string) => {
-        dispatch(addFolder(folderName));
+    const handleCreateFolder = (
+        folderName: string,
+        currentFolderId: number | null,
+    ) => {
+        if (folderName.trim() === "") {
+            dispatch(setIsCreating(false));
+            return;
+        }
+        dispatch(
+            createFolder({ name: folderName, parent_id: currentFolderId }),
+        );
     };
 
-    const handleItemClick = (type: string, id: string) => {
-        if (type === "set") {
+    const handleItemClick = (item_type: string, id: number) => {
+        if (item_type === "set") {
             navigate(`/set/${id}`);
         } else {
             dispatch(setCurrentFolderId(id));
@@ -64,11 +86,9 @@ const MaterialsView = () => {
 
             if (clickedItemDiv) {
                 const id = clickedItemDiv.dataset.id;
-                const type = clickedItemDiv.dataset.type;
-                console.log("id = " + id);
-                console.log("type = " + type);
-                if (id && type) {
-                    handleItemClick(type, id);
+                const item_type = clickedItemDiv.dataset.type;
+                if (id && item_type) {
+                    handleItemClick(item_type, parseInt(id, 10));
                 }
             }
 
@@ -90,7 +110,7 @@ const MaterialsView = () => {
     }, [isCreatingFolder, dispatch]);
 
     const filteredItems = items
-        .filter((item) => currentFolderId === item.parentId)
+        .filter((item) => currentFolderId === item.parent_id)
         .filter((item) =>
             item.name.toLowerCase().includes(searchTerm.toLowerCase()),
         );
@@ -140,10 +160,19 @@ const MaterialsView = () => {
                 return <SharedSetsList searchTerm={searchTerm} />;
             case "Foldery":
             default:
+                if (status === "loading") {
+                    return <div></div>;
+                }
+
+                if (status === "failed") {
+                    return <div>Error loading materials: {error}</div>;
+                }
+
                 return (
                     <FolderList
                         filteredItems={filteredItems}
                         isCreating={isCreatingFolder}
+                        currentFolderId={currentFolderId}
                         onCreate={handleCreateFolder}
                         setDraggedItemId={setDraggedItemId}
                         draggedItemId={draggedItemId}

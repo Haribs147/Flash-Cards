@@ -47,12 +47,19 @@ class Token(BaseModel):
 
 class MaterialOut(BaseModel):
     id: int
-    type: str
+    item_type: str
     name: str
-    parent_id: int
+    parent_id: Optional[int] = None
 
     class Config:
         orm_mode = True
+
+class MaterialMove(BaseModel):
+    parent_id: Optional[int] = None
+
+class FolderCreate(BaseModel):
+    name: str
+    parent_id: Optional[int] = None
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -115,7 +122,39 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
 def read_users_me(current_user: User= Depends(get_current_user)):
     return current_user
 
-@app.get("materials/all", response_model=MaterialOut)
+@app.get("/materials/all", response_model=list[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    materials = db.query(Material).filter(Material.owner.id == current_user.id).all()
+    materials = db.query(Material).filter(Material.owner_id == current_user.id).all()
     return materials
+
+@app.post("/folders", status_code=status.HTTP_201_CREATED)
+def create_new_folder( folder_data: FolderCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+
+    new_material = Material(
+        **folder_data.model_dump(),
+        item_type="folder",
+        owner_id=current_user.id
+    )
+
+    db.add(new_material)
+    db.commit()
+    db.refresh(new_material)
+    return new_material
+
+@app.patch("/materials/{item_id}", response_model=MaterialOut)
+def move_material(item_id: int, move_data: MaterialMove, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    item_to_move = db.query(Material).filter(Material.id == item_id).first()
+
+    if not item_to_move:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if item_to_move.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to move this item")
+    
+    if item_id == move_data.parent_id:
+        raise HTTPException(status_code=400, detail="Cannot move folder into itself")
+    
+    item_to_move.parent_id = move_data.parent_id
+    db.commit()
+    db.refresh(item_to_move)
+    return item_to_move

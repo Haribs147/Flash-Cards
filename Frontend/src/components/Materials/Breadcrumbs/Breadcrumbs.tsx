@@ -13,18 +13,18 @@ const BreadcrumbsSegment = ({
     draggedItemId,
     draggedItemParentId,
 }: {
-    id: string | null;
-    draggedItemId: string | null;
+    id: number | null;
+    draggedItemId: number | null;
     name: string;
     isLast: boolean;
-    draggedItemParentId: string | null;
+    draggedItemParentId: number | null;
 }) => {
     const dispatch = useAppDispatch();
     const [isOver, setIsOver] = useState(false);
 
     const handleDragOver = (e: React.DragEvent<HTMLSpanElement>) => {
         e.preventDefault();
-        if (id != draggedItemParentId) {
+        if (id !== draggedItemParentId) {
             setIsOver(true);
         }
     };
@@ -42,6 +42,7 @@ const BreadcrumbsSegment = ({
     };
 
     const handleClick = () => {
+        console.log(id);
         if (!isLast) {
             dispatch(setCurrentFolderId(id));
         }
@@ -64,8 +65,8 @@ const Breadcrumbs = ({
     draggedItemId,
     draggedItemParentId,
 }: {
-    draggedItemId: string;
-    draggedItemParentId: string | null;
+    draggedItemId: number;
+    draggedItemParentId: number | null;
 }) => {
     const { items, currentFolderId } = useAppSelector(
         (state) => state.materials,
@@ -79,7 +80,7 @@ const Breadcrumbs = ({
             const folder = items.find((item) => item.id === currentId);
             if (folder) {
                 path.unshift(folder);
-                currentId = folder.parentId;
+                currentId = folder.parent_id;
             } else {
                 break;
             }
@@ -87,7 +88,7 @@ const Breadcrumbs = ({
         path.unshift({
             id: null,
             name: "Materiały",
-            type: "folder",
+            item_type: "folder",
             parentId: "root",
         });
         return path;

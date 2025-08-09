@@ -3,10 +3,11 @@ import { FiFolder } from "react-icons/fi";
 import "./CreateFolder.css";
 
 type NewFolderInputProps = {
-    onCreate: (name: string) => void;
+    onCreate: (name: string, currentFolderId: number | null) => void;
+    currentFolderId: number | null;
 };
 
-const NewFolderInput = ({ onCreate }: NewFolderInputProps) => {
+const NewFolderInput = ({ onCreate, currentFolderId }: NewFolderInputProps) => {
     const [name, setName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -17,9 +18,9 @@ const NewFolderInput = ({ onCreate }: NewFolderInputProps) => {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            onCreate(name);
+            onCreate(name, currentFolderId);
         } else if (e.key === "Escape") {
-            onCreate("");
+            onCreate("", currentFolderId);
         }
     };
 
