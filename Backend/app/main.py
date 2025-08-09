@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 
-from .database import User, get_db
+from .database import Material, User, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
 
@@ -44,6 +44,15 @@ class LoginResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class MaterialOut(BaseModel):
+    id: int
+    type: str
+    name: str
+    parent_id: int
+
+    class Config:
+        orm_mode = True
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -105,3 +114,8 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
 @app.get("/users/me", response_model=UserOut)
 def read_users_me(current_user: User= Depends(get_current_user)):
     return current_user
+
+@app.get("materials/all", response_model=MaterialOut)
+def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    materials = db.query(Material).filter(Material.owner.id == current_user.id).all()
+    return materials
