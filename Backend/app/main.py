@@ -152,10 +152,12 @@ def move_material(item_id: int, update_data: MaterialUpdate, db: Session = Depen
     if item_to_update.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to move this item")
     
-    if update_data.name is not None:
+    update_dict = update_data.model_dump(exclude_unset=True)
+
+    if "name" in update_dict:
         item_to_update.name = update_data.name
 
-    if update_data.parent_id is not None:
+    if "parent_id" in update_dict:
         if item_id == update_data.parent_id:
             raise HTTPException(status_code=400, detail="Cannot move folder into itself")
         item_to_update.parent_id = update_data.parent_id
@@ -164,7 +166,23 @@ def move_material(item_id: int, update_data: MaterialUpdate, db: Session = Depen
     db.refresh(item_to_update)
     return item_to_update
 
-@app.delete("materials/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def get_all_items_to_delete(item_id: int, db: Session) -> list[int]:
+    ids_to_delete = set()
+    queue = [item_id]
+
+    while queue:
+        current_id = queue.pop(0)
+        ids_to_delete.add(current_id)
+
+        children = db.query(Material).filter(Material.parent_id == current_id).all()
+        for child in children:
+            queue.append(child.id)
+
+    return list[ids_to_delete]
+
+
+
+@app.delete("materials/{item_id}", status_code=status.HTTP_200_OK, response_model=list[int])
 def delete_material(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_to_delete = db.query(Material).filter(Material.id == item_id).first()
     
@@ -177,4 +195,4 @@ def delete_material(item_id: int, db: Session = Depends(get_db), current_user: U
     db.delete(item_to_delete)
     db.commit()
     
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return get_all_items_to_delete(item_id, db)

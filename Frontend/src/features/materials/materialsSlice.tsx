@@ -5,8 +5,10 @@ import {
 } from "@reduxjs/toolkit";
 import {
     createNewFolderApi,
+    deleteItemApi,
     fetchAllMaterialsApi,
     moveItemApi,
+    renameItemApi,
 } from "./materialsService";
 
 // Define a type for a single item
@@ -78,6 +80,28 @@ export const moveItem = createAsyncThunk(
     },
 );
 
+export const renameItem = createAsyncThunk(
+    "materials/renameItem",
+    async (data: { itemId: number; newName: string }, { rejectWithValue }) => {
+        try {
+            return await renameItemApi(data);
+        } catch (error: any) {
+            return rejectWithValue("Failed to rename item");
+        }
+    },
+);
+
+export const deleteItem = createAsyncThunk(
+    "materials/deleteItem",
+    async (itemId: number, { rejectWithValue }) => {
+        try {
+            return await deleteItemApi(itemId);
+        } catch (error: any) {
+            return rejectWithValue("Failed to delete item");
+        }
+    },
+);
+
 export const materialsSlice = createSlice({
     name: "materials",
     initialState,
@@ -128,6 +152,27 @@ export const materialsSlice = createSlice({
                     if (index !== -1) {
                         state.items[index] = updatedItem;
                     }
+                },
+            )
+            .addCase(
+                renameItem.fulfilled,
+                (state, action: PayloadAction<MaterialItem>) => {
+                    const updatedItem = action.payload;
+                    const index = state.items.findIndex(
+                        (item) => (item.id = updatedItem.id),
+                    );
+                    if (index !== -1) {
+                        state.items[index] = updatedItem;
+                    }
+                },
+            )
+            .addCase(
+                deleteItem.fulfilled,
+                (state, action: PayloadAction<number[]>) => {
+                    const idsToDelete = new Set(action.payload);
+                    state.items = state.items.filter(
+                        (item) => !idsToDelete.has(item.id),
+                    );
                 },
             );
     },
