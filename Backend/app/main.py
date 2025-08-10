@@ -143,7 +143,7 @@ def create_new_folder( folder_data: FolderCreate, db: Session = Depends(get_db),
     return new_material
 
 @app.patch("/materials/{item_id}", response_model=MaterialOut)
-def move_material(item_id: int, update_data: MaterialUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_material(item_id: int, update_data: MaterialUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_to_update = db.query(Material).filter(Material.id == item_id).first()
 
     if not item_to_update:
@@ -178,11 +178,11 @@ def get_all_items_to_delete(item_id: int, db: Session) -> list[int]:
         for child in children:
             queue.append(child.id)
 
-    return list[ids_to_delete]
+    return list(ids_to_delete)
 
 
 
-@app.delete("materials/{item_id}", status_code=status.HTTP_200_OK, response_model=list[int])
+@app.delete("/materials/{item_id}", status_code=status.HTTP_200_OK, response_model=list[int])
 def delete_material(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_to_delete = db.query(Material).filter(Material.id == item_id).first()
     

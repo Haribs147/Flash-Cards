@@ -11,7 +11,6 @@ import {
     renameItemApi,
 } from "./materialsService";
 
-// Define a type for a single item
 export interface MaterialItem {
     id: number;
     item_type: "folder" | "set";
@@ -19,7 +18,6 @@ export interface MaterialItem {
     parent_id: number | null;
 }
 
-// Define a type for the slice state
 interface MaterialsState {
     items: MaterialItem[];
     activeTab: string;
@@ -30,7 +28,6 @@ interface MaterialsState {
     error: string | null;
 }
 
-// Define the initial state using that type
 const initialState: MaterialsState = {
     items: [],
     activeTab: "Foldery",
@@ -159,7 +156,7 @@ export const materialsSlice = createSlice({
                 (state, action: PayloadAction<MaterialItem>) => {
                     const updatedItem = action.payload;
                     const index = state.items.findIndex(
-                        (item) => (item.id = updatedItem.id),
+                        (item) => item.id === updatedItem.id,
                     );
                     if (index !== -1) {
                         state.items[index] = updatedItem;

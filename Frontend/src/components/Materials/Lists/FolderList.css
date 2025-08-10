@@ -28,6 +28,11 @@
 .item-name {
     font-size: 16px;
     color: #333;
+    flex-grow: 1;
+}
+
+.item-name-input {
+    flex-grow: 1;
 }
 
 .list-item.drop-target {
@@ -38,4 +43,19 @@
 .list-item .item-icon,
 .list-item .item-name {
     pointer-events: none;
+}
+
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.list-item:hover .item-actions {
+    opacity: 1;
 }

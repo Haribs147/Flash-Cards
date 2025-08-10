@@ -1,12 +1,14 @@
-import { FiFolder, FiFileText } from "react-icons/fi";
+import { FiFolder, FiFileText, FiEdit, FiTrash2 } from "react-icons/fi";
 import "./FolderList.css";
 import NewFolderInput from "../CreateFolderButton/CreateFolder";
 import {
+    deleteItem,
     moveItem,
+    renameItem,
     type MaterialItem,
 } from "../../../features/materials/materialsSlice";
 import { useAppDispatch } from "../../../app/hooks";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 type FolderListProps = {
     filteredItems: MaterialItem[];
@@ -31,7 +33,18 @@ const FolderListItem = ({
     draggedItemId: number;
 }) => {
     const [isOver, setIsOver] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [name, setName] = useState(item.name);
+
     const dispatch = useAppDispatch();
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isEditing) {
+            inputRef.current?.focus();
+            inputRef.current?.select();
+        }
+    }, [isEditing]);
 
     const handleDragDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -54,6 +67,43 @@ const FolderListItem = ({
         setIsOver(false);
     };
 
+    const handleRenameClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isEditing) {
+            setName(item.name);
+            setIsEditing(false);
+        } else {
+            setIsEditing(true);
+        }
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (
+            window.confirm(
+                `Czy na pewno chcesz usunąć ${item.name} i wszystko co się w nim znajduje?`,
+            )
+        ) {
+            dispatch(deleteItem(item.id));
+        }
+    };
+
+    const handleSaveRename = () => {
+        if (name.trim() !== item.name) {
+            dispatch(renameItem({ itemId: item.id, newName: name.trim() }));
+        }
+        setIsEditing(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleSaveRename();
+        } else if (e.key === "Escape") {
+            setName(item.name);
+            setIsEditing(false);
+        }
+    };
+
     return (
         <div
             draggable={true}
@@ -63,7 +113,9 @@ const FolderListItem = ({
             onDragStart={() => onDragStart(item)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
-            onClick={() => handleItemClick(item.item_type, item.id)}
+            onClick={() =>
+                !isEditing && handleItemClick(item.item_type, item.id)
+            }
             data-id={item.id}
             data-type={item.item_type}
         >
@@ -74,7 +126,29 @@ const FolderListItem = ({
                     <FiFileText size={22} />
                 )}
             </div>
-            <span className="item-name">{item.name}</span>
+            {isEditing ? (
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onBlur={handleSaveRename}
+                    onKeyDown={handleKeyDown}
+                    onClick={(e) => e.stopPropagation()}
+                    className="item-name-input"
+                />
+            ) : (
+                <span className="item-name">{item.name}</span>
+            )}
+
+            <div className="item-actions">
+                <button onClick={handleRenameClick} className="action-button">
+                    <FiEdit size={18} />
+                </button>
+                <button onClick={handleDeleteClick} className="action-button">
+                    <FiTrash2 size={18} />
+                </button>
+            </div>
         </div>
     );
 };
