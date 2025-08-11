@@ -1,16 +1,55 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiX } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import "./NewSetView.css";
 import TiptapEditor from "../TipTap/TipTapEditor";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import {
+    addLocalFlashcard,
+    createNewSet,
+    resetFlashcardSets,
+    setDescription,
+    setIsPublic,
+    setName,
+    updateFlashcardContent,
+    updateSet,
+} from "../../features/flashcardSets/flashcardSetsSlice";
 
 const NewSetView = () => {
-    const [flashcards, setFlashcards] = useState([
-        { id: 1, term: "", definition: "" },
-    ]);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const newSet = useRef(false);
+
+    const { id, name, description, is_public, flashcards, status, error } =
+        useAppSelector((state) => state.flashcardSets);
+
+    const { currentFolderId } = useAppSelector((state) => state.materials);
+
+    useEffect(() => {
+        if (!newSet.current) {
+            newSet.current = true;
+            dispatch(
+                createNewSet({
+                    name: "Nowy zestaw",
+                    parent_id: currentFolderId,
+                }),
+            );
+        }
+
+        return () => {
+            dispatch(resetFlashcardSets());
+        };
+    }, [dispatch, currentFolderId]);
+
+    useEffect(() => {
+        if (status === "succeded") {
+            navigate(-1);
+        }
+    }, [status, navigate]);
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const scrollOnNextRender = useRef(false);
+
     useEffect(() => {
         if (scrollOnNextRender.current) {
             buttonRef.current?.scrollIntoView({
@@ -22,45 +61,63 @@ const NewSetView = () => {
     }, [flashcards]);
 
     const addFlashcard = () => {
-        const maxId =
-            flashcards.length > 0
-                ? Math.max(...flashcards.map((card) => card.id))
-                : 0;
-
-        const newCard = {
-            id: maxId + 1,
-            term: "",
-            definition: "",
-        };
-
+        dispatch(addLocalFlashcard());
         scrollOnNextRender.current = true;
-
-        setFlashcards([...flashcards, newCard]);
     };
 
-    const handleCardChange = (id: number, field: string, value: string) => {
-        setFlashcards(
-            flashcards.map((card) =>
-                card.id === id ? { ...card, [field]: value } : card,
-            ),
+    const handleCardChange = (
+        id: number,
+        field: "front" | "back",
+        value: string,
+    ) => {
+        dispatch(
+            updateFlashcardContent({
+                index: id,
+                side: field,
+                content: value,
+            }),
         );
     };
+
+    const handleSave = () => {
+        dispatch(updateSet());
+    };
+
+    if (status === "loading") {
+        return <div className="feedback-state">Tworzenie zestawu ...</div>;
+    }
+
+    if (status === "failed") {
+        return <div className="feedback-state">Błąd: {error}</div>;
+    }
 
     return (
         <div className="new-set-view">
             <div className="new-set-header">
-                <h2>Nowy zestaw fiszek</h2>
-                <Link to="/" className="close-btn">
-                    <FiX />
-                </Link>
+                <h2>{name}</h2>
+                <button
+                    className="done-btn"
+                    disabled={status === "saving"}
+                    onClick={handleSave}
+                >
+                    {status === "saving" ? "Zapisywanie..." : "Zapisz"}
+                </button>
             </div>
             <div className="new-set-form">
                 <input
                     type="text"
+                    value={name}
+                    onChange={(e) => {
+                        dispatch(setName(e.target.value));
+                    }}
                     placeholder="Wprowadź nazwę zestawu fiszek"
                     className="new-set-input"
                 />
                 <textarea
+                    value={description}
+                    onChange={(e) => {
+                        dispatch(setDescription(e.target.value));
+                    }}
                     placeholder="Wprowadź opis zestawu fiszek"
                     className="new-set-input description-input"
                 />
@@ -69,13 +126,22 @@ const NewSetView = () => {
                         <input
                             type="radio"
                             name="privacy"
-                            value="public"
-                            defaultChecked
+                            checked={is_public}
+                            onChange={() => {
+                                dispatch(setIsPublic(true));
+                            }}
                         />
                         Publiczny
                     </label>
                     <label>
-                        <input type="radio" name="privacy" value="private" />
+                        <input
+                            type="radio"
+                            name="privacy"
+                            checked={!is_public}
+                            onChange={() => {
+                                dispatch(setIsPublic(false));
+                            }}
+                        />
                         Prywatny
                     </label>
                 </div>
@@ -83,16 +149,16 @@ const NewSetView = () => {
             </div>
             <div className="flashcard-list">
                 {flashcards.map((card, index) => (
-                    <div key={card.id} className="flashcard-editor-section">
+                    <div key={index} className="flashcard-editor-section">
                         <span className="flashcard-number">{index + 1}</span>
                         <div className="flashcard-inputs">
                             <div className="editor-wrapper">
                                 <TiptapEditor
-                                    content={card.term}
+                                    content={card.front_content}
                                     onChange={(newContent) =>
                                         handleCardChange(
-                                            card.id,
-                                            "term",
+                                            index,
+                                            "front",
                                             newContent,
                                         )
                                     }
@@ -102,11 +168,11 @@ const NewSetView = () => {
                             </div>
                             <div className="editor-wrapper">
                                 <TiptapEditor
-                                    content={card.definition}
+                                    content={card.back_content}
                                     onChange={(newContent) =>
                                         handleCardChange(
-                                            card.id,
-                                            "term",
+                                            index,
+                                            "back",
                                             newContent,
                                         )
                                     }

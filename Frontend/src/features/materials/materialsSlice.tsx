@@ -10,6 +10,7 @@ import {
     moveItemApi,
     renameItemApi,
 } from "./materialsService";
+import { updateSet } from "../flashcardSets/flashcardSetsSlice";
 
 export interface MaterialItem {
     id: number;
@@ -170,6 +171,12 @@ export const materialsSlice = createSlice({
                     state.items = state.items.filter(
                         (item) => !idsToDelete.has(item.id),
                     );
+                },
+            )
+            .addCase(
+                updateSet.fulfilled,
+                (state, action: PayloadAction<MaterialItem>) => {
+                    state.items.unshift(action.payload);
                 },
             );
     },
