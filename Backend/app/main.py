@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from .config import settings
 
@@ -77,7 +77,11 @@ class FlashcardSetUpdate(BaseModel):
     is_public: bool
     flashcards: list[FlashcardData]
 
-
+class FlashcardSetOut(BaseModel):
+    name: str
+    description: str
+    creator: str
+    flashcards: list[FlashcardData]
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -276,3 +280,36 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
     db.commit()
     db.refresh(set_material)
     return set_material
+
+@app.get("/sets/{set_id}", response_model=FlashcardSetOut)
+def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # flashcard_set = db.query(FlashcardSet).options(
+    #     joinedload(FlashcardSet.material).joinedload(Material.owner),
+    #     joinedload(FlashcardSet.flashcards)
+    # ).filter(FlashcardSet.id == set_id).first()
+
+    # if not flashcard_set:
+    #     raise HTTPException(status_code=404, detail="Flashcard set not found")
+
+    # if flashcard_set.material.owner_id != current_user.id:
+    #     raise HTTPException(status_code=403, detail="Not authorized to get this flashcard set")
+
+    set_material = db.query(Material).filter(Material.id == set_id).first()
+
+    if not set_material:
+        raise HTTPException(status_code=404, detail="Flashcard set not found")
+    
+    if set_material.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to get this flashcard set")
+    
+    flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
+    creator = db.query(User).filter(User.id == set_material.owner_id).first()
+
+    flashcard_data = {
+        "name": set_material.name,
+        "description": flashcard_set.description,
+        "creator": creator.email[0],
+        "flashcards": flashcard_set.flashcards,
+    }
+    print(flashcard_data)
+    return flashcard_data

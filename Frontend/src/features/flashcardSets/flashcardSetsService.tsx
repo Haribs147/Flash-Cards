@@ -21,3 +21,8 @@ export const updateSetApi = async (
     );
     return response.data;
 };
+
+export const getSetApi = async (set_id: number) => {
+    const response = await axios.get(`${API_URL}/sets/${set_id}`);
+    return response.data;
+};

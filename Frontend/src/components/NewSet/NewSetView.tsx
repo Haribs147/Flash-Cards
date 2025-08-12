@@ -1,6 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { FiX } from "react-icons/fi";
-import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import "./NewSetView.css";
 import TiptapEditor from "../TipTap/TipTapEditor";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";

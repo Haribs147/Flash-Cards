@@ -17,7 +17,10 @@ const FlashcardViewer = ({ cardText }: FlashcardViewerProps) => {
                 <button className="nav-arrow left">
                     <FiChevronLeft size={32} />
                 </button>
-                <div className="flashcard-content">{cardText}</div>
+                <div
+                    className="flashcard-content"
+                    dangerouslySetInnerHTML={{ __html: cardText }}
+                ></div>
                 <button className="nav-arrow right">
                     <FiChevronRight size={32} />
                 </button>

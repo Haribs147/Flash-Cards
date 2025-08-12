@@ -3,32 +3,55 @@ import "./FlashcardSetView.css";
 import SetHeader from "./SetHeader/SetHeader";
 import SetActionButtons from "./SetActionButtons/SetActionButtons";
 import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useEffect } from "react";
+import {
+    clearSet,
+    getSet,
+} from "../../features/flashcardSets/flashcardSetViewerSlice";
 
 const FlashcardSetView = () => {
+    const { setId } = useParams<{ setId: string }>();
+    console.log(setId);
+    const { set, status, error } = useAppSelector(
+        (state) => state.flashcardSetViewer,
+    );
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { setId } = useParams();
 
-    const set = {
-        title: "Nazwa zestawu fiszek",
-        description: `Opis zestawu fiszek (ID: ${setId})`,
-        initial: "M",
-    };
+    useEffect(() => {
+        if (setId) {
+            dispatch(getSet(Number(setId)));
+        }
 
-    const currentCard = {
-        text: "Jakiś tekst do fiszki",
-    };
+        return () => {
+            dispatch(clearSet());
+        };
+    }, [dispatch, setId]);
+
+    if (status == "loading") {
+        return <div></div>;
+    }
+
+    if (status == "failed") {
+        return <div>Error: {error}</div>;
+    }
+
+    if (!set) {
+        return <div>Set not found</div>;
+    }
 
     return (
         <div className="flashcard-set-view">
             <SetHeader
-                title={set.title}
+                title={set.name}
                 description={set.description}
-                initial={set.initial}
+                initial={set.creator}
                 onBackClick={() => navigate(-1)}
             />
             <div className="divider"></div>
             <SetActionButtons setId={setId} />
-            <FlashcardViewer cardText={currentCard.text} />
+            <FlashcardViewer cardText={set.flashcards[0].front_content} />
         </div>
     );
 };
