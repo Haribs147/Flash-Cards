@@ -7,6 +7,7 @@ type SetHeaderProps = {
     description: string;
     initial: string;
     onBackClick: () => void;
+    onEditClick: () => void;
 };
 
 const SetHeader = ({
@@ -14,6 +15,7 @@ const SetHeader = ({
     description,
     initial,
     onBackClick,
+    onEditClick,
 }: SetHeaderProps) => {
     const [isSharePopupOpen, setSharePopupOpen] = useState(false);
     const popupRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ const SetHeader = ({
                 <p className="set-description">{description}</p>
             </div>
             <div className="set-header-actions">
-                <button className="icon-btn">
+                <button className="icon-btn" onClick={onEditClick}>
                     <FiEdit />
                 </button>
                 <button className="icon-btn">

@@ -31,7 +31,7 @@ class FlashcardSet(Base):
 
     material = Relationship("Material", back_populates="flashcard_set")
 
-    flashcards = Relationship("Flashcard", back_populates="set", cascade="all, delete-orphan")
+    flashcards = Relationship("Flashcard", back_populates="set", cascade="all, delete-orphan", order_by="Flashcard.id")
     
 class Material(Base):
     __tablename__ = "materials"

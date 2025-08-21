@@ -6,16 +6,18 @@ import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useEffect } from "react";
 import {
-    clearSet,
     getSet,
-} from "../../features/flashcardSets/flashcardSetViewerSlice";
+    resetFlashcardSet,
+} from "../../features/flashcardSets/flashcardSetSlice";
 
 const FlashcardSetView = () => {
     const { setId } = useParams<{ setId: string }>();
     console.log(setId);
-    const { set, status, error } = useAppSelector(
-        (state) => state.flashcardSetViewer,
-    );
+    const {
+        data: set,
+        status,
+        error,
+    } = useAppSelector((state) => state.flashcardSet);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
@@ -25,9 +27,13 @@ const FlashcardSetView = () => {
         }
 
         return () => {
-            dispatch(clearSet());
+            dispatch(resetFlashcardSet());
         };
     }, [dispatch, setId]);
+
+    const handleEditClick = () => {
+        navigate(`/set/edit/${setId}`);
+    };
 
     if (status == "loading") {
         return <div></div>;
@@ -48,6 +54,7 @@ const FlashcardSetView = () => {
                 description={set.description}
                 initial={set.creator}
                 onBackClick={() => navigate(-1)}
+                onEditClick={handleEditClick}
             />
             <div className="divider"></div>
             <SetActionButtons setId={setId} />

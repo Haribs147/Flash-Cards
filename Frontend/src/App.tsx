@@ -27,6 +27,7 @@ const AppChildren = () => {
                 <Routes>
                     <Route path="/" element={<MaterialsView />} />
                     <Route path="/new-set" element={<NewSetView />} />
+                    <Route path="/set/edit/:setId" element={<NewSetView />} />
                     <Route path="/set/:setId" element={<FlashcardSetView />} />
                     <Route
                         path="/set/:setId/check"

@@ -1,19 +1,29 @@
 import axios from "axios";
-import type { FlashcardSetsState } from "./flashcardSetsSlice";
 
 const API_URL = "http://localhost:8000";
 
-export const createNewSetApi = async (setData: {
+interface FlashcardPayload {
+    id: number | null;
+    front_content: string;
+    back_content: string;
+}
+
+interface FlashcardSetPayload {
     name: string;
+    description: string;
+    is_public: boolean;
     parent_id: number | null;
-}) => {
+    flashcards: FlashcardPayload[];
+}
+
+export const createNewSetApi = async (setData: FlashcardSetPayload) => {
     const response = await axios.post(`${API_URL}/sets`, setData);
     return response.data;
 };
 
 export const updateSetApi = async (
     set_id: number,
-    updateSetData: Omit<FlashcardSetsState, "status" | "error" | "id">,
+    updateSetData: Omit<FlashcardSetPayload, "parent_id">,
 ) => {
     const response = await axios.patch(
         `${API_URL}/sets/${set_id}`,

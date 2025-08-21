@@ -13,7 +13,6 @@ import {
     setCurrentFolderId,
     setIsCreating,
     setSearchTerm,
-    type MaterialItem,
 } from "../../features/materials/materialsSlice";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
 import { useEffect, useState } from "react";

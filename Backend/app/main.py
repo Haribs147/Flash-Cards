@@ -62,14 +62,17 @@ class FolderCreate(BaseModel):
     name: str
     parent_id: Optional[int] = None
 
-class FlashcardSetCreate(BaseModel):
-    name: str
-    parent_id: Optional[int] = None
-
 class FlashcardData(BaseModel):
     id: Optional[int] = None
     front_content: str
     back_content: str
+
+class FlashcardSetUpdateAndCreate(BaseModel):
+    name: str
+    description: str
+    is_public: bool
+    parent_id: Optional[int] = None
+    flashcards: list[FlashcardData]
 
 class FlashcardSetUpdate(BaseModel):
     name: str
@@ -78,8 +81,10 @@ class FlashcardSetUpdate(BaseModel):
     flashcards: list[FlashcardData]
 
 class FlashcardSetOut(BaseModel):
+    id: int
     name: str
     description: str
+    is_public: bool
     creator: str
     flashcards: list[FlashcardData]
 
@@ -219,9 +224,10 @@ def delete_material(item_id: int, db: Session = Depends(get_db), current_user: U
     return get_all_items_to_delete(item_id, db)
 
 @app.post("/sets", status_code=status.HTTP_201_CREATED, response_model=MaterialOut)
-def create_new_set(set_data: FlashcardSetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_new_set(set_data: FlashcardSetUpdateAndCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_material = Material(
-        **set_data.model_dump(),
+        name=set_data.name,
+        parent_id=set_data.parent_id,
         item_type="set",
         owner_id=current_user.id,
     )
@@ -232,17 +238,28 @@ def create_new_set(set_data: FlashcardSetCreate, db: Session = Depends(get_db), 
 
     new_flashcard_set = FlashcardSet(
         id=new_material.id,
-        description="",
-        is_public=False,
+        description=set_data.description,
+        is_public=set_data.is_public,
     )
+
+    for card_data in set_data.flashcards:
+        new_card = Flashcard(
+            set_id=new_material.id,
+            front_content=card_data.front_content,
+            back_content=card_data.back_content
+        )
+        db.add(new_card)
 
     db.add(new_flashcard_set)
     db.commit()
     return new_material
 
+
 @app.patch("/sets/{set_id}", status_code=status.HTTP_200_OK, response_model=MaterialOut)
 def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Depends(get_db), current_user: User = Depends(get_current_user)):
-    set_material = db.query(Material).filter(Material.id == set_id).first()
+    set_material = db.query(Material).options(
+        joinedload(Material.flashcard_set).joinedload(FlashcardSet.flashcards)
+    ).filter(Material.id == set_id).first()
 
     if not set_material:
         raise HTTPException(status_code=404, detail="Flashcard set not found")
@@ -252,15 +269,14 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
     
     set_material.name = update_set_data.name
 
-    flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
-
+    flashcard_set = set_material.flashcard_set
     flashcard_set.description = update_set_data.description
     flashcard_set.is_public = update_set_data.is_public
     
-    existing_cards = {card.id for card in flashcard_set.flashcards}
+    existing_cards = {card.id: card for card in flashcard_set.flashcards}
     incoming_cards = {card.id for card in update_set_data.flashcards if card.id is not None}
 
-    for card_id, card in existing_cards:
+    for card_id, card in existing_cards.items():
         if card_id not in incoming_cards:
             db.delete(card)
 
@@ -269,9 +285,9 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
             card_to_update = existing_cards[card.id]
             card_to_update.front_content = card.front_content
             card_to_update.back_content = card.back_content
-        elif card.id not in existing_cards:
+        elif card.id is None:
             new_flashcard = Flashcard(
-                set_id = flashcard_set.id,
+                set_id = set_id,
                 front_content = card.front_content,
                 back_content=card.back_content,
             )
@@ -306,10 +322,11 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     creator = db.query(User).filter(User.id == set_material.owner_id).first()
 
     flashcard_data = {
+        "id": set_id,
         "name": set_material.name,
         "description": flashcard_set.description,
-        "creator": creator.email[0],
+        "is_public": flashcard_set.is_public,
+        "creator": creator.email[0].upper(),
         "flashcards": flashcard_set.flashcards,
     }
-    print(flashcard_data)
     return flashcard_data

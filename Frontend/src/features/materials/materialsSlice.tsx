@@ -10,7 +10,7 @@ import {
     moveItemApi,
     renameItemApi,
 } from "./materialsService";
-import { updateSet } from "../flashcardSets/flashcardSetsSlice";
+import { saveSet } from "../flashcardSets/flashcardSetSlice";
 
 export interface MaterialItem {
     id: number;
@@ -174,7 +174,7 @@ export const materialsSlice = createSlice({
                 },
             )
             .addCase(
-                updateSet.fulfilled,
+                saveSet.fulfilled,
                 (state, action: PayloadAction<MaterialItem>) => {
                     state.items.unshift(action.payload);
                 },

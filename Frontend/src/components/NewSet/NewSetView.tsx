@@ -1,47 +1,50 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import "./NewSetView.css";
 import TiptapEditor from "../TipTap/TipTapEditor";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
     addLocalFlashcard,
-    createNewSet,
-    resetFlashcardSets,
+    getSet,
+    initializeNewSet,
+    resetFlashcardSet,
+    saveSet,
     setDescription,
     setIsPublic,
     setName,
     updateFlashcardContent,
-    updateSet,
-} from "../../features/flashcardSets/flashcardSetsSlice";
+} from "../../features/flashcardSets/flashcardSetSlice";
 
 const NewSetView = () => {
+    const { setId } = useParams<{ setId?: string }>();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const newSet = useRef(false);
 
-    const { id, name, description, is_public, flashcards, status, error } =
-        useAppSelector((state) => state.flashcardSets);
-
-    const { currentFolderId } = useAppSelector((state) => state.materials);
+    const {
+        data: set,
+        status,
+        error,
+    } = useAppSelector((state) => state.flashcardSet);
 
     useEffect(() => {
-        if (!newSet.current) {
-            newSet.current = true;
-            dispatch(
-                createNewSet({
-                    name: "Nowy zestaw",
-                    parent_id: currentFolderId,
-                }),
-            );
+        if (setId) {
+            dispatch(getSet(Number(setId)));
+        } else {
+            dispatch(initializeNewSet());
         }
 
         return () => {
-            dispatch(resetFlashcardSets());
+            dispatch(resetFlashcardSet());
         };
-    }, [dispatch, currentFolderId]);
+    }, [dispatch, setId]);
+
+    const isSaveInitiated = useRef(false);
 
     useEffect(() => {
-        if (status === "succeded") {
+        console.log("status" + status);
+        console.log("isSaveInitiated" + isSaveInitiated);
+
+        if (status === "succeded" && isSaveInitiated.current) {
             navigate(-1);
         }
     }, [status, navigate]);
@@ -57,7 +60,7 @@ const NewSetView = () => {
             });
             scrollOnNextRender.current = false;
         }
-    }, [flashcards]);
+    }, [set]);
 
     const addFlashcard = () => {
         dispatch(addLocalFlashcard());
@@ -79,7 +82,8 @@ const NewSetView = () => {
     };
 
     const handleSave = () => {
-        dispatch(updateSet());
+        isSaveInitiated.current = true;
+        dispatch(saveSet());
     };
 
     if (status === "loading") {
@@ -90,10 +94,14 @@ const NewSetView = () => {
         return <div className="feedback-state">Błąd: {error}</div>;
     }
 
+    if (!set) {
+        return <div className="feedback-state">Inicjowanie</div>;
+    }
+
     return (
         <div className="new-set-view">
             <div className="new-set-header">
-                <h2>{name}</h2>
+                <h2>{set.name}</h2>
                 <button
                     className="done-btn"
                     disabled={status === "saving"}
@@ -105,7 +113,7 @@ const NewSetView = () => {
             <div className="new-set-form">
                 <input
                     type="text"
-                    value={name}
+                    value={set.name}
                     onChange={(e) => {
                         dispatch(setName(e.target.value));
                     }}
@@ -113,7 +121,7 @@ const NewSetView = () => {
                     className="new-set-input"
                 />
                 <textarea
-                    value={description}
+                    value={set.description}
                     onChange={(e) => {
                         dispatch(setDescription(e.target.value));
                     }}
@@ -125,7 +133,7 @@ const NewSetView = () => {
                         <input
                             type="radio"
                             name="privacy"
-                            checked={is_public}
+                            checked={set.is_public}
                             onChange={() => {
                                 dispatch(setIsPublic(true));
                             }}
@@ -136,7 +144,7 @@ const NewSetView = () => {
                         <input
                             type="radio"
                             name="privacy"
-                            checked={!is_public}
+                            checked={!set.is_public}
                             onChange={() => {
                                 dispatch(setIsPublic(false));
                             }}
@@ -147,7 +155,7 @@ const NewSetView = () => {
                 <div className="divider"></div>
             </div>
             <div className="flashcard-list">
-                {flashcards.map((card, index) => (
+                {set.flashcards.map((card, index) => (
                     <div key={index} className="flashcard-editor-section">
                         <span className="flashcard-number">{index + 1}</span>
                         <div className="flashcard-inputs">

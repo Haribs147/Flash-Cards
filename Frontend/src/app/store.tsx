@@ -1,15 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import materialsReducer from "../features/materials/materialsSlice.tsx";
 import authReducer from "../features/auth/authSlice.tsx";
-import flashcardSetsReducer from "../features/flashcardSets/flashcardSetsSlice.tsx";
-import flashcardSetViewerReducer from "../features/flashcardSets/flashcardSetViewerSlice.tsx";
+import flashcardSetReducer from "../features/flashcardSets/flashcardSetSlice.tsx";
 
 export const store = configureStore({
     reducer: {
         materials: materialsReducer,
         auth: authReducer,
-        flashcardSets: flashcardSetsReducer,
-        flashcardSetViewer: flashcardSetViewerReducer,
+        flashcardSet: flashcardSetReducer,
     },
 });
 
