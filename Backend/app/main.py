@@ -5,11 +5,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from .config import settings
 
-from .database import Flashcard, FlashcardSet, Material, User, get_db
+from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, User, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
 
@@ -151,7 +152,9 @@ def read_users_me(current_user: User= Depends(get_current_user)):
 
 @app.get("/materials/all", response_model=list[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    materials = db.query(Material).filter(Material.owner_id == current_user.id).all()
+    materials = db.query(Material).join(MaterialShare, Material.id == MaterialShare.material_id, isouter=True).filter(
+        or_(Material.owner_id == current_user.id, MaterialShare.user_id == current_user.id)
+    ).distinct().all()
     return materials
 
 @app.post("/folders", status_code=status.HTTP_201_CREATED)
@@ -168,15 +171,31 @@ def create_new_folder( folder_data: FolderCreate, db: Session = Depends(get_db),
     db.refresh(new_material)
     return new_material
 
+def check_permission(item_id: int, req_access: str, db: Session, current_user: User) -> Material:
+    material = db.query(Material).filter(Material.id == item_id).first()
+    #TODO make a left join here so that it is faster
+    if not material:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material not found")
+    
+    if material.owner_id == current_user.id:
+        return material
+    
+    share = db.query(MaterialShare).filter(item_id == MaterialShare.material_id, MaterialShare.user_id == current_user.id).first()
+    if not share:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this material")
+
+    permission = share.permission
+    if req_access == PermissionEnum.viewer.value and permission in [PermissionEnum.viewer, PermissionEnum.editor]:
+        return material
+    
+    if req_access == PermissionEnum.editor.value and permission == PermissionEnum.editor:
+        return material
+    
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permission")
+
 @app.patch("/materials/{item_id}", response_model=MaterialOut)
 def update_material(item_id: int, update_data: MaterialUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    item_to_update = db.query(Material).filter(Material.id == item_id).first()
-
-    if not item_to_update:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    if item_to_update.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to move this item")
+    item_to_update = check_permission(item_id=item_id, req_access=PermissionEnum.editor, db=db, current_user=current_user )
     
     update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -185,7 +204,7 @@ def update_material(item_id: int, update_data: MaterialUpdate, db: Session = Dep
 
     if "parent_id" in update_dict:
         if item_id == update_data.parent_id:
-            raise HTTPException(status_code=400, detail="Cannot move folder into itself")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot move folder into itself")
         item_to_update.parent_id = update_data.parent_id
 
     db.commit()
@@ -206,17 +225,15 @@ def get_all_items_to_delete(item_id: int, db: Session) -> list[int]:
 
     return list(ids_to_delete)
 
-
-
 @app.delete("/materials/{item_id}", status_code=status.HTTP_200_OK, response_model=list[int])
 def delete_material(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     item_to_delete = db.query(Material).filter(Material.id == item_id).first()
     
     if not item_to_delete:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     
     if item_to_delete.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to move this item")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this item")
     
     db.delete(item_to_delete)
     db.commit()
@@ -257,15 +274,14 @@ def create_new_set(set_data: FlashcardSetUpdateAndCreate, db: Session = Depends(
 
 @app.patch("/sets/{set_id}", status_code=status.HTTP_200_OK, response_model=MaterialOut)
 def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Depends(get_db), current_user: User = Depends(get_current_user)):
+    check_permission(item_id=set_id, req_access=PermissionEnum.editor.value, current_user=current_user, db=db)
+
     set_material = db.query(Material).options(
         joinedload(Material.flashcard_set).joinedload(FlashcardSet.flashcards)
     ).filter(Material.id == set_id).first()
 
     if not set_material:
         raise HTTPException(status_code=404, detail="Flashcard set not found")
-    
-    if set_material.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this flashcard set")
     
     set_material.name = update_set_data.name
 
@@ -310,13 +326,7 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     # if flashcard_set.material.owner_id != current_user.id:
     #     raise HTTPException(status_code=403, detail="Not authorized to get this flashcard set")
 
-    set_material = db.query(Material).filter(Material.id == set_id).first()
-
-    if not set_material:
-        raise HTTPException(status_code=404, detail="Flashcard set not found")
-    
-    if set_material.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to get this flashcard set")
+    set_material = check_permission(item_id=set_id, req_access=PermissionEnum.viewer.value, current_user=current_user, db=db)
     
     flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
     creator = db.query(User).filter(User.id == set_material.owner_id).first()
