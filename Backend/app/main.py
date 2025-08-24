@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from .config import settings
 
-from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, User, get_db
+from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
 
@@ -153,7 +153,7 @@ def read_users_me(current_user: User= Depends(get_current_user)):
 @app.get("/materials/all", response_model=list[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     materials = db.query(Material).join(MaterialShare, Material.id == MaterialShare.material_id, isouter=True).filter(
-        or_(Material.owner_id == current_user.id, MaterialShare.user_id == current_user.id)
+        or_(Material.owner_id == current_user.id, (MaterialShare.user_id == current_user.id) & MaterialShare.status == ShareStatusEnum.accepted)
     ).distinct().all()
     return materials
 
@@ -181,7 +181,7 @@ def check_permission(item_id: int, req_access: str, db: Session, current_user: U
         return material
     
     share = db.query(MaterialShare).filter(item_id == MaterialShare.material_id, MaterialShare.user_id == current_user.id).first()
-    if not share:
+    if not share and share.status != ShareStatusEnum.accepted:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this material")
 
     permission = share.permission

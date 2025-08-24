@@ -18,6 +18,10 @@ class PermissionEnum(enum.Enum):
     viewer = "viewer"
     editor = "editor"
 
+class ShareStatusEnum(enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -67,3 +71,4 @@ class MaterialShare(Base):
     material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     permission = Column(SQLAlchemyEnum(PermissionEnum), nullable=False)
+    status = Column(SQLAlchemyEnum(ShareStatusEnum), nullable=False, default=ShareStatusEnum.pending)

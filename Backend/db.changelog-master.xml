@@ -123,4 +123,12 @@
             constraintName="uq_material_user_share"
         />
     </changeSet>
+
+    <changeSet id="8" author="Michal">
+        <addColumn tableName="material_shares">
+            <column name="status" type="VARCHAR(10)" defaultValue="pending">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
