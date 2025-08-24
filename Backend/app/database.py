@@ -1,7 +1,7 @@
-import os
-from sqlalchemy import ForeignKey, create_engine, Column, Integer, String, Boolean
+from sqlalchemy import ForeignKey, create_engine, Column, Integer, String, Boolean, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import sessionmaker, declarative_base, Relationship
 from .config import settings
+import enum
 
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -14,6 +14,9 @@ def get_db():
     finally:
         db.close()
 
+class PermissionEnum(enum.Enum):
+    viewer = "viewer"
+    editor = "editor"
 
 class User(Base):
     __tablename__ = "users"
@@ -57,3 +60,10 @@ class Flashcard(Base):
     set_id = Column(Integer, ForeignKey("flashcard_sets.id"), nullable=False)
 
     set = Relationship("FlashcardSet", back_populates="flashcards")
+
+class MaterialShare(Base):
+    __tablename__ = "material_shares"
+    id = Column(Integer, primary_key=True, index=True)
+    material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    permission = Column(SQLAlchemyEnum(PermissionEnum), nullable=False)

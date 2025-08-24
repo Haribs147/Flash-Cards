@@ -100,4 +100,27 @@
             referencedTableName="flashcard_sets" 
             referencedColumnNames="id"/>
     </changeSet>
+
+    <changeSet id="7" author="Michal">
+        <createTable tableName="material_shares">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="material_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_share_material" references="materials(id)" deleteCascade="true"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_share_user" references="users(id)" deleteCascade="true"/>
+            </column>
+            <column name="permissions" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="material_shares"
+            columnNames="material_id, user_id"
+            constraintName="uq_material_user_share"
+        />
+    </changeSet>
 </databaseChangeLog>
