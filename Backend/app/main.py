@@ -181,7 +181,7 @@ def check_permission(item_id: int, req_access: str, db: Session, current_user: U
         return material
     
     share = db.query(MaterialShare).filter(item_id == MaterialShare.material_id, MaterialShare.user_id == current_user.id).first()
-    if not share and share.status != ShareStatusEnum.accepted:
+    if not share or share.status != ShareStatusEnum.accepted:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this material")
 
     permission = share.permission
