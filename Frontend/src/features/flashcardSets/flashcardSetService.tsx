@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { SharedUser } from "./flashcardSetSlice";
 
 const API_URL = "http://localhost:8000";
 
@@ -35,4 +36,28 @@ export const updateSetApi = async (
 export const getSetApi = async (set_id: number) => {
     const response = await axios.get(`${API_URL}/sets/${set_id}`);
     return response.data;
+};
+
+export const shareSetApi = async (
+    setId: number,
+    email: string,
+): Promise<SharedUser> => {
+    const response = await axios.post(`${API_URL}/materials/${setId}/share`, {
+        email,
+        permission: "viewer",
+    });
+    return response.data;
+};
+
+export const removeShareApi = async (setId: number, userId: number) => {
+    await axios.delete(`${API_URL}/materials/${setId}/share/${userId}`);
+};
+
+export const updateSharesApi = async (
+    setId: number,
+    updates: { user_id: number; permission: string }[],
+) => {
+    await axios.post(`${API_URL}/materials/${setId}/shares/update`, {
+        updates,
+    });
 };

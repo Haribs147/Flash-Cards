@@ -174,6 +174,7 @@ export const materialsSlice = createSlice({
                 },
             )
             .addCase(
+                // TODO Fix this so that it checks if the item exists if it exists then update the name if not then unshift
                 saveSet.fulfilled,
                 (state, action: PayloadAction<MaterialItem>) => {
                     state.items.unshift(action.payload);

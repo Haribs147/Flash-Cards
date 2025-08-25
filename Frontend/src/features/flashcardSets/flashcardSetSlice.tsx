@@ -6,13 +6,22 @@ import {
 import {
     createNewSetApi,
     getSetApi,
+    removeShareApi,
+    shareSetApi,
     updateSetApi,
+    updateSharesApi,
 } from "./flashcardSetService";
 
 export interface Flashcard {
     id: number | null;
     front_content: string;
     back_content: string;
+}
+
+export interface SharedUser {
+    user_id: number;
+    email: string;
+    permission: "viewer" | "editor";
 }
 
 export interface FlashcardSetData {
@@ -22,6 +31,7 @@ export interface FlashcardSetData {
     is_public: boolean;
     creator: string;
     flashcards: Flashcard[];
+    shared_with: SharedUser[];
 }
 
 export interface FlashcardSetState {
@@ -81,6 +91,62 @@ export const saveSet = createAsyncThunk(
     },
 );
 
+export const shareSet = createAsyncThunk(
+    "flashcardSet/shareSet",
+    async (
+        { setId, email }: { setId: number; email: string },
+        { rejectWithValue },
+    ) => {
+        try {
+            return await shareSetApi(setId, email);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to add the share",
+            );
+        }
+    },
+);
+
+export const removeShare = createAsyncThunk(
+    "flashcardSet/removeShare",
+    async (
+        { setId, userId }: { setId: number; userId: number },
+        { rejectWithValue },
+    ) => {
+        try {
+            await removeShareApi(setId, userId);
+            return userId;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to remove the share",
+            );
+        }
+    },
+);
+
+export const savePermissionChanges = createAsyncThunk(
+    "flashcardSet/UpdateShares",
+    async (
+        {
+            setId,
+            updates,
+        }: {
+            setId: number;
+            updates: { user_id: number; permission: string }[];
+        },
+        { rejectWithValue },
+    ) => {
+        try {
+            await updateSharesApi(setId, updates);
+            return updates;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to update the shares",
+            );
+        }
+    },
+);
+
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",
     initialState,
@@ -101,6 +167,7 @@ export const flashcardSetSlice = createSlice({
                         back_content: "<div></div>",
                     },
                 ],
+                shared_with: [],
             };
         },
         setName: (state, action: PayloadAction<string>) => {
@@ -172,6 +239,30 @@ export const flashcardSetSlice = createSlice({
             .addCase(saveSet.rejected, (state, action) => {
                 state.status = "failed";
                 state.error = action.payload as string;
+            })
+            .addCase(shareSet.fulfilled, (state, action) => {
+                state.data?.shared_with.push(action.payload);
+            })
+            .addCase(removeShare.fulfilled, (state, action) => {
+                if (state.data) {
+                    state.data.shared_with = state.data.shared_with.filter(
+                        (u) => u.user_id != action.payload,
+                    );
+                }
+            })
+            .addCase(savePermissionChanges.fulfilled, (state, action) => {
+                if (state.data) {
+                    const updatesMap = new Map(
+                        action.payload.map((u) => [u.user_id, u.permission]),
+                    );
+                    state.data.shared_with.forEach((user) => {
+                        if (updatesMap.has(user.user_id)) {
+                            user.permission = updatesMap.get(user.user_id) as
+                                | "viewer"
+                                | "editor";
+                        }
+                    });
+                }
             });
     },
 });

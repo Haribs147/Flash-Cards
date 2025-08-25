@@ -52,7 +52,8 @@ const FlashcardSetView = () => {
             <SetHeader
                 title={set.name}
                 description={set.description}
-                initial={set.creator}
+                creator={set.creator}
+                sharedWith={set.shared_with}
                 onBackClick={() => navigate(-1)}
                 onEditClick={handleEditClick}
             />

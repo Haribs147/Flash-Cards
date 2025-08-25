@@ -112,7 +112,7 @@
             <column name="user_id" type="INT">
                 <constraints nullable="false" foreignKeyName="fk_share_user" references="users(id)" deleteCascade="true"/>
             </column>
-            <column name="permissions" type="VARCHAR(10)">
+            <column name="permission" type="VARCHAR(10)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

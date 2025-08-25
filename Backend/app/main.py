@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session, joinedload
 
 from .config import settings
@@ -81,6 +81,11 @@ class FlashcardSetUpdate(BaseModel):
     is_public: bool
     flashcards: list[FlashcardData]
 
+class SharedUser(BaseModel):
+    user_id: int
+    email: EmailStr
+    permission: PermissionEnum
+
 class FlashcardSetOut(BaseModel):
     id: int
     name: str
@@ -88,6 +93,19 @@ class FlashcardSetOut(BaseModel):
     is_public: bool
     creator: str
     flashcards: list[FlashcardData]
+    shared_with: list[SharedUser]
+
+class ShareData(BaseModel):
+    email: EmailStr
+    permission: PermissionEnum
+
+class ShareUpdate(BaseModel):
+    user_id: int
+    permission: PermissionEnum
+
+class ShareUpdateData(BaseModel):
+    updates: list[ShareUpdate]
+
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -153,7 +171,7 @@ def read_users_me(current_user: User= Depends(get_current_user)):
 @app.get("/materials/all", response_model=list[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     materials = db.query(Material).join(MaterialShare, Material.id == MaterialShare.material_id, isouter=True).filter(
-        or_(Material.owner_id == current_user.id, (MaterialShare.user_id == current_user.id) & MaterialShare.status == ShareStatusEnum.accepted)
+        or_(Material.owner_id == current_user.id, and_(MaterialShare.user_id == current_user.id, MaterialShare.status == ShareStatusEnum.accepted))
     ).distinct().all()
     return materials
 
@@ -330,13 +348,74 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     
     flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
     creator = db.query(User).filter(User.id == set_material.owner_id).first()
+    shares = db.query(MaterialShare, User).join(User, MaterialShare.user_id == User.id).filter(MaterialShare.material_id == set_id).all()
+    shared_with = [SharedUser(user_id=user.id, email=user.email, permission=share.permission) for share, user in shares]
 
     flashcard_data = {
         "id": set_id,
         "name": set_material.name,
         "description": flashcard_set.description,
         "is_public": flashcard_set.is_public,
-        "creator": creator.email[0].upper(),
+        "creator": creator.email,
         "flashcards": flashcard_set.flashcards,
+        "shared_with": shared_with,
     }
     return flashcard_data
+
+@app.post("/materials/{item_id}/share", response_model=SharedUser, status_code=status.HTTP_201_CREATED)
+def share_material(item_id: int, share_data: ShareData, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    material_to_share = db.query(Material).filter(Material.id == item_id).first()
+    if not material_to_share:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Set not found")
+    
+    if material_to_share.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to add this share permission")
+    
+    user_to_share_with = db.query(User).filter(User.email == share_data.email).first()
+    if not user_to_share_with:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with email: {share_data.email} not found")
+    if user_to_share_with.id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot share set with yourself")
+    
+    existing_share = db.query(MaterialShare).filter(MaterialShare.material_id == item_id, MaterialShare.user_id == user_to_share_with.id).first()
+    if existing_share:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This material is already shared with this user.")
+    
+    new_share = MaterialShare(material_id=item_id, user_id=user_to_share_with.id, permission=share_data.permission)
+    db.add(new_share)
+    db.commit()
+    db.refresh(new_share)
+    return SharedUser(user_id=user_to_share_with.id, email=user_to_share_with.email, permission=new_share.permission)
+
+@app.delete("/materials/{item_id}/share/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def share_delete(item_id: int, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    material_to_delete = db.query(Material).filter(Material.id == item_id).first()
+    if not material_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Set not found")
+    
+    if material_to_delete.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this share permission")
+    
+    share_to_delete =  db.query(MaterialShare).filter(MaterialShare.material_id == item_id, MaterialShare.user_id == user_id).first()
+    if not share_to_delete:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This share doesn't exist.")
+    
+    db.delete(share_to_delete)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post("/materials/{item_id}/shares/update", status_code=status.HTTP_200_OK)
+def shares_update(item_id: int, share_update_data: ShareUpdateData, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    material_to_delete = db.query(Material).filter(Material.id == item_id).first()
+    if not material_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Set not found")
+    
+    if material_to_delete.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this share permission")
+    
+    for update in share_update_data.updates:
+        db.query(MaterialShare).filter(MaterialShare.material_id == item_id, MaterialShare.user_id == update.user_id).update({"permission": update.permission})
+    
+    db.commit()
+    return {"message": "Permissions updates succesfully"}
