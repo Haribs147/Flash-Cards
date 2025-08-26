@@ -106,6 +106,10 @@ class ShareUpdate(BaseModel):
 class ShareUpdateData(BaseModel):
     updates: list[ShareUpdate]
 
+class PendingShareOut(BaseModel):
+    share_id: int
+    material_name: str
+    sharer_email: str
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -170,9 +174,7 @@ def read_users_me(current_user: User= Depends(get_current_user)):
 
 @app.get("/materials/all", response_model=list[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    materials = db.query(Material).join(MaterialShare, Material.id == MaterialShare.material_id, isouter=True).filter(
-        or_(Material.owner_id == current_user.id, and_(MaterialShare.user_id == current_user.id, MaterialShare.status == ShareStatusEnum.accepted))
-    ).distinct().all()
+    materials = db.query(Material).filter(Material.owner_id == current_user.id).all()
     return materials
 
 @app.post("/folders", status_code=status.HTTP_201_CREATED)
@@ -213,7 +215,13 @@ def check_permission(item_id: int, req_access: str, db: Session, current_user: U
 
 @app.patch("/materials/{item_id}", response_model=MaterialOut)
 def update_material(item_id: int, update_data: MaterialUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    item_to_update = check_permission(item_id=item_id, req_access=PermissionEnum.editor, db=db, current_user=current_user )
+    item_to_update = db.query(Material).filter(Material.id == item_id).first()
+
+    if not item_to_update:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    
+    if item_to_update.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this item")
     
     update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -253,6 +261,11 @@ def delete_material(item_id: int, db: Session = Depends(get_db), current_user: U
     if item_to_delete.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this item")
     
+    if item_to_delete.item_type == "link":
+        db.delete(item_to_delete)
+        db.commit()
+        return [item_id]
+
     db.delete(item_to_delete)
     db.commit()
     
@@ -321,8 +334,8 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
             card_to_update.back_content = card.back_content
         elif card.id is None:
             new_flashcard = Flashcard(
-                set_id = set_id,
-                front_content = card.front_content,
+                set_id=set_id,
+                front_content=card.front_content,
                 back_content=card.back_content,
             )
             db.add(new_flashcard)
@@ -419,3 +432,58 @@ def shares_update(item_id: int, share_update_data: ShareUpdateData, db: Session 
     
     db.commit()
     return {"message": "Permissions updates succesfully"}
+
+
+@app.get("/shares/pending", status_code=status.HTTP_200_OK)
+def get_shares(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    pending_shares = db.query(
+        MaterialShare.id, Material.name, User.email
+    ).join(Material, MaterialShare.material_id == Material.id)\
+     .join(User, Material.owner_id == User.id)\
+     .filter( MaterialShare.user_id == current_user.id, MaterialShare.status == ShareStatusEnum.pending
+    ).all()
+
+    return [
+        PendingShareOut(share_id=share_id, material_name=material_name, sharer_email=sharer_email)
+        for share_id, material_name, sharer_email in pending_shares
+    ]
+
+@app.post("/shares/pending/{share_id}/accept", response_model=PendingShareOut)
+def accept_share(share_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    share = db.query(MaterialShare).filter(MaterialShare.id == share_id, MaterialShare.user_id == current_user.id, MaterialShare.status == ShareStatusEnum.pending).first()
+
+    if not share:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Share not found")
+    
+    original_material = db.query(Material).filter(Material.id == share.material_id).first()
+    if not original_material:
+        db.delete(share)
+        db.commit()
+        raise HTTPException(status_code=404, detail="Original material doesn't exist")
+    
+    link_material = Material(
+        name=original_material.name,
+        item_type="link",
+        owner_id=current_user.id,
+        parent_id=None, # TODO make it so that the user will send a parent_id
+        linked_material_id = original_material.id
+    )
+    db.add(link_material)
+    share.status = ShareStatusEnum.accepted
+    db.commit()
+    db.refresh(link_material)
+
+    return link_material
+
+@app.delete("/shares/pending/{share_id}", status_code=status.HTTP_204_NO_CONTENT)
+def share_delete(share_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    share_to_delete = db.query(MaterialShare).filter(MaterialShare.id == share_id, MaterialShare.user_id == current_user.id, MaterialShare.status == ShareStatusEnum.pending).first()
+    
+    if not share_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Share not found")
+    
+    db.delete(share_to_delete)
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+

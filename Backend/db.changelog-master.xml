@@ -131,4 +131,20 @@
             </column>
         </addColumn>
     </changeSet>
+    
+    <changeSet id="9" author="Michal">
+        <addColumn tableName="materials">
+            <column name="linked_material_id" type="INT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint
+            baseTableName="materials"
+            baseColumnNames="linked_material_id"
+            constraintName="fk_material_link"
+            referencedTableName="materials"
+            referencedColumnNames="id"
+        />
+    </changeSet>
 </databaseChangeLog>

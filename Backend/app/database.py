@@ -47,11 +47,12 @@ class Material(Base):
     item_type = Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     parent_id = Column(Integer, ForeignKey("materials.id"), nullable=True)
+    linked_material_id = Column(Integer, ForeignKey("materials.id"), nullable=True)
 
     owner = Relationship("User", back_populates="materials")
     
-    parent = Relationship("Material", remote_side=[id], back_populates="children")
-    children = Relationship("Material", back_populates="parent", cascade="all, delete-orphan")
+    parent = Relationship("Material", remote_side=[id], back_populates="children", foreign_keys=[parent_id])
+    children = Relationship("Material", back_populates="parent", cascade="all, delete-orphan", foreign_keys=[parent_id])
     
     flashcard_set = Relationship("FlashcardSet", uselist=False, back_populates="material", cascade="all, delete-orphan")
 

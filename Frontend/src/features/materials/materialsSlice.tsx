@@ -11,6 +11,7 @@ import {
     renameItemApi,
 } from "./materialsService";
 import { saveSet } from "../flashcardSets/flashcardSetSlice";
+import { acceptShare } from "../shares/sharesSlice";
 
 export interface MaterialItem {
     id: number;
@@ -179,7 +180,10 @@ export const materialsSlice = createSlice({
                 (state, action: PayloadAction<MaterialItem>) => {
                     state.items.unshift(action.payload);
                 },
-            );
+            )
+            .addCase(acceptShare.fulfilled, (state, action) => {
+                state.items.unshift(action.payload);
+            });
     },
 });
 

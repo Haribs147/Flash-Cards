@@ -2,41 +2,82 @@ import "./SharedSetsList.css";
 import { FiCheck, FiX } from "react-icons/fi";
 import "./RecentSetsList.css";
 import "./SharedSetsList.css";
-
-const mockSharedSets = [
-    { id: "s1", name: "Fiszki 1", authorInitial: "M", color: "#007bff" },
-    { id: "s2", name: "Fiszki 2", authorInitial: "J", color: "#dc3545" },
-];
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { useEffect } from "react";
+import {
+    acceptShare,
+    fetchPendingShares,
+    rejectShare,
+} from "../../../features/shares/sharesSlice";
 
 type SharedSetsListProps = {
     searchTerm: string;
 };
 
 const SharedSetsList = ({ searchTerm }: SharedSetsListProps) => {
-    const filteredSets = mockSharedSets.filter((set) =>
-        set.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    const dispatch = useAppDispatch();
+    const { pending: pendingShares, status } = useAppSelector(
+        (state) => state.shares,
+    );
+
+    useEffect(() => {
+        if (status == "idle") {
+            dispatch(fetchPendingShares());
+        }
+        console.log(pendingShares);
+    }, [status, dispatch]);
+
+    const handleAccept = (shareId: number) => {
+        dispatch(acceptShare(shareId));
+    };
+
+    const handleReject = (shareId: number) => {
+        dispatch(rejectShare(shareId));
+    };
+
+    if (status == "loading") {
+        return <div></div>;
+    }
+
+    const filteredShares = pendingShares.filter((set) =>
+        set.material_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     return (
         <div className="item-list">
-            {filteredSets.map((set) => (
-                <div key={set.id} className="list-item-set">
+            {filteredShares.map((share) => (
+                <div key={share.share_id} className="list-item-set">
                     <div
                         className="set-avatar"
-                        style={{ backgroundColor: set.color }}
+                        style={{ backgroundColor: "#007bff" }}
                     >
-                        {set.authorInitial}
+                        {share.sharer_email.charAt(0).toUpperCase()}
                     </div>
-                    <span className="item-name">{set.name}</span>
+                    <div className="item-details">
+                        <span className="item-name">{share.material_name}</span>
+                        <span className="sharer-email">
+                            Shared by: {share.sharer_email}
+                        </span>
+                    </div>
+
                     <div className="shared-actions">
-                        <button className="shared-btn accept">
+                        <button
+                            className="shared-btn accept"
+                            onClick={() => handleAccept(share.share_id)}
+                        >
                             <FiCheck />
                         </button>
-                        <button className="shared-btn reject">
+                        <button
+                            className="shared-btn reject"
+                            onClick={() => handleReject(share.share_id)}
+                        >
                             <FiX />
                         </button>
                     </div>
                 </div>
             ))}
+            {pendingShares.length === 0 && status === "succeded" && (
+                <div className="no-shares-message">No pending shares</div>
+            )}
         </div>
     );
 };

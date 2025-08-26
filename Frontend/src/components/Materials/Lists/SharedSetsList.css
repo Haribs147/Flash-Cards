@@ -1,5 +1,5 @@
 .shared-actions {
-    margin-left: auto; /* Przesuwa przyciski na prawą stronę */
+    margin-left: auto;
     display: flex;
     gap: 8px;
 }
@@ -17,9 +17,42 @@
 }
 
 .shared-btn.accept {
-    background-color: #28a745; /* Zielony */
+    background-color: #28a745;
 }
 
 .shared-btn.reject {
-    background-color: #dc3545; /* Czerwony */
+    background-color: #dc3545;
+}
+
+.list-item-set {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: background-color 0.2s;
+}
+
+.item-details {
+    display: flex;
+    flex-direction: column;
+    margin-left: 12px;
+}
+
+.item-name {
+    font-weight: 500;
+}
+
+.sharer-email {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.no-shares-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #868e96;
+    font-style: italic;
 }
