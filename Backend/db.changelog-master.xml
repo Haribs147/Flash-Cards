@@ -147,4 +147,28 @@
             referencedColumnNames="id"
         />
     </changeSet>
+
+    <changeSet id="10" author="Michal">
+        <dropForeignKeyConstraint baseTableName="materials" constraintName="fk_material_parent"/>
+        <dropForeignKeyConstraint baseTableName="materials" constraintName="fk_material_link"/>
+
+        <addForeignKeyConstraint
+            baseTableName="materials"
+            baseColumnNames="parent_id"
+            constraintName="fk_material_parent_cascade"
+            referencedTableName="materials"
+            referencedColumnNames="id"
+            onDelete="CASCADE"
+        />
+
+        
+        <addForeignKeyConstraint
+            baseTableName="materials"
+            baseColumnNames="linked_material_id"
+            constraintName="fk_material_link_cascade"
+            referencedTableName="materials"
+            referencedColumnNames="id"
+            onDelete="CASCADE"
+        />
+    </changeSet>
 </databaseChangeLog>
