@@ -176,10 +176,17 @@ export const materialsSlice = createSlice({
                 },
             )
             .addCase(
-                // TODO Fix this so that it checks if the item exists if it exists then update the name if not then unshift
                 saveSet.fulfilled,
                 (state, action: PayloadAction<MaterialItem>) => {
-                    state.items.unshift(action.payload);
+                    const newItem = action.payload;
+                    const existingItemIndex = state.items.findIndex(
+                        (item) => item.id === newItem.id,
+                    );
+                    if (existingItemIndex !== -1) {
+                        state.items[existingItemIndex].name = newItem.name;
+                    } else {
+                        state.items.unshift(newItem);
+                    }
                 },
             )
             .addCase(acceptShare.fulfilled, (state, action) => {
