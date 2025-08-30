@@ -4,11 +4,16 @@ import SetHeader from "./SetHeader/SetHeader";
 import SetActionButtons from "./SetActionButtons/SetActionButtons";
 import FlashcardViewer from "./FlashcardViewer/FlashcardViewer";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
     getSet,
     resetFlashcardSet,
 } from "../../features/flashcardSets/flashcardSetSlice";
+
+type Flashcard = {
+    front_content: string;
+    back_content: string;
+};
 
 const FlashcardSetView = () => {
     const { setId } = useParams<{ setId: string }>();
@@ -21,6 +26,10 @@ const FlashcardSetView = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
+    const [cards, setCards] = useState<Flashcard[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+
     useEffect(() => {
         if (setId) {
             dispatch(getSet(Number(setId)));
@@ -30,6 +39,45 @@ const FlashcardSetView = () => {
             dispatch(resetFlashcardSet());
         };
     }, [dispatch, setId]);
+
+    useEffect(() => {
+        if (set && set.flashcards) {
+            setCards(set.flashcards);
+            setCurrentIndex(0);
+            setIsFlipped(false);
+        }
+    }, [set]);
+
+    const handleNext = () => {
+        setCurrentIndex((prev) => (prev + 1) % cards.length);
+        setIsFlipped(false);
+    };
+
+    const handlePrev = () => {
+        setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+        setIsFlipped(false);
+    };
+
+    const handleShuffle = () => {
+        const shuffled = [...cards].sort(() => Math.random() - 0.5);
+        setCards(shuffled);
+        setCurrentIndex(0);
+        setIsFlipped(false);
+    };
+
+    const handleReverse = () => {
+        const reversed = cards.map((card) => ({
+            ...card,
+            front_content: card.back_content,
+            back_content: card.front_content,
+        }));
+        setCards(reversed);
+        setIsFlipped(false);
+    };
+
+    const handleFlip = () => {
+        setIsFlipped((prev) => !prev);
+    };
 
     const handleEditClick = () => {
         navigate(`/set/edit/${setId}`);
@@ -43,8 +91,8 @@ const FlashcardSetView = () => {
         return <div>Error: {error}</div>;
     }
 
-    if (!set) {
-        return <div>Set not found</div>;
+    if (!set || cards.length === 0) {
+        return <div>Set not found or has no FlashCards</div>;
     }
 
     return (
@@ -59,7 +107,15 @@ const FlashcardSetView = () => {
             />
             <div className="divider"></div>
             <SetActionButtons setId={setId} />
-            <FlashcardViewer cardText={set.flashcards[0].front_content} />
+            <FlashcardViewer
+                card={cards[currentIndex]}
+                isFlipped={isFlipped}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                onShuffle={handleShuffle}
+                onReverse={handleReverse}
+                onFlip={handleFlip}
+            />
         </div>
     );
 };

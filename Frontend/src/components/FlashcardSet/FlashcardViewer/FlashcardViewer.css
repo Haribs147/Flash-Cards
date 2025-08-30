@@ -1,23 +1,25 @@
 .flashcard-viewer-container {
     width: 100%;
-    max-width: 900px; /* Less wide */
-    margin: 0 auto; /* Centered */
+    max-width: 900px;
+    margin: 0 auto;
 }
 .flashcard-viewer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: relative; /* Crucial for positioning arrows inside */
-    overflow: hidden; /* Hides parts of arrows outside the rounded corners */
+    position: relative;
+    overflow: hidden;
     border: 2px solid #e53888;
     border-radius: 12px;
 }
 .flashcard-content {
     width: 100%;
-    height: 48vh;
+    height: 35vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    padding: 100px;
     font-size: 20px;
 }
 .nav-arrow {
@@ -46,6 +48,24 @@
 .flashcard-footer-controls {
     display: flex;
     justify-content: flex-end;
-    gap: 16px; /* Increased gap */
+    gap: 16px;
     margin-top: 16px;
+}
+
+.flashcard-content {
+    width: 100%;
+}
+
+.flashcard-content div[data-type="image-grid"] {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 2), 1fr);
+    gap: 16px;
+    margin: 1rem 0;
+}
+
+.flashcard-content div[data-type="image-grid"] img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
 }
