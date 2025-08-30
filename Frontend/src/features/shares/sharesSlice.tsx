@@ -33,7 +33,8 @@ export const acceptShare = createAsyncThunk(
     "shares/accept",
     async (share_id: number, { rejectWithValue }) => {
         try {
-            return await acceptShareApi(share_id);
+            const newLinkMaterial = await acceptShareApi(share_id);
+            return { newLinkMaterial: newLinkMaterial, share_id: share_id };
         } catch (error: any) {
             return rejectWithValue("Failed to accept share");
         }
@@ -71,7 +72,7 @@ export const sharesSlice = createSlice({
             })
             .addCase(acceptShare.fulfilled, (state, action) => {
                 state.pending = state.pending.filter(
-                    (share) => share.share_id !== action.meta.arg,
+                    (share) => share.share_id !== action.payload.share_id,
                 );
             })
             .addCase(rejectShare.fulfilled, (state, action) => {

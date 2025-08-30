@@ -13,6 +13,7 @@ import {
     setCurrentFolderId,
     setIsCreating,
     setSearchTerm,
+    type MaterialItem,
 } from "../../features/materials/materialsSlice";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
 import { useEffect, useState } from "react";
@@ -63,11 +64,14 @@ const MaterialsView = () => {
         );
     };
 
-    const handleItemClick = (item_type: string, id: number) => {
-        if (item_type === "set") {
-            navigate(`/set/${id}`);
-        } else {
-            dispatch(setCurrentFolderId(id));
+    const handleItemClick = (item: MaterialItem) => {
+        if (item.item_type === "set") {
+            navigate(`/set/${item.id}`);
+        } else if (item.item_type === "folder") {
+            dispatch(setCurrentFolderId(item.id));
+        } else if (item.item_type === "link") {
+            const original_item_id = item.linked_material_id ?? item.id;
+            navigate(`/set/${original_item_id}`);
         }
     };
 
@@ -84,10 +88,13 @@ const MaterialsView = () => {
             );
 
             if (clickedItemDiv) {
-                const id = clickedItemDiv.dataset.id;
-                const item_type = clickedItemDiv.dataset.type;
-                if (id && item_type) {
-                    handleItemClick(item_type, parseInt(id, 10));
+                const stringId = clickedItemDiv.dataset.id;
+                if (stringId) {
+                    const itemId = parseInt(stringId, 10);
+                    const item = items.find((item) => item.id === itemId);
+                    if (item) {
+                        handleItemClick(item);
+                    }
                 }
             }
 

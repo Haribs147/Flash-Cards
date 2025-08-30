@@ -18,7 +18,7 @@ type FolderListProps = {
     setDraggedItemId: (id: number) => void;
     draggedItemId: number;
     setDraggedItemParentId: (parentId: number | null) => void;
-    handleItemClick: (item_type: string, id: number) => void;
+    handleItemClick: (item: MaterialItem) => void;
 };
 
 const FolderListItem = ({
@@ -28,7 +28,7 @@ const FolderListItem = ({
     draggedItemId,
 }: {
     item: MaterialItem;
-    handleItemClick: (item_type: string, id: number) => void;
+    handleItemClick: (item: MaterialItem) => void;
     onDragStart: (item: MaterialItem) => void;
     draggedItemId: number;
 }) => {
@@ -113,9 +113,7 @@ const FolderListItem = ({
             onDragStart={() => onDragStart(item)}
             key={item.id}
             className={`list-item ${isOver ? "drop-target" : ""}`}
-            onClick={() =>
-                !isEditing && handleItemClick(item.item_type, item.id)
-            }
+            onClick={() => !isEditing && handleItemClick(item)}
             data-id={item.id}
             data-type={item.item_type}
         >

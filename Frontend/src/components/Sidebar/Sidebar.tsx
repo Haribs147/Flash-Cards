@@ -1,7 +1,6 @@
 import { FiHome, FiUser, FiInfo, FiFolder } from "react-icons/fi";
 import "./Sidebar.css";
 
-// typescript
 type SidebarProps = {
     activeItem: string;
     onItemClick: (item: string) => void;

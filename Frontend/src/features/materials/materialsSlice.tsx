@@ -15,9 +15,10 @@ import { acceptShare } from "../shares/sharesSlice";
 
 export interface MaterialItem {
     id: number;
-    item_type: "folder" | "set";
+    item_type: "folder" | "set" | "link";
     name: string;
     parent_id: number | null;
+    linked_material_id: number | null;
 }
 
 interface MaterialsState {
@@ -182,7 +183,7 @@ export const materialsSlice = createSlice({
                 },
             )
             .addCase(acceptShare.fulfilled, (state, action) => {
-                state.items.unshift(action.payload);
+                state.items.unshift(action.payload.newLinkMaterial);
             });
     },
 });

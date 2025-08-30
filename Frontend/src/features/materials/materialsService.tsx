@@ -1,5 +1,5 @@
 import axios from "axios";
-import { type MaterialItem, materialsSlice } from "./materialsSlice";
+import { type MaterialItem } from "./materialsSlice";
 
 const API_URL = "http://localhost:8000";
 
