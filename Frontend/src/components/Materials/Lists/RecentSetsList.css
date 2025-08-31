@@ -1,4 +1,3 @@
-/* Używamy tych samych stylów co dla FolderList, ale dodajemy specyficzne dla awatarów */
 .list-item-set {
     display: flex;
     align-items: center;

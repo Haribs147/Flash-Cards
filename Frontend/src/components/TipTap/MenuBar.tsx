@@ -14,8 +14,8 @@ import {
     FaImages,
 } from "react-icons/fa";
 import { useRef, useState } from "react";
-import { uploadImageToServer } from "../../api/imageUpload";
 import type { Editor } from "@tiptap/react";
+import { uploadImageToServer } from "../../features/flashcardSets/flashcardSetService";
 
 type MenuBarProps = {
     editor: Editor | null;

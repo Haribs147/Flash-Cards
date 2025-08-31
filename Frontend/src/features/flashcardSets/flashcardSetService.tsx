@@ -61,3 +61,27 @@ export const updateSharesApi = async (
         updates,
     });
 };
+
+export const uploadImageToServer = async (file: File): Promise<string> => {
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    try {
+        const response = await axios.post(`${API_URL}/upload-image`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+            withCredentials: true,
+        });
+
+        if (response.data && response.data.url) {
+            return response.data.url;
+        } else {
+            throw new Error("Upload image to server does not work");
+        }
+    } catch (error) {
+        console.error("error uploading an image: ", error);
+        throw new Error("Upload image to server does not work");
+    }
+};

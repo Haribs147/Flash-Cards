@@ -45,7 +45,6 @@
     outline: none;
 }
 
-/* Style for specific Tiptap elements */
 .ProseMirror blockquote {
     border-left: 3px solid #ccc;
     margin-left: 1rem;

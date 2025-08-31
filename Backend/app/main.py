@@ -1,5 +1,7 @@
+from contextlib import asynccontextmanager
 from typing import Annotated, Optional
-from fastapi import FastAPI, Depends, HTTPException, Request, Response, status
+import uuid
+from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
@@ -8,15 +10,25 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session, joinedload
 
+from .minio import initialize_minio, minio_client
+
 from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Application startup")
+    initialize_minio()
+    yield
+    print("Application shutdown")
 
-app = FastAPI(title="Flashcard_backend")
+
+app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
+
 
 class CsrfSettings(BaseModel):
     secret_key: str = settings.CSRF_SECRET_KEY
@@ -484,3 +496,24 @@ def reject_share(share_id: int, db: Session = Depends(get_db), current_user: Use
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.post("/upload-image", status_code=status.HTTP_201_CREATED)
+def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    try:
+        file_extension = file.filename.split(".")[-1]
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        minio_client.put_object(
+            bucket_name=settings.MINIO_BUCKET,
+            object_name=unique_filename,
+            data=file.file,
+            length=-1,
+            part_size=10*1024*1024,
+            content_type=file.content_type,
+        )
+
+        image_url = f"http://{settings.MINIO_ENPOINT}/{settings.MINIO_BUCKET}/{unique_filename}"
+
+        return {"url": image_url}
+    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload image {str(e)}")

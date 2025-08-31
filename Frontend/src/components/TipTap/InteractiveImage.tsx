@@ -1,8 +1,8 @@
 import { NodeViewWrapper, type ReactNodeViewProps } from "@tiptap/react";
 import { useRef } from "react";
 import { FaImage } from "react-icons/fa";
-import { uploadImageToServer } from "../../api/imageUpload";
 import "./InteractiveImage.css";
+import { uploadImageToServer } from "../../features/flashcardSets/flashcardSetService";
 
 export const InteractiveImage = (props: ReactNodeViewProps) => {
     const { node, updateAttributes } = props;
