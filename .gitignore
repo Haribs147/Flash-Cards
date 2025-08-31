@@ -31,3 +31,5 @@ __pycache__/
 
 databasechangelog.csv
 liquibase.properties
+
+minio-data/
