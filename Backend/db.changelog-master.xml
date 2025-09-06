@@ -171,4 +171,30 @@
             onDelete="CASCADE"
         />
     </changeSet>
+
+    <changeSet id="11" author="Michal">
+        <createTable tableName="votes">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_vote_user" references="users(id)" deleteCascade="true"/>
+            </column>
+            <column name="vote_type" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="votable_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="votable_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="votes"
+            columnNames="user_id, votable_id, votable_type"
+            constraintName="uq_user_votable_vote"
+        />
+    </changeSet>
 </databaseChangeLog>

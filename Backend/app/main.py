@@ -14,7 +14,7 @@ from .minio import initialize_minio, minio_client
 
 from .config import settings
 
-from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, get_db
+from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
@@ -107,6 +107,9 @@ class FlashcardSetOut(BaseModel):
     creator: str
     flashcards: list[FlashcardData]
     shared_with: list[SharedUser]
+    upvotes: int
+    downvotes: int
+    user_vote: Optional[VoteTypeEnum] = None
 
 class ShareData(BaseModel):
     email: EmailStr
@@ -123,6 +126,10 @@ class PendingShareOut(BaseModel):
     share_id: int
     material_name: str
     sharer_email: str
+
+class VoteData(BaseModel):
+    vote_type: VoteTypeEnum
+
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -389,6 +396,11 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     shares = db.query(MaterialShare, User).join(User, MaterialShare.user_id == User.id).filter(MaterialShare.material_id == set_id).all()
     shared_with = [SharedUser(user_id=user.id, email=user.email, permission=share.permission) for share, user in shares]
 
+    upvotes = db.query(Vote).filter(votable_id=set_id, votable_type="material", vote_type=VoteTypeEnum.upvote).count()
+    downvotes = db.query(Vote).filter(votable_id=set_id, votable_type="material", vote_type=VoteTypeEnum.downvote).count()
+    user_vote_obj = db.query(Vote).filter(votable_id=set_id, votable_type="material", user_id=current_user.id).first()
+    user_vote = user_vote_obj.vote_type if user_vote_obj else None
+
     flashcard_data = {
         "id": set_id,
         "name": set_material.name,
@@ -397,6 +409,9 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
         "creator": creator.email,
         "flashcards": flashcard_set.flashcards,
         "shared_with": shared_with,
+        "upvotes": upvotes,
+        "downvotes": downvotes,
+        "user_vote": user_vote,
     }
     return flashcard_data
 
@@ -517,3 +532,56 @@ def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_
     
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload image {str(e)}")
+
+def process_vote(votable_id: int, votable_type: int, vote_type: int, db: Session, current_user: User):
+    existing_vote = db.query(Vote).filter(
+        user_id=current_user.id,
+        votable_id=votable_id,
+        votable_type=votable_type
+    )
+
+    new_user_vote = None
+
+    if existing_vote:
+        if existing_vote.vote_type == vote_type:
+            db.delete(existing_vote)
+        else:
+            existing_vote.vote_type = vote_type
+            new_user_vote = vote_type
+    else:
+        new_vote = Vote(
+            user_id=current_user.id,
+            votable_id=votable_id,
+            votable_type=votable_type,
+            vote_type=vote_type,
+        )
+        db.add(new_vote)
+        new_user_vote = vote_type
+
+    db.commit()
+
+    upvotes = db.query(Vote).filter(votable_id=votable_id, votable_type=votable_type, vote_type=VoteTypeEnum.upvote).count()
+    downvotes = db.query(Vote).filter(votable_id=votable_id, votable_type=votable_type, vote_type=VoteTypeEnum.downvote).count()
+
+    return {"message": "Vote Processed", "upvotes": upvotes, "downvotes": downvotes, "user_vote": new_user_vote}
+
+@app.post("/materials/{material_id}/vote", status_code=status.HTTP_200_OK)
+def vote_on_material(material_id: int, vote_data: VoteData, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    material = db.query(Material).filter(Material.id == material_id).first()
+    if not material:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material not found")
+    
+    if material.item_type != "set":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Items of type `{material.item_type}` cannot be voted on",
+        )
+
+    return process_vote(
+        votable_id=material_id,
+        votable_type="material",
+        vote_type=vote_data.vote_type,
+        db=db,
+        current_user=current_user
+    )
+

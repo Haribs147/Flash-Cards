@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, create_engine, Column, Integer, String, Boolean, Enum as SQLAlchemyEnum
+from sqlalchemy import ForeignKey, UniqueConstraint, create_engine, Column, Integer, String, Boolean, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import sessionmaker, declarative_base, Relationship
 from .config import settings
 import enum
@@ -21,6 +21,10 @@ class PermissionEnum(enum.Enum):
 class ShareStatusEnum(enum.Enum):
     pending = "pending"
     accepted = "accepted"
+
+class VoteTypeEnum(enum.Enum):
+    upvote = "upvote"
+    downvote = "downvote"
 
 class User(Base):
     __tablename__ = "users"
@@ -72,4 +76,19 @@ class MaterialShare(Base):
     material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     permission = Column(SQLAlchemyEnum(PermissionEnum), nullable=False)
+    status = Column(SQLAlchemyEnum(ShareStatusEnum), nullable=False, default=ShareStatusEnum.pending)
+
+class Vote(Base):
+    __tablename__ = "votes"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    vote_type = Column(SQLAlchemyEnum(VoteTypeEnum), nullable=False)
+
+    votable_id = Column(Integer, nullable=False)
+    votable_type = Column(String, nullable=False)
+
+    user = Relationship("User")
+
+    __table_args__ = (UniqueConstraint("user_id", "votable_id", "votable_type", name="_user_votable_uc"), )
+
     status = Column(SQLAlchemyEnum(ShareStatusEnum), nullable=False, default=ShareStatusEnum.pending)
