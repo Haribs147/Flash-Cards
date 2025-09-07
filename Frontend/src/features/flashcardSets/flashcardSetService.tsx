@@ -96,3 +96,15 @@ export const voteOnMaterialApi = async (
     );
     return response.data;
 };
+
+export const addCommentApi = async (
+    materialId: number,
+    text: string,
+    parent_comment_id?: number | null,
+) => {
+    const response = await axios.post(
+        `${API_URL}/materials/${materialId}/comments`,
+        { text, parent_comment_id },
+    );
+    return response.data;
+};

@@ -9,6 +9,7 @@ import {
     getSet,
     resetFlashcardSet,
 } from "../../features/flashcardSets/flashcardSetSlice";
+import { CommentSection } from "./Comments/CommentsSection";
 
 type Flashcard = {
     front_content: string;
@@ -112,6 +113,7 @@ const FlashcardSetView = () => {
                 onReverse={handleReverse}
                 onFlip={handleFlip}
             />
+            <CommentSection />
         </div>
     );
 };

@@ -4,6 +4,7 @@ import {
     type PayloadAction,
 } from "@reduxjs/toolkit";
 import {
+    addCommentApi,
     createNewSetApi,
     getSetApi,
     removeShareApi,
@@ -25,6 +26,17 @@ export interface SharedUser {
     permission: "viewer" | "editor";
 }
 
+export interface Comment {
+    id: number;
+    text: string;
+    author_email: string;
+    created_at: string;
+    upvotes: number;
+    downvotes: number;
+    user_vote: "upvote" | "downvote" | null;
+    replies: Comment[];
+}
+
 export interface FlashcardSetData {
     id: number | null;
     name: string;
@@ -36,6 +48,7 @@ export interface FlashcardSetData {
     upvotes: number;
     downvotes: number;
     user_vote: "upvote" | "downvote" | null;
+    comments: Comment[];
 }
 
 export interface FlashcardSetState {
@@ -171,6 +184,35 @@ export const voteOnMaterial = createAsyncThunk(
     },
 );
 
+export const addComment = createAsyncThunk(
+    "flashcardSet/addComment",
+    async (
+        {
+            materialId,
+            text,
+            parentCommentId,
+        }: {
+            materialId: number;
+            text: string;
+            parentCommentId?: number | null;
+        },
+        { rejectWithValue },
+    ) => {
+        try {
+            const newComment = await addCommentApi(
+                materialId,
+                text,
+                parentCommentId,
+            );
+            return { newComment, parentCommentId };
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to comment",
+            );
+        }
+    },
+);
+
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",
     initialState,
@@ -195,6 +237,7 @@ export const flashcardSetSlice = createSlice({
                 upvotes: 0,
                 downvotes: 0,
                 user_vote: null,
+                comments: [],
             };
         },
         setName: (state, action: PayloadAction<string>) => {
@@ -296,6 +339,32 @@ export const flashcardSetSlice = createSlice({
                     state.data.upvotes = action.payload.upvotes;
                     state.data.downvotes = action.payload.downvotes;
                     state.data.user_vote = action.payload.user_vote;
+                }
+            })
+            .addCase(addComment.fulfilled, (state, action) => {
+                if (!state.data) {
+                    return;
+                }
+
+                const { newComment, parentCommentId } = action.payload;
+
+                if (!state.data.comments) {
+                    state.data.comments = [];
+                }
+
+                if (parentCommentId) {
+                    const parentComment = state.data.comments.find(
+                        (comment) => comment.id === parentCommentId,
+                    );
+                    if (parentComment) {
+                        if (!parentComment.replies) {
+                            parentComment.replies = [];
+                        }
+
+                        parentComment.replies.unshift(newComment);
+                    }
+                } else {
+                    state.data.comments.unshift(newComment);
                 }
             });
     },
