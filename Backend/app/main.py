@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-import datetime
+from datetime import datetime
 from typing import Annotated, Optional
 import uuid
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -100,6 +100,16 @@ class SharedUser(BaseModel):
     email: EmailStr
     permission: PermissionEnum
 
+class CommentOut(BaseModel):
+    id: int
+    text: str
+    author_email: str
+    created_at: datetime
+    upvotes: int
+    downvotes: int
+    user_vote: Optional[VoteTypeEnum] = None
+    replies: list["CommentOut"] = []
+
 class FlashcardSetOut(BaseModel):
     id: int
     name: str
@@ -111,6 +121,7 @@ class FlashcardSetOut(BaseModel):
     upvotes: int
     downvotes: int
     user_vote: Optional[VoteTypeEnum] = None
+    comments: list[CommentOut]
 
 class ShareData(BaseModel):
     email: EmailStr
@@ -134,16 +145,6 @@ class VoteData(BaseModel):
 class CommentCreate(BaseModel):
     text: str
     parent_comment_id: Optional[int] = None
-
-class CommentOut(BaseModel):
-    id: int
-    text: str
-    author_email: str
-    created_at: datetime
-    upvotes: int
-    downvotes: int
-    user_vote: Optional[VoteTypeEnum] = None
-    replies: list["CommentOut"] = []
 
 CommentOut.model_rebuild()
 
@@ -425,7 +426,7 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
         votes_summary = db.query(
             Vote.votable_id,
             func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("upvotes"),
-            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("downvotes"),
+            func.sum(case((Vote.vote_type == VoteTypeEnum.downvote, 1), else_=0)).label("downvotes"),
         ).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
         votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
         
@@ -449,8 +450,8 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
 
     nested_comments = []
     for comment_obj, email in comments_raw:
-        if comment_obj.parent_id:
-            parent = comment_map.get(comment_obj.parent_id)
+        if comment_obj.parent_comment_id:
+            parent = comment_map.get(comment_obj.parent_comment_id)
             if parent:
                 parent.replies.append(comment_map[comment_obj.id])
         else:
@@ -657,7 +658,7 @@ def new_comment(material_id: int, comment_data: CommentCreate, db: Session = Dep
         parent_comment = db.query(Comment).filter(comment_data.parent_comment_id == Comment.id).first()
         if not parent_comment:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Parent comment not found")
-        if parent_comment.parent_id is not None:
+        if parent_comment.parent_comment_id is not None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="U cannot make a reply to a reply")        
 
     new_commment = Comment(

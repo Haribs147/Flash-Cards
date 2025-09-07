@@ -100,10 +100,10 @@ class Comment(Base):
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
-    parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=False)
+    parent_comment_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True)
 
     author = Relationship("User")
     material = Relationship("Material", back_populates="comments")
 
     parent = Relationship("Comment", remote_side=[id], back_populates="replies")
-    replies = Relationship("Comment", back_populates="parent", cascade="all, delete-orphan")
+    replies = Relationship("Comment", back_populates="parent", cascade="all, delete-orphan", foreign_keys=[parent_comment_id])
