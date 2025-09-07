@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, UniqueConstraint, create_engine, Column, Integer, String, Boolean, Enum as SQLAlchemyEnum
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, create_engine, Column, Integer, String, Boolean, Enum as SQLAlchemyEnum, func
 from sqlalchemy.orm import sessionmaker, declarative_base, Relationship
 from .config import settings
 import enum
@@ -60,6 +60,7 @@ class Material(Base):
     
     flashcard_set = Relationship("FlashcardSet", uselist=False, back_populates="material", cascade="all, delete-orphan")
 
+    comments = Relationship("Comment", back_populates="material", cascade="all, delete-orphan")
 
 class Flashcard(Base):
     __tablename__ = "flashcards"
@@ -90,3 +91,19 @@ class Vote(Base):
     user = Relationship("User")
 
     __table_args__ = (UniqueConstraint("user_id", "votable_id", "votable_type", name="_user_votable_uc"), )
+
+class Comment(Base):
+    __tablename__ = "comments"
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
+    parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=False)
+
+    author = Relationship("User")
+    material = Relationship("Material", back_populates="comments")
+
+    parent = Relationship("Comment", remote_side=[id], back_populates="replies")
+    replies = Relationship("Comment", back_populates="parent", cascade="all, delete-orphan")

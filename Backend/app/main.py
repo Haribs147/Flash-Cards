@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import datetime
 from typing import Annotated, Optional
 import uuid
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -7,14 +8,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import or_, and_
+from sqlalchemy import case, func, or_, and_
 from sqlalchemy.orm import Session, joinedload
 
 from .minio import initialize_minio, minio_client
 
 from .config import settings
 
-from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, get_db
+from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
 from .security import get_password_hash, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
@@ -130,6 +131,21 @@ class PendingShareOut(BaseModel):
 class VoteData(BaseModel):
     vote_type: VoteTypeEnum
 
+class CommentCreate(BaseModel):
+    text: str
+    parent_comment_id: Optional[int] = None
+
+class CommentOut(BaseModel):
+    id: int
+    text: str
+    author_email: str
+    created_at: datetime
+    upvotes: int
+    downvotes: int
+    user_vote: Optional[VoteTypeEnum] = None
+    replies: list["CommentOut"] = []
+
+CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -401,6 +417,45 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     user_vote_obj = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.user_id==current_user.id).first()
     user_vote = user_vote_obj.vote_type if user_vote_obj else None
 
+    comments_raw = db.query(Comment, User.email).join(User, Comment.user_id==User.id).filter(Comment.material_id == set_id).order_by(Comment.created_at.desc()).all()
+
+    comment_ids = [c.id for c, email in comments_raw]
+    votes_data = {}
+    if comment_ids:
+        votes_summary = db.query(
+            Vote.votable_id,
+            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("upvotes"),
+            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("downvotes"),
+        ).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
+        votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
+        
+        user_comment_votes = db.query(Vote).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
+        user_votes_map = {v.votable_id: v.vote_type for v in user_comment_votes}
+
+        for comment_id in comment_ids:
+            votes_data[comment_id] = {
+                "upvotes": votes_map.get(comment_id, {}).get("upvotes", 0),
+                "downvotes": votes_map.get(comment_id, {}).get("downvotes", 0),
+                "user_vote": user_votes_map.get(comment_id)
+            }
+
+    comment_map = {
+        comment.id: CommentOut(
+            id=comment.id, text=comment.text, author_email=email, created_at=comment.created_at,
+            **votes_data.get(comment.id, {"upvotes": 0, "downvotes": 0, "user_vote": None})
+        )
+        for comment, email in comments_raw
+    }
+
+    nested_comments = []
+    for comment_obj, email in comments_raw:
+        if comment_obj.parent_id:
+            parent = comment_map.get(comment_obj.parent_id)
+            if parent:
+                parent.replies.append(comment_map[comment_obj.id])
+        else:
+            nested_comments.append(comment_map[comment_obj.id])
+
     flashcard_data = {
         "id": set_id,
         "name": set_material.name,
@@ -412,6 +467,7 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
         "upvotes": upvotes,
         "downvotes": downvotes,
         "user_vote": user_vote,
+        "comments": nested_comments,
     }
     return flashcard_data
 
@@ -585,3 +641,43 @@ def vote_on_material(material_id: int, vote_data: VoteData, db: Session = Depend
         current_user=current_user
     )
 
+@app.post("/materials/{material_id}/comments", status_code=status.HTTP_201_CREATED, response_model=CommentOut)
+def new_comment(material_id: int, comment_data: CommentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    material = db.query(Material).filter(Material.id == material_id).first()
+    if not material: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material not found")
+    
+    if material.item_type not in ["set"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Material of type `{material.item_type}` cannot be commented on"
+        )
+
+    if comment_data.parent_comment_id:
+        parent_comment = db.query(Comment).filter(comment_data.parent_comment_id == Comment.id).first()
+        if not parent_comment:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Parent comment not found")
+        if parent_comment.parent_id is not None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="U cannot make a reply to a reply")        
+
+    new_commment = Comment(
+        text=comment_data.text,
+        user_id=current_user.id,
+        material_id=material_id,
+        parent_comment_id=comment_data.parent_comment_id
+    )
+
+    db.add(new_commment)
+    db.commit()
+    db.refresh(new_commment)
+
+    return CommentOut(
+        id=new_commment.id,
+        text=new_commment.text,
+        author_email=current_user.email,
+        created_at=new_commment.created_at,
+        upvotes=0,
+        downvotes=0,
+        user_vote=None,
+        replies=[]
+    )
