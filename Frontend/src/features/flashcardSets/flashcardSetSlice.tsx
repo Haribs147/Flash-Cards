@@ -10,6 +10,7 @@ import {
     shareSetApi,
     updateSetApi,
     updateSharesApi,
+    voteOnMaterialApi,
 } from "./flashcardSetService";
 
 export interface Flashcard {
@@ -32,6 +33,9 @@ export interface FlashcardSetData {
     creator: string;
     flashcards: Flashcard[];
     shared_with: SharedUser[];
+    upvotes: number;
+    downvotes: number;
+    user_vote: "upvote" | "downvote" | null;
 }
 
 export interface FlashcardSetState {
@@ -147,6 +151,26 @@ export const savePermissionChanges = createAsyncThunk(
     },
 );
 
+export const voteOnMaterial = createAsyncThunk(
+    "flashcardSet/voteOnMaterial",
+    async (
+        {
+            materialId,
+            vote_type,
+        }: { materialId: number; vote_type: "upvote" | "downvote" },
+        { rejectWithValue },
+    ) => {
+        try {
+            const data = await voteOnMaterialApi(materialId, vote_type);
+            return data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to vote",
+            );
+        }
+    },
+);
+
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",
     initialState,
@@ -168,6 +192,9 @@ export const flashcardSetSlice = createSlice({
                     },
                 ],
                 shared_with: [],
+                upvotes: 0,
+                downvotes: 0,
+                user_vote: null,
             };
         },
         setName: (state, action: PayloadAction<string>) => {
@@ -262,6 +289,13 @@ export const flashcardSetSlice = createSlice({
                                 | "editor";
                         }
                     });
+                }
+            })
+            .addCase(voteOnMaterial.fulfilled, (state, action) => {
+                if (state.data) {
+                    state.data.upvotes = action.payload.upvotes;
+                    state.data.downvotes = action.payload.downvotes;
+                    state.data.user_vote = action.payload.user_vote;
                 }
             });
     },

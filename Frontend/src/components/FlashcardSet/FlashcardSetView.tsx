@@ -98,10 +98,6 @@ const FlashcardSetView = () => {
     return (
         <div className="flashcard-set-view">
             <SetHeader
-                title={set.name}
-                description={set.description}
-                creator={set.creator}
-                sharedWith={set.shared_with}
                 onBackClick={() => navigate(-1)}
                 onEditClick={handleEditClick}
             />

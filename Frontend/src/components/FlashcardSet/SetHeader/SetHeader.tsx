@@ -1,34 +1,35 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { FiEdit, FiShare2, FiX, FiCopy, FiTrash2 } from "react-icons/fi";
+import {
+    FiEdit,
+    FiShare2,
+    FiX,
+    FiCopy,
+    FiTrash2,
+    FiThumbsUp,
+    FiThumbsDown,
+} from "react-icons/fi";
 import "./SetHeader.css";
 import {
     removeShare,
     savePermissionChanges,
     shareSet,
+    voteOnMaterial,
     type SharedUser,
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import { useParams } from "react-router-dom";
-import { useAppDispatch } from "../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 
 type SetHeaderProps = {
-    title: string;
-    description: string;
-    creator: string;
-    sharedWith: SharedUser[];
     onBackClick: () => void;
     onEditClick: () => void;
 };
 
-const SetHeader = ({
-    title,
-    description,
-    creator,
-    sharedWith,
-    onBackClick,
-    onEditClick,
-}: SetHeaderProps) => {
+const SetHeader = ({ onBackClick, onEditClick }: SetHeaderProps) => {
     const { setId } = useParams<{ setId: string }>();
     const dispatch = useAppDispatch();
+
+    const { data: set } = useAppSelector((state) => state.flashcardSet);
+
     const [emailToShare, setEmailToShare] = useState("");
     const [isSharePopupOpen, setSharePopupOpen] = useState(false);
     const popupRef = useRef<HTMLDivElement>(null);
@@ -37,22 +38,24 @@ const SetHeader = ({
     const [localShares, setLocalShares] = useState<SharedUser[]>([]);
 
     useEffect(() => {
-        setLocalShares(sharedWith);
-    }, [sharedWith]);
+        if (set) {
+            setLocalShares(set.shared_with);
+        }
+    }, [set?.shared_with]);
 
     const hasChanges = useMemo(() => {
-        if (!sharedWith || !localShares) {
+        if (!set?.shared_with || !localShares) {
             return false;
         }
         const originalMap = new Map(
-            sharedWith.map((user) => [user.user_id, user.permission]),
+            set.shared_with.map((user) => [user.user_id, user.permission]),
         );
         for (const localUser of localShares) {
             if (originalMap.get(localUser.user_id) !== localUser.permission) {
                 return true;
             }
         }
-    }, [sharedWith, localShares]);
+    }, [set?.shared_with, localShares]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -79,6 +82,15 @@ const SetHeader = ({
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isSharePopupOpen]);
+
+    const handleVote = (voteType: "upvote" | "downvote") => {
+        if (!setId) {
+            return;
+        }
+        dispatch(
+            voteOnMaterial({ materialId: Number(setId), vote_type: voteType }),
+        );
+    };
 
     const handleAddShare = () => {
         if (!emailToShare || !setId) {
@@ -115,7 +127,7 @@ const SetHeader = ({
 
         const updates = localShares
             .filter((localUser) => {
-                const originalUser = sharedWith.find(
+                const originalUser = set?.shared_with.find(
                     (user) => user.user_id === localUser.user_id,
                 );
                 return (
@@ -136,12 +148,32 @@ const SetHeader = ({
 
     return (
         <header className="set-header">
-            <div className="set-avatar">{creator[0].toUpperCase()}</div>
+            <div className="set-avatar">{set?.creator[0].toUpperCase()}</div>
             <div className="set-info">
-                <h1 className="set-title">{title}</h1>
-                <p className="set-description">{description}</p>
+                <h1 className="set-title">{set?.name}</h1>
+                <p className="set-description">{set?.description}</p>
             </div>
             <div className="set-header-actions">
+                <button
+                    className={`icon-btn vote-btn ${set?.user_vote === "upvote" ? "active" : ""}`}
+                    onClick={() => {
+                        handleVote("upvote");
+                    }}
+                >
+                    <FiThumbsUp />
+                    <span>{set?.upvotes}</span>
+                </button>
+
+                <button
+                    className={`icon-btn vote-btn ${set?.user_vote === "downvote" ? "active" : ""}`}
+                    onClick={() => {
+                        handleVote("downvote");
+                    }}
+                >
+                    <FiThumbsDown />
+                    <span>{set?.downvotes}</span>
+                </button>
+
                 <button className="icon-btn" onClick={onEditClick}>
                     <FiEdit />
                 </button>
@@ -173,15 +205,15 @@ const SetHeader = ({
                             </div>
                             <p className="popup-subtitle">Osoby z dostępem</p>
                             <ul className="person-list">
-                                {creator && (
+                                {set?.creator && (
                                     <li className="person-item">
-                                        <span>{creator}</span>
+                                        <span>{set.creator}</span>
                                         <span className="owner-text">
                                             Właściciel
                                         </span>
                                     </li>
                                 )}
-                                {sharedWith.map((user) => (
+                                {set?.shared_with.map((user) => (
                                     <li
                                         key={user.email}
                                         className="person-item"

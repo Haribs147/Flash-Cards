@@ -90,5 +90,3 @@ class Vote(Base):
     user = Relationship("User")
 
     __table_args__ = (UniqueConstraint("user_id", "votable_id", "votable_type", name="_user_votable_uc"), )
-
-    status = Column(SQLAlchemyEnum(ShareStatusEnum), nullable=False, default=ShareStatusEnum.pending)

@@ -85,3 +85,14 @@ export const uploadImageToServer = async (file: File): Promise<string> => {
         throw new Error("Upload image to server does not work");
     }
 };
+
+export const voteOnMaterialApi = async (
+    materialId: number,
+    vote_type: "upvote" | "downvote",
+) => {
+    const response = await axios.post(
+        `${API_URL}/materials/${materialId}/vote`,
+        { vote_type },
+    );
+    return response.data;
+};

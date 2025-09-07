@@ -396,9 +396,9 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
     shares = db.query(MaterialShare, User).join(User, MaterialShare.user_id == User.id).filter(MaterialShare.material_id == set_id).all()
     shared_with = [SharedUser(user_id=user.id, email=user.email, permission=share.permission) for share, user in shares]
 
-    upvotes = db.query(Vote).filter(votable_id=set_id, votable_type="material", vote_type=VoteTypeEnum.upvote).count()
-    downvotes = db.query(Vote).filter(votable_id=set_id, votable_type="material", vote_type=VoteTypeEnum.downvote).count()
-    user_vote_obj = db.query(Vote).filter(votable_id=set_id, votable_type="material", user_id=current_user.id).first()
+    upvotes = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.vote_type==VoteTypeEnum.upvote).count()
+    downvotes = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.vote_type==VoteTypeEnum.downvote).count()
+    user_vote_obj = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.user_id==current_user.id).first()
     user_vote = user_vote_obj.vote_type if user_vote_obj else None
 
     flashcard_data = {
@@ -535,10 +535,10 @@ def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_
 
 def process_vote(votable_id: int, votable_type: int, vote_type: int, db: Session, current_user: User):
     existing_vote = db.query(Vote).filter(
-        user_id=current_user.id,
-        votable_id=votable_id,
-        votable_type=votable_type
-    )
+        Vote.user_id==current_user.id,
+        Vote.votable_id==votable_id,
+        Vote.votable_type==votable_type,
+    ).first()
 
     new_user_vote = None
 
@@ -560,8 +560,8 @@ def process_vote(votable_id: int, votable_type: int, vote_type: int, db: Session
 
     db.commit()
 
-    upvotes = db.query(Vote).filter(votable_id=votable_id, votable_type=votable_type, vote_type=VoteTypeEnum.upvote).count()
-    downvotes = db.query(Vote).filter(votable_id=votable_id, votable_type=votable_type, vote_type=VoteTypeEnum.downvote).count()
+    upvotes = db.query(Vote).filter(Vote.votable_id==votable_id, Vote.votable_type==votable_type, Vote.vote_type==VoteTypeEnum.upvote).count()
+    downvotes = db.query(Vote).filter(Vote.votable_id==votable_id, Vote.votable_type==votable_type, Vote.vote_type==VoteTypeEnum.downvote).count()
 
     return {"message": "Vote Processed", "upvotes": upvotes, "downvotes": downvotes, "user_vote": new_user_vote}
 
