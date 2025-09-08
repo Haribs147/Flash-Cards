@@ -146,6 +146,9 @@ class CommentCreate(BaseModel):
     text: str
     parent_comment_id: Optional[int] = None
 
+class CommentUpdate(BaseModel):
+    text: str
+
 CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
@@ -681,4 +684,64 @@ def new_comment(material_id: int, comment_data: CommentCreate, db: Session = Dep
         downvotes=0,
         user_vote=None,
         replies=[]
+    )
+
+@app.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_comment(comment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    comment_to_delete = db.query(Comment).filter(Comment.id == comment_id).first()
+
+    if not comment_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    
+    if comment_to_delete.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this comment")
+
+    db.delete(comment_to_delete)
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.patch("/comments/{comment_id}", status_code=status.HTTP_200_OK)
+def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    comment_to_update = db.query(Comment).options(joinedload(Comment.author)).filter(Comment.id == comment_id).first()
+
+    if not comment_to_update:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+    
+    if comment_to_update.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this comment")
+    
+    comment_to_update.text = comment_data.text
+
+    db.commit()
+    db.refresh(comment_to_update)
+
+    upvotes = db.query(Vote).filter(Vote.votable_id==comment_id, Vote.votable_type=="comment", Vote.vote_type==VoteTypeEnum.upvote).count()
+    downvotes = db.query(Vote).filter(Vote.votable_id==comment_id, Vote.votable_type=="comment", Vote.vote_type==VoteTypeEnum.downvote).count()
+    user_vote_obj = db.query(Vote).filter(Vote.votable_id==comment_id, Vote.votable_type=="comment", Vote.user_id==current_user.id).first()
+    user_vote = user_vote_obj.vote_type if user_vote_obj else None
+
+    replies = []
+    if comment_to_update.replies:
+        for reply in comment_to_update.replies:
+            replies.append(CommentOut(
+                id=reply.id,
+                text=reply.text,
+                author_email=reply.author.email,
+                created_at=reply.created_at,
+                upvotes=0,
+                downvotes=0,
+                user_vote=None,
+                replies=[]
+            ))
+
+    return CommentOut(
+        id=comment_to_update.id,
+        text=comment_to_update.text,
+        author_email=comment_to_update.author.email,
+        created_at=comment_to_update.created_at,
+        upvotes=upvotes,
+        downvotes=downvotes,
+        user_vote=user_vote,
+        replies=replies
     )
