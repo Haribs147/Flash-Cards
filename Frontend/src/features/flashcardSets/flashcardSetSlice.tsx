@@ -6,9 +6,11 @@ import {
 import {
     addCommentApi,
     createNewSetApi,
+    deleteCommentApi,
     getSetApi,
     removeShareApi,
     shareSetApi,
+    updateCommentApi,
     updateSetApi,
     updateSharesApi,
     voteOnMaterialApi,
@@ -207,11 +209,82 @@ export const addComment = createAsyncThunk(
             return { newComment, parentCommentId };
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to comment",
+                error.response?.data?.detail || "Failed to add a new comment",
             );
         }
     },
 );
+
+export const deleteComment = createAsyncThunk(
+    "flashcardSet/deleteComment",
+    async (commentId: number, { rejectWithValue }) => {
+        try {
+            await deleteCommentApi(commentId);
+            return commentId;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to delete a comment",
+            );
+        }
+    },
+);
+
+export const updateComment = createAsyncThunk(
+    "flashcardSet/updateComment",
+    async (
+        {
+            commentId,
+            text,
+        }: {
+            commentId: number;
+            text: string;
+        },
+        { rejectWithValue },
+    ) => {
+        try {
+            const updatedComment = await updateCommentApi(commentId, text);
+            return updatedComment;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to update a comment",
+            );
+        }
+    },
+);
+
+const findAndUpdateComment = (
+    comments: Comment[],
+    updatedComment: Comment,
+): Comment[] => {
+    return comments.map((comment) => {
+        if (comment.id === updatedComment.id) {
+            return updatedComment;
+        }
+        if (comment.replies?.length) {
+            return {
+                ...comment,
+                replies: findAndUpdateComment(comment.replies, updatedComment),
+            };
+        }
+        return comment;
+    });
+};
+
+const findAndRemoveComment = (
+    comments: Comment[],
+    commentId: number,
+): Comment[] => {
+    return comments.reduce((acc, comment) => {
+        if (comment.id === commentId) {
+            return acc;
+        }
+        if (comment.replies?.length) {
+            comment.replies = findAndRemoveComment(comment.replies, commentId);
+        }
+        acc.push(comment);
+        return acc;
+    }, [] as Comment[]);
+};
 
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",
@@ -365,6 +438,22 @@ export const flashcardSetSlice = createSlice({
                     }
                 } else {
                     state.data.comments.unshift(newComment);
+                }
+            })
+            .addCase(updateComment.fulfilled, (state, action) => {
+                if (state.data?.comments) {
+                    state.data.comments = findAndUpdateComment(
+                        state.data.comments,
+                        action.payload,
+                    );
+                }
+            })
+            .addCase(deleteComment.fulfilled, (state, action) => {
+                if (state.data?.comments) {
+                    state.data.comments = findAndRemoveComment(
+                        state.data.comments,
+                        action.payload,
+                    );
                 }
             });
     },

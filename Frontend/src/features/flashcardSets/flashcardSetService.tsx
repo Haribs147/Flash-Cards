@@ -108,3 +108,15 @@ export const addCommentApi = async (
     );
     return response.data;
 };
+
+export const deleteCommentApi = async (commentId: number) => {
+    await axios.delete(`${API_URL}/comments/${commentId}`);
+    return commentId;
+};
+
+export const updateCommentApi = async (commentId: number, text: string) => {
+    const response = await axios.patch(`${API_URL}/comments/${commentId}`, {
+        text,
+    });
+    return response.data;
+};

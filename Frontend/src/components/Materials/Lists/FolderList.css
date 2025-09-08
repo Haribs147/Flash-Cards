@@ -45,17 +45,6 @@
     pointer-events: none;
 }
 
-.item-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.item-actions {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-}
-
 .list-item:hover .item-actions {
     opacity: 1;
 }

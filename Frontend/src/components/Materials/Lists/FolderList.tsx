@@ -9,6 +9,7 @@ import {
 } from "../../../features/materials/materialsSlice";
 import { useAppDispatch } from "../../../app/hooks";
 import { useState, useRef, useEffect } from "react";
+import ItemActions from "../../common/ItemActions/ItemActions";
 
 type FolderListProps = {
     filteredItems: MaterialItem[];
@@ -139,14 +140,10 @@ const FolderListItem = ({
                 <span className="item-name">{item.name}</span>
             )}
 
-            <div className="item-actions">
-                <button onClick={handleRenameClick} className="action-button">
-                    <FiEdit size={18} />
-                </button>
-                <button onClick={handleDeleteClick} className="action-button">
-                    <FiTrash2 size={18} />
-                </button>
-            </div>
+            <ItemActions
+                onEditClick={handleRenameClick}
+                onDeleteClick={handleDeleteClick}
+            />
         </div>
     );
 };

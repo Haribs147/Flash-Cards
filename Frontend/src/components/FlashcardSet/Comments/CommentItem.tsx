@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useAppDispatch } from "../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
     addComment,
+    deleteComment,
+    updateComment,
     type Comment,
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import "./Comments.css";
+import ItemActions from "../../common/ItemActions/ItemActions";
 
 type CommentItemProps = {
     comment: Comment;
@@ -18,8 +21,12 @@ export const CommentItem = ({
     isTopLevel,
 }: CommentItemProps) => {
     const dispatch = useAppDispatch();
+    const { user } = useAppSelector((state) => state.auth);
+
     const [isReplying, setIsReplying] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [replyText, setReplyText] = useState("");
+    const [editText, setEditText] = useState(comment.text);
 
     const handleReplySubmit = () => {
         if (replyText.trim()) {
@@ -35,6 +42,28 @@ export const CommentItem = ({
         }
     };
 
+    const handleUpdateSubmit = () => {
+        if (editText.trim() && editText.trim() !== comment.text) {
+            dispatch(updateComment({ commentId: comment.id, text: editText }));
+        }
+        setIsEditing(false);
+    };
+
+    const handleDelete = () => {
+        if (window.confirm("Czy na pewno chcesz usunąć ten komentarz?")) {
+            dispatch(deleteComment(comment.id));
+        }
+    };
+
+    const isAuthor = String(user?.email) === String(comment.author_email);
+
+    console.log("Author Check:", {
+        loggedInEmail: String(user?.email),
+        commentAuthorEmail: String(comment.author_email),
+        // This will tell us the exact result of the comparison
+        isMatch: String(user?.email) === String(comment.author_email),
+    });
+
     return (
         <div className="comment-item">
             <div className="comment-avatar">
@@ -49,7 +78,25 @@ export const CommentItem = ({
                         {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                 </div>
-                <p className="comment-text">{comment.text}</p>
+                {isEditing ? (
+                    <div className="comment-input-form">
+                        <textarea
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <div>
+                            <button
+                                className="cancel-btn"
+                                onClick={() => setIsEditing(false)}
+                            >
+                                Anuluj
+                            </button>
+                            <button onClick={handleUpdateSubmit}>Zapisz</button>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="comment-text">{comment.text}</p>
+                )}
                 <div className="comment-actions">
                     {isTopLevel && (
                         <button
@@ -58,6 +105,12 @@ export const CommentItem = ({
                         >
                             Odpowiedz
                         </button>
+                    )}
+                    {isAuthor && (
+                        <ItemActions
+                            onEditClick={() => setIsEditing(true)}
+                            onDeleteClick={handleDelete}
+                        />
                     )}
                 </div>
                 {isReplying && (
