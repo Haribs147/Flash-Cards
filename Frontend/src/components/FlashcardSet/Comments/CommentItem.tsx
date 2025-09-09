@@ -91,40 +91,50 @@ export const CommentItem = ({
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
                         />
-                        <div>
-                            <button
-                                className="cancel-btn"
-                                onClick={() => setIsEditing(false)}
-                            >
-                                Anuluj
-                            </button>
-                            <button onClick={handleUpdateSubmit}>Zapisz</button>
-                        </div>
                     </div>
                 ) : (
                     <p className="comment-text">{comment.text}</p>
                 )}
                 <div className="comment-actions">
-                    <VoteButtons
-                        upvotes={comment.upvotes}
-                        downvotes={comment.downvotes}
-                        userVote={comment.user_vote}
-                        onVote={handleVote}
-                        size="small"
-                    />
-                    {isTopLevel && (
-                        <button
-                            className="reply-btn"
-                            onClick={() => setIsReplying(!isReplying)}
-                        >
-                            Odpowiedz
-                        </button>
-                    )}
-                    {isAuthor && (
-                        <ItemActions
-                            onEditClick={() => setIsEditing(true)}
-                            onDeleteClick={handleDelete}
-                        />
+                    {isEditing ? (
+                        <div className="edit-actions">
+                            <button
+                                className="action-btn cancel"
+                                onClick={() => setIsEditing(false)}
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                className="action-btn"
+                                onClick={handleUpdateSubmit}
+                            >
+                                Zapisz
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <VoteButtons
+                                upvotes={comment.upvotes}
+                                downvotes={comment.downvotes}
+                                userVote={comment.user_vote}
+                                onVote={handleVote}
+                                size="small"
+                            />
+                            {isTopLevel && (
+                                <button
+                                    className="reply-btn"
+                                    onClick={() => setIsReplying(!isReplying)}
+                                >
+                                    Odpowiedz
+                                </button>
+                            )}
+                            {isAuthor && !isEditing && (
+                                <ItemActions
+                                    onEditClick={() => setIsEditing(true)}
+                                    onDeleteClick={handleDelete}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
                 {isReplying && (
