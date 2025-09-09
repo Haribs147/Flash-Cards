@@ -33,7 +33,7 @@ export const CommentSection = () => {
                 <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add comment ..."
+                    placeholder="Dodaj komentarz ..."
                 />
                 <button onClick={handleAddTopLevelComment}>
                     Dodaj komentarz

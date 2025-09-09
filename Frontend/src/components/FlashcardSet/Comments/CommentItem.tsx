@@ -4,10 +4,13 @@ import {
     addComment,
     deleteComment,
     updateComment,
+    voteOnComment,
     type Comment,
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import "./Comments.css";
 import ItemActions from "../../common/ItemActions/ItemActions";
+import { FiThumbsDown, FiThumbsUp } from "react-icons/fi";
+import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
 
 type CommentItemProps = {
     comment: Comment;
@@ -55,6 +58,10 @@ export const CommentItem = ({
         }
     };
 
+    const handleVote = (vote_type: "upvote" | "downvote") => {
+        dispatch(voteOnComment({ commentId: comment.id, vote_type }));
+    };
+
     const isAuthor = String(user?.email) === String(comment.author_email);
 
     console.log("Author Check:", {
@@ -98,6 +105,13 @@ export const CommentItem = ({
                     <p className="comment-text">{comment.text}</p>
                 )}
                 <div className="comment-actions">
+                    <VoteButtons
+                        upvotes={comment.upvotes}
+                        downvotes={comment.downvotes}
+                        userVote={comment.user_vote}
+                        onVote={handleVote}
+                        size="small"
+                    />
                     {isTopLevel && (
                         <button
                             className="reply-btn"

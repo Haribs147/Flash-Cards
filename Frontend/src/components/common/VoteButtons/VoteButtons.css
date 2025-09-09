@@ -1,0 +1,44 @@
+.vote-buttons-container {
+    display: flex;
+    align-items: center;
+}
+
+.vote-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.vote-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.vote-btn.active {
+    color: #e53888;
+    font-weight: bold;
+}
+
+.vote-btn span {
+    margin-left: 8px;
+}
+
+.vote-buttons-container.size-medium {
+    gap: 8px;
+    font-size: 16px;
+}
+
+.vote-buttons-container.size-small {
+    gap: 4px;
+    font-size: 14px;
+}
+
+.vote-buttons-container.size-small .vote-btn span {
+    margin-left: 4px;
+}

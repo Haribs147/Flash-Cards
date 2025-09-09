@@ -723,15 +723,30 @@ def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = D
 
     replies = []
     if comment_to_update.replies:
+        reply_ids = [reply.id for reply in comment_to_update.replies]
+        votes_summary = db.query(
+            Vote.votable_id,
+            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("upvotes"),
+            func.sum(case((Vote.vote_type == VoteTypeEnum.downvote, 1), else_=0)).label("downvotes"),
+        ).filter(Vote.votable_id.in_(reply_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
+        votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
+        
+        user_comment_votes = db.query(Vote.votable_id, Vote.vote_type).filter(Vote.votable_id.in_(reply_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
+        user_votes_map = {votable_id: vote_type for votable_id, vote_type in user_comment_votes}
+
+
         for reply in comment_to_update.replies:
+            counts = votes_map.get(reply.id, {"upvotes": 0, "downvotes": 0})
+            user_reply_vote = user_votes_map.get(reply.id)
+
             replies.append(CommentOut(
                 id=reply.id,
                 text=reply.text,
                 author_email=reply.author.email,
                 created_at=reply.created_at,
-                upvotes=0,
-                downvotes=0,
-                user_vote=None,
+                upvotes=counts["upvotes"],
+                downvotes=counts["downvotes"],
+                user_vote=user_reply_vote,
                 replies=[]
             ))
 
@@ -744,4 +759,18 @@ def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = D
         downvotes=downvotes,
         user_vote=user_vote,
         replies=replies
+    )
+
+@app.post("/comments/{comment_id}/vote", status_code=status.HTTP_200_OK)
+def vote_on_material(comment_id: int, vote_data: VoteData, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    comment = db.query(Comment).filter(Comment.id == comment_id).first()
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+
+    return process_vote(
+        votable_id=comment_id,
+        votable_type="comment",
+        vote_type=vote_data.vote_type,
+        db=db,
+        current_user=current_user
     )

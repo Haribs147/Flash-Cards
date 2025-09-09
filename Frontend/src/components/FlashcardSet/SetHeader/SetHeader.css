@@ -212,26 +212,3 @@
 .save-btn:hover {
     background-color: #c42a72;
 }
-
-.icon-btn.vote-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: transform 0.2s ease;
-}
-
-.icon-btn.vote-btn span {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    line-height: 1;
-}
-
-.icon-btn.vote-btn.active span {
-    color: #e53888;
-}
-
-.icon-btn.active {
-    color: #e53888;
-    transform: scale(1.1);
-}

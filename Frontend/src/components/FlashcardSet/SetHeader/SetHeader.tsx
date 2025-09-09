@@ -18,6 +18,7 @@ import {
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
 
 type SetHeaderProps = {
     onBackClick: () => void;
@@ -154,25 +155,15 @@ const SetHeader = ({ onBackClick, onEditClick }: SetHeaderProps) => {
                 <p className="set-description">{set?.description}</p>
             </div>
             <div className="set-header-actions">
-                <button
-                    className={`icon-btn vote-btn ${set?.user_vote === "upvote" ? "active" : ""}`}
-                    onClick={() => {
-                        handleVote("upvote");
-                    }}
-                >
-                    <FiThumbsUp />
-                    <span>{set?.upvotes}</span>
-                </button>
-
-                <button
-                    className={`icon-btn vote-btn ${set?.user_vote === "downvote" ? "active" : ""}`}
-                    onClick={() => {
-                        handleVote("downvote");
-                    }}
-                >
-                    <FiThumbsDown />
-                    <span>{set?.downvotes}</span>
-                </button>
+                {set && (
+                    <VoteButtons
+                        upvotes={set.upvotes}
+                        downvotes={set.downvotes}
+                        userVote={set.user_vote}
+                        onVote={handleVote}
+                        size="medium"
+                    />
+                )}
 
                 <button className="icon-btn" onClick={onEditClick}>
                     <FiEdit />

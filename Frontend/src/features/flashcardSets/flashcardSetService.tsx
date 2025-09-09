@@ -120,3 +120,13 @@ export const updateCommentApi = async (commentId: number, text: string) => {
     });
     return response.data;
 };
+
+export const voteOnCommentApi = async (
+    commentId: number,
+    vote_type: "upvote" | "downvote",
+) => {
+    const response = await axios.post(`${API_URL}/comments/${commentId}/vote`, {
+        vote_type,
+    });
+    return response.data;
+};

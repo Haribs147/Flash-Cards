@@ -13,6 +13,7 @@ import {
     updateCommentApi,
     updateSetApi,
     updateSharesApi,
+    voteOnCommentApi,
     voteOnMaterialApi,
 } from "./flashcardSetService";
 
@@ -286,6 +287,58 @@ const findAndRemoveComment = (
     }, [] as Comment[]);
 };
 
+export const voteOnComment = createAsyncThunk(
+    "flashcardSet/voteOnComment",
+    async (
+        {
+            commentId,
+            vote_type,
+        }: { commentId: number; vote_type: "upvote" | "downvote" },
+        { rejectWithValue },
+    ) => {
+        try {
+            const data = await voteOnCommentApi(commentId, vote_type);
+            return { commentId, data };
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to vote",
+            );
+        }
+    },
+);
+
+const findAndUpdateCommentVotes = (
+    comments: Comment[],
+    commentId: number,
+    voteData: {
+        upvotes: number;
+        downvotes: number;
+        user_vote: "upvote" | "downvote";
+    },
+): Comment[] => {
+    return comments.map((comment) => {
+        if (comment.id === commentId) {
+            return {
+                ...comment,
+                upvotes: voteData.upvotes,
+                downvotes: voteData.downvotes,
+                user_vote: voteData.user_vote,
+            };
+        }
+        if (comment.replies?.length) {
+            return {
+                ...comment,
+                replies: findAndUpdateCommentVotes(
+                    comment.replies,
+                    commentId,
+                    voteData,
+                ),
+            };
+        }
+        return comment;
+    });
+};
+
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",
     initialState,
@@ -453,6 +506,16 @@ export const flashcardSetSlice = createSlice({
                     state.data.comments = findAndRemoveComment(
                         state.data.comments,
                         action.payload,
+                    );
+                }
+            })
+            .addCase(voteOnComment.fulfilled, (state, action) => {
+                if (state.data?.comments) {
+                    const { commentId, data } = action.payload;
+                    state.data.comments = findAndUpdateCommentVotes(
+                        state.data.comments,
+                        commentId,
+                        data,
                     );
                 }
             });
