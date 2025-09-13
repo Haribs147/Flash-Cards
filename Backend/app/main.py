@@ -149,6 +149,9 @@ class CommentCreate(BaseModel):
 class CommentUpdate(BaseModel):
     text: str
 
+class CopySet(BaseModel):
+    target_folder_id: Optional[int] = None
+
 CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
@@ -774,3 +777,42 @@ def vote_on_material(comment_id: int, vote_data: VoteData, db: Session = Depends
         db=db,
         current_user=current_user
     )
+
+@app.post("/sets/{set_id}/copy", response_model=MaterialOut, status_code=status.HTTP_201_CREATED)
+def copy_flashcard_set(set_id: int, copy_data: CopySet, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    check_permission(item_id=set_id, req_access=PermissionEnum.viewer.value, db=db, current_user=current_user)
+    
+    original_material = db.query(Material).options(
+        joinedload(Material.flashcard_set).joinedload(FlashcardSet.flashcards)
+    ).filter(Material.id == set_id).first()
+
+    if not original_material or not original_material.flashcard_set:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flashcardset not found")
+    
+    original_set = original_material.flashcard_set
+
+    new_material = Material(
+        name=f"{original_material.name} (copy)",
+        item_type="set",
+        owner_id=current_user.id,
+        parent_id=copy_data.target_folder_id
+    )
+
+    db.add(new_material)
+    db.flush()
+
+    new_set = FlashcardSet(
+        id=new_material.id,
+        description=original_set.description,
+        is_public=False,
+    )
+
+    db.add(new_set)
+
+    new_flashcards = [Flashcard(front_content=card.front_content, back_content=card.back_content, set_id=new_material.id,) for card in original_set.flashcards]
+
+    db.add_all(new_flashcards)
+    db.commit()
+    db.refresh(new_material)
+
+    return new_material
