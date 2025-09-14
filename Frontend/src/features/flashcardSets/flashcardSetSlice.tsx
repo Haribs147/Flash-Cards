@@ -5,6 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import {
     addCommentApi,
+    copySetApi,
     createNewSetApi,
     deleteCommentApi,
     getSetApi,
@@ -338,6 +339,26 @@ const findAndUpdateCommentVotes = (
         return comment;
     });
 };
+
+export const copySet = createAsyncThunk(
+    "flashcardSet/copySet",
+    async (
+        {
+            setId,
+            targetFolderId,
+        }: { setId: number; targetFolderId: number | null },
+        { rejectWithValue },
+    ) => {
+        try {
+            const newMaterial = await copySetApi(setId, targetFolderId);
+            return newMaterial;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.detail || "Failed to copy the set",
+            );
+        }
+    },
+);
 
 export const flashcardSetSlice = createSlice({
     name: "flashcardSet",

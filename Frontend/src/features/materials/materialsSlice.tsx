@@ -10,7 +10,7 @@ import {
     moveItemApi,
     renameItemApi,
 } from "./materialsService";
-import { saveSet } from "../flashcardSets/flashcardSetSlice";
+import { copySet, saveSet } from "../flashcardSets/flashcardSetSlice";
 import { acceptShare } from "../shares/sharesSlice";
 
 export interface MaterialItem {
@@ -191,6 +191,9 @@ export const materialsSlice = createSlice({
             )
             .addCase(acceptShare.fulfilled, (state, action) => {
                 state.items.unshift(action.payload.newLinkMaterial);
+            })
+            .addCase(copySet.fulfilled, (state, action) => {
+                state.items.unshift(action.payload);
             });
     },
 });

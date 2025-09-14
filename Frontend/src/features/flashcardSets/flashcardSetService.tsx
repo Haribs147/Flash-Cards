@@ -130,3 +130,13 @@ export const voteOnCommentApi = async (
     });
     return response.data;
 };
+
+export const copySetApi = async (
+    setId: number,
+    targetFolderId: number | null,
+) => {
+    const response = await axios.post(`${API_URL}/sets/${setId}/copy`, {
+        target_folder_id: targetFolderId,
+    });
+    return response.data;
+};
