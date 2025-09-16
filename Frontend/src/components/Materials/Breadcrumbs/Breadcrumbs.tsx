@@ -10,14 +10,16 @@ const BreadcrumbsSegment = ({
     id,
     name,
     isLast,
+    onNavigate,
     draggedItemId,
     draggedItemParentId,
 }: {
     id: number | null;
-    draggedItemId: number | null;
     name: string;
     isLast: boolean;
-    draggedItemParentId: number | null;
+    onNavigate: (id: number | null) => void;
+    draggedItemId?: number | null;
+    draggedItemParentId?: number | null;
 }) => {
     const dispatch = useAppDispatch();
     const [isOver, setIsOver] = useState(false);
@@ -44,7 +46,7 @@ const BreadcrumbsSegment = ({
     const handleClick = () => {
         console.log(id);
         if (!isLast) {
-            dispatch(setCurrentFolderId(id));
+            onNavigate(id);
         }
     };
 
@@ -62,15 +64,17 @@ const BreadcrumbsSegment = ({
 };
 
 const Breadcrumbs = ({
+    currentFolderId,
+    onNavigate,
     draggedItemId,
     draggedItemParentId,
 }: {
-    draggedItemId: number;
-    draggedItemParentId: number | null;
+    currentFolderId: number | null;
+    onNavigate: (id: number | null) => void;
+    draggedItemId?: number;
+    draggedItemParentId?: number | null;
 }) => {
-    const { items, currentFolderId } = useAppSelector(
-        (state) => state.materials,
-    );
+    const { items } = useAppSelector((state) => state.materials);
 
     const breadcrumbPath = useMemo(() => {
         const path = [];
@@ -102,6 +106,7 @@ const Breadcrumbs = ({
                         id={crumb.id}
                         name={crumb.name}
                         isLast={index === breadcrumbPath.length - 1}
+                        onNavigate={onNavigate}
                         draggedItemId={draggedItemId}
                         draggedItemParentId={draggedItemParentId}
                     />

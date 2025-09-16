@@ -198,6 +198,8 @@ const MaterialsView = () => {
             {renderActionPanel()}
             {activeTab === "Foldery" && (
                 <Breadcrumbs
+                    currentFolderId={currentFolderId}
+                    onNavigate={(id) => dispatch(setCurrentFolderId(id))}
                     draggedItemId={draggedItemId}
                     draggedItemParentId={draggedItemParentId}
                 />

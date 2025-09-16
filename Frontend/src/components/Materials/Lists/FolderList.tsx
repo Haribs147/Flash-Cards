@@ -20,6 +20,7 @@ type FolderListProps = {
     draggedItemId: number;
     setDraggedItemParentId: (parentId: number | null) => void;
     handleItemClick: (item: MaterialItem) => void;
+    isSelectMode?: boolean;
 };
 
 const FolderListItem = ({
@@ -27,11 +28,13 @@ const FolderListItem = ({
     handleItemClick,
     onDragStart,
     draggedItemId,
+    isSelectMode,
 }: {
     item: MaterialItem;
     handleItemClick: (item: MaterialItem) => void;
     onDragStart: (item: MaterialItem) => void;
     draggedItemId: number;
+    isSelectMode?: boolean;
 }) => {
     const [isOver, setIsOver] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -105,16 +108,18 @@ const FolderListItem = ({
         }
     };
 
+    const canClick = !isSelectMode || item.item_type === "folder";
+    const itemClassName = `list-item ${isOver ? "drop-target" : ""} ${!canClick ? "disabled" : ""}`;
     return (
         <div
-            draggable={true}
+            draggable={!isSelectMode}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDragDrop}
             onDragStart={() => onDragStart(item)}
             key={item.id}
-            className={`list-item ${isOver ? "drop-target" : ""}`}
-            onClick={() => !isEditing && handleItemClick(item)}
+            className={itemClassName}
+            onClick={() => !isEditing && canClick && handleItemClick(item)}
             data-id={item.id}
             data-type={item.item_type}
         >
@@ -140,10 +145,12 @@ const FolderListItem = ({
                 <span className="item-name">{item.name}</span>
             )}
 
-            <ItemActions
-                onEditClick={handleRenameClick}
-                onDeleteClick={handleDeleteClick}
-            />
+            {!isSelectMode && (
+                <ItemActions
+                    onEditClick={handleRenameClick}
+                    onDeleteClick={handleDeleteClick}
+                />
+            )}
         </div>
     );
 };
@@ -157,6 +164,7 @@ const FolderList = ({
     draggedItemId,
     setDraggedItemParentId,
     handleItemClick,
+    isSelectMode = false,
 }: FolderListProps) => {
     const handleDragStart = (item: MaterialItem) => {
         setDraggedItemId(item.id);
@@ -174,10 +182,12 @@ const FolderList = ({
 
             {filteredItems.map((item) => (
                 <FolderListItem
+                    key={item.id}
                     item={item}
                     handleItemClick={handleItemClick}
                     onDragStart={handleDragStart}
                     draggedItemId={draggedItemId}
+                    isSelectMode={isSelectMode}
                 />
             ))}
         </div>
