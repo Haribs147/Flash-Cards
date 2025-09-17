@@ -11,6 +11,8 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import LoginView from "./components/Auth/LoginView";
 import RegisterView from "./components/Auth/RegisterView";
 import { checkAuthStatus } from "./features/auth/authSlice";
+import PublicPage from "./components/PublicPage/PublicPage";
+import PublicLayout from "./components/Layouts/PublicLayout";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -57,10 +59,18 @@ function App() {
     return (
         <div className="App">
             <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <PublicLayout>
+                            <PublicPage />
+                        </PublicLayout>
+                    }
+                />
                 <Route path="/login" element={<LoginView />} />
                 <Route path="/register" element={<RegisterView />} />
                 <Route
-                    path="/*"
+                    path="app/*"
                     element={
                         <ProtectedRoute>
                             <AppChildren />

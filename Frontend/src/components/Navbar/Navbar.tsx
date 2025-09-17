@@ -1,7 +1,25 @@
 import { FiMenu } from "react-icons/fi";
 import "./Navbar.css";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../../features/auth/authSlice";
 
 const Navbar = () => {
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        dispatch(logoutUser());
+        navigate("/");
+    };
+
+    const handleLogin = () => {
+        navigate("/login");
+    };
+
+    const avatar = user?.email ? user.email[0].toUpperCase() : "?";
+
     return (
         <nav className="navbar">
             <div className="navbar-left">
@@ -20,7 +38,24 @@ const Navbar = () => {
       </div> */}
 
             <div className="navbar-right">
-                <div className="user-avatar">M</div>
+                {isAuthenticated ? (
+                    <>
+                        <button
+                            onClick={handleLogout}
+                            className="navbar-action-button logout"
+                        >
+                            Wyloguj
+                        </button>
+                        <div className="user-avatar">{avatar}</div>
+                    </>
+                ) : (
+                    <button
+                        onClick={handleLogin}
+                        className="navbar-action-button login"
+                    >
+                        Zaloguj
+                    </button>
+                )}
             </div>
         </nav>
     );

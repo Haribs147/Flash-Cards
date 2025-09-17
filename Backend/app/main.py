@@ -211,6 +211,13 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
 
     return{"message": "Login succesfull", "csrf_token": csrf_token, "user": db_user}
 
+@app.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="fastapi-csrf-token")
+
+    return {"message": "Logout succesful"}
+
 @app.get("/users/me", response_model=UserOut)
 def read_users_me(current_user: User= Depends(get_current_user)):
     return current_user
