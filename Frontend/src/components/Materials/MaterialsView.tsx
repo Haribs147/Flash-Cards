@@ -66,12 +66,12 @@ const MaterialsView = () => {
 
     const handleItemClick = (item: MaterialItem) => {
         if (item.item_type === "set") {
-            navigate(`/set/${item.id}`);
+            navigate(`/app/set/${item.id}`);
         } else if (item.item_type === "folder") {
             dispatch(setCurrentFolderId(item.id));
         } else if (item.item_type === "link") {
             const original_item_id = item.linked_material_id ?? item.id;
-            navigate(`/set/${original_item_id}`);
+            navigate(`/app/set/${original_item_id}`);
         }
     };
 

@@ -81,7 +81,7 @@ const FlashcardSetView = () => {
     };
 
     const handleEditClick = () => {
-        navigate(`/set/edit/${setId}`);
+        navigate(`/app/set/edit/${setId}`);
     };
 
     if (status == "loading") {

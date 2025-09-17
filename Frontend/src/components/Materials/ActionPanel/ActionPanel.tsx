@@ -17,7 +17,7 @@ const ActionPanel = ({
 }: ActionPanelProps) => {
     const navigate = useNavigate();
     const handleNewSetClick = () => {
-        navigate("/new-set");
+        navigate("/app/new-set");
     };
 
     return (

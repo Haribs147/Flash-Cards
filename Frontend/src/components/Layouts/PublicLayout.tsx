@@ -9,7 +9,7 @@ const PublicLayout = ({ children }: PublicLayoutProps) => {
     return (
         <>
             <Navbar />
-            <Sidebar activeItem={"home"} onItemClick={() => {}} />
+            <Sidebar />
             <main className="main-content">{children}</main>
         </>
     );

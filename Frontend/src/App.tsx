@@ -23,7 +23,7 @@ const AppChildren = () => {
     return (
         <>
             <Navbar />
-            <Sidebar activeItem={"home"} onItemClick={() => {}} />
+            <Sidebar />
 
             <main className="main-content">
                 <Routes>

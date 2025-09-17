@@ -10,7 +10,7 @@ const SetActionButtons = ({ setId }: SetActionButtonsProps) => {
 
     const handleCheckKnowledgeClick = () => {
         if (setId) {
-            navigate(`/set/${setId}/check`);
+            navigate(`/app/set/${setId}/check`);
         }
     };
 
