@@ -12,7 +12,7 @@ import LoginView from "./components/Auth/LoginView";
 import RegisterView from "./components/Auth/RegisterView";
 import { checkAuthStatus } from "./features/auth/authSlice";
 import PublicPage from "./components/PublicPage/PublicPage";
-import PublicLayout from "./components/Layouts/PublicLayout";
+import Layout from "./components/Layouts/Layout";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -21,24 +21,19 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
 const AppChildren = () => {
     return (
-        <>
-            <Navbar />
-            <Sidebar />
-
-            <main className="main-content">
-                <Routes>
-                    <Route path="/" element={<MaterialsView />} />
-                    <Route path="/new-set" element={<NewSetView />} />
-                    <Route path="/set/edit/:setId" element={<NewSetView />} />
-                    <Route path="/set/:setId" element={<FlashcardSetView />} />
-                    <Route
-                        path="/set/:setId/check"
-                        element={<KnowledgeCheckView />}
-                    />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </main>
-        </>
+        <Layout>
+            <Routes>
+                <Route path="/" element={<MaterialsView />} />
+                <Route path="/new-set" element={<NewSetView />} />
+                <Route path="/set/edit/:setId" element={<NewSetView />} />
+                <Route path="/set/:setId" element={<FlashcardSetView />} />
+                <Route
+                    path="/set/:setId/check"
+                    element={<KnowledgeCheckView />}
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </Layout>
     );
 };
 
@@ -62,9 +57,9 @@ function App() {
                 <Route
                     path="/"
                     element={
-                        <PublicLayout>
+                        <Layout>
                             <PublicPage />
-                        </PublicLayout>
+                        </Layout>
                     }
                 />
                 <Route path="/login" element={<LoginView />} />

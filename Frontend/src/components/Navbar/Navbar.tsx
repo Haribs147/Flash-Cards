@@ -4,7 +4,11 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../features/auth/authSlice";
 
-const Navbar = () => {
+type NavbarProps = {
+    toggleSidebar: () => void;
+};
+
+const Navbar = ({ toggleSidebar }: NavbarProps) => {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -23,7 +27,7 @@ const Navbar = () => {
     return (
         <nav className="navbar">
             <div className="navbar-left">
-                <button className="navbar-button">
+                <button className="navbar-button" onClick={toggleSidebar}>
                     <FiMenu size={24} />
                 </button>
                 <div className="navbar-logo">F</div>

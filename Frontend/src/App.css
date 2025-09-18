@@ -1,4 +1,8 @@
 .main-content {
-    margin-left: 100px;
+    margin-left: 80px;
     padding: 24px;
+}
+
+.sidebar.open ~ .main-content {
+    margin-left: 250px;
 }
