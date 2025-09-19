@@ -1,8 +1,13 @@
+import SetsCarousel from "./SetsCarousel/SetsCarousel";
+import "./PublicPage.css";
+
 const PublicPage = () => {
     return (
-        <div>
-            <h1>Welocme</h1>
-        </div>
+        <main className="public-content">
+            <SetsCarousel title="Najpopularniejsze" showFilters={true} />
+            <SetsCarousel title="Najbardziej lubiane" showFilters={true} />
+            <SetsCarousel title="Najnowsze zestawy" showFilters={false} />
+        </main>
     );
 };
 

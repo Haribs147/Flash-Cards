@@ -1,0 +1,73 @@
+.set-card {
+    flex: 0 0 280px;
+    height: 160px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+.set-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.set-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+.set-card-initial {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.set-card-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    flex-grow: 1;
+    width: 0;
+}
+
+.set-card-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+    margin: 0;
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.set-card-description::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 1.4em;
+    background: linear-gradient(to bottom, transparent, white 80%);
+}
