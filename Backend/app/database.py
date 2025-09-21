@@ -49,6 +49,7 @@ class Material(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     item_type = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     parent_id = Column(Integer, ForeignKey("materials.id"), nullable=True)
     linked_material_id = Column(Integer, ForeignKey("materials.id"), nullable=True)
