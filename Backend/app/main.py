@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
 import uuid
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
 import enum
 
-from .elastic_search import close_es_connection, connect_to_es
+from .elastic_search import close_es_connection, connect_to_es, get_es_client
 
 from .minio import initialize_minio, minio_client
 
@@ -47,6 +47,12 @@ def get_csrf_config():
 @app.exception_handler(CsrfProtectError)
 def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
     return Response(status_code=exc.status_code, content=exc.message)
+
+class TimePeriod(str, enum.Enum):
+    day="day"
+    week="week"
+    month="month"
+    year="year"
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -149,7 +155,7 @@ class VoteData(BaseModel):
     vote_type: VoteTypeEnum
 
 class CommentCreate(BaseModel):
-    text: str
+    text: str   
     parent_comment_id: Optional[int] = None
 
 class CommentUpdate(BaseModel):
@@ -157,6 +163,13 @@ class CommentUpdate(BaseModel):
 
 class CopySet(BaseModel):
     target_folder_id: Optional[int] = None
+
+class MostViewedSetsOut(BaseModel):
+    id: int
+    name: str
+    description: str
+    creator: str
+    view_count: int
 
 CommentOut.model_rebuild()
 
@@ -410,7 +423,7 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
     return set_material
 
 @app.get("/sets/{set_id}", response_model=FlashcardSetOut)
-def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), elastic_search: Elasticsearch = Depends(get_es_client)):
     # flashcard_set = db.query(FlashcardSet).options(
     #     joinedload(FlashcardSet.material).joinedload(Material.owner),
     #     joinedload(FlashcardSet.flashcards)
@@ -475,6 +488,19 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
                 parent.replies.append(comment_map[comment_obj.id])
         else:
             nested_comments.append(comment_map[comment_obj.id])
+
+    # Add the event to elastic search
+    try:
+        elastic_search.index(
+            index="view_events",
+            document={
+                "set_id": set_id,
+                "timestamp": datetime.now(timezone.utc)
+            },
+        )
+    except Exception as e:
+        print(f"Error logging event view_events to elastic_search (set_id: {set_id}) error: {e}")
+
 
     flashcard_data = {
         "id": set_id,
@@ -829,3 +855,70 @@ def copy_flashcard_set(set_id: int, copy_data: CopySet, db: Session = Depends(ge
     db.refresh(new_material)
 
     return new_material
+
+@app.get("/public/sets/most_viewed", response_model=MostViewedSetsOut)
+def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elastic_search: Elasticsearch = Depends(get_es_client)):
+    now = datetime.now(timezone.utc)
+    if period == TimePeriod.day:
+        cutoff_date = now - timedelta(days=1)
+    elif period == TimePeriod.week:
+        cutoff_date = now - timedelta(weeks=1)
+    elif period == TimePeriod.month:
+        cutoff_date = now - timedelta(days=30)
+    else:
+        cutoff_date = now - timedelta(days=365)
+    
+    query = {
+        "size": 0,
+        "query": {
+            "range": {
+                "timestamp": {
+                    "gte": cutoff_date,
+                    "lte": now,
+                }
+            }
+        },
+        "aggs": {
+            "top_sets": {
+                "terms": {
+                    "field": "set_id",
+                    "size": 20,
+                    "order": {"_count": "desc"}
+                }
+            }
+        }
+    }
+
+    try:
+        response = elastic_search.search(index="view_events", body=query)
+    except Exception as e:
+        print(f"Error getting most viewed sets: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get most viewed sets")
+
+    buckets = response["aggregations"]["top_sets"]["buckets"]
+    set_view_counts = {bucket["key"]: bucket["doc_count"] for bucket in buckets}
+    set_ids = list(set_view_counts.keys())
+
+    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email
+    ).join(
+        User, Material.owner_id == User.id
+    ).join(
+        FlashcardSet, Material.id == FlashcardSet.id
+    ).filter(
+        Material.id.in_(set_ids),
+        Material.item_type == "set"
+    ).all()
+
+    results = []
+
+    for id, name, description, email in set_details:
+        results.append(MostViewedSetsOut(
+            id=id,
+            name=name,
+            description=description,
+            creator=email,
+            view_count=set_view_counts.get(id, 0)
+        ))
+    
+    results.sort(key=lambda x: x.view_count, reverse=True)
+    return results
