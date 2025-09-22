@@ -171,6 +171,13 @@ class MostViewedSetsOut(BaseModel):
     creator: str
     view_count: int
 
+class MostLikedSetsOut(BaseModel):
+    id: int
+    name: str
+    description: str
+    creator: str
+    like_count: int
+
 CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
@@ -873,8 +880,8 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
         "query": {
             "range": {
                 "timestamp": {
-                    "gte": cutoff_date,
-                    "lte": now,
+                    "gte": cutoff_date.isoformat(),
+                    "lte": now.isoformat(),
                 }
             }
         },
@@ -896,6 +903,9 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get most viewed sets")
 
     buckets = response["aggregations"]["top_sets"]["buckets"]
+    if not buckets:
+        return []
+    
     set_view_counts = {bucket["key"]: bucket["doc_count"] for bucket in buckets}
     set_ids = list(set_view_counts.keys())
 
@@ -921,4 +931,68 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
         ))
     
     results.sort(key=lambda x: x.view_count, reverse=True)
+    return results
+
+@app.get("/public/sets/most_liked", response_model=MostViewedSetsOut)
+def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
+    now = datetime.now(timezone.utc)
+    if period == TimePeriod.day:
+        cutoff_date = now - timedelta(days=1)
+    elif period == TimePeriod.week:
+        cutoff_date = now - timedelta(weeks=1)
+    elif period == TimePeriod.month:
+        cutoff_date = now - timedelta(days=30)
+    else:
+        cutoff_date = now - timedelta(days=365)
+
+    like_count = func.count(Vote.id).label("like_count")
+
+    top_sets_query = db.query(
+        Material.id,
+        like_count
+    ).join(
+        FlashcardSet, Material.id == FlashcardSet.id
+    ).join(
+        Vote, and_(
+            Material.id == Vote.votable_id,
+            Vote.votable_type == "material",
+            Vote.vote_type == VoteTypeEnum.upvote
+        ),
+        isouter=True
+    ).filter(
+        Material.created_at >= cutoff_date,
+        FlashcardSet.is_public == True
+    ).group_by(
+        Material.id
+    ).order_by(
+        like_count.desc()
+    ).limit(20).all()
+
+    if not top_sets_query:
+        return []
+    
+    like_counts = {set_id: count for set_id, count in top_sets_query}
+    set_ids = list(like_counts.keys())
+
+    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email
+    ).join(
+        User, Material.owner_id == User.id
+    ).join(
+        FlashcardSet, Material.id == FlashcardSet.id
+    ).filter(
+        Material.id.in_(set_ids),
+        Material.item_type == "set"
+    ).all()
+
+    results = []
+    for id, name, description, email in set_details:
+        results.append(MostViewedSetsOut(
+            id=id,
+            name=name,
+            description=description,
+            creator=email,
+            like_count=like_counts.get(id, 0)
+        ))
+    
+    results.sort(key=lambda x: x.like_count, reverse=True)
     return results
