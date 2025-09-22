@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated, Optional
 import uuid
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -10,6 +10,10 @@ from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import case, func, or_, and_
 from sqlalchemy.orm import Session, joinedload
+from elasticsearch import Elasticsearch
+import enum
+
+from .elastic_search import close_es_connection, connect_to_es
 
 from .minio import initialize_minio, minio_client
 
@@ -22,8 +26,10 @@ from .security import get_password_hash, verify_password, create_acces_token, ge
 async def lifespan(app: FastAPI):
     print("Application startup")
     initialize_minio()
+    connect_to_es()
     yield
     print("Application shutdown")
+    close_es_connection()
 
 
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
