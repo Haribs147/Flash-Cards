@@ -178,6 +178,13 @@ class MostLikedSetsOut(BaseModel):
     creator: str
     like_count: int
 
+class RecentlyCreatedSetsOut(BaseModel):
+    id: int
+    name: str
+    description: str
+    creator: str
+    created_at: datetime
+
 CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
@@ -863,7 +870,7 @@ def copy_flashcard_set(set_id: int, copy_data: CopySet, db: Session = Depends(ge
 
     return new_material
 
-@app.get("/public/sets/most_viewed", response_model=MostViewedSetsOut)
+@app.get("/public/sets/most_viewed", response_model=list[MostViewedSetsOut])
 def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elastic_search: Elasticsearch = Depends(get_es_client)):
     now = datetime.now(timezone.utc)
     if period == TimePeriod.day:
@@ -933,7 +940,7 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
     results.sort(key=lambda x: x.view_count, reverse=True)
     return results
 
-@app.get("/public/sets/most_liked", response_model=MostViewedSetsOut)
+@app.get("/public/sets/most_liked", response_model=list[MostViewedSetsOut])
 def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
     if period == TimePeriod.day:
@@ -995,4 +1002,34 @@ def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
         ))
     
     results.sort(key=lambda x: x.like_count, reverse=True)
+    return results
+
+@app.get("/public/sets/recently_created", response_model=list[RecentlyCreatedSetsOut])
+def get_recently_created_sets(db: Session = Depends(get_db)):
+    recent_sets = db.query(Material.id, Material.name, Material.created_at, FlashcardSet.description, User.email
+    ).join(
+        User, Material.owner_id == User.id
+    ).join(
+        FlashcardSet, Material.id == FlashcardSet.id
+    ).filter(
+        FlashcardSet.is_public == True,
+        Material.item_type == "set"
+    ).order_by(
+        Material.created_at.desc()
+    ).limit(20).all()
+
+    if not recent_sets:
+        return []
+    
+    results = [
+        RecentlyCreatedSetsOut(
+            id=id,
+            name=name,
+            description=description,
+            creator=email,
+            created_at=created_at
+        )
+        for id, name, description, email, created_at in recent_sets
+    ]
+
     return results
