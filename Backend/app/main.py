@@ -940,7 +940,7 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
     results.sort(key=lambda x: x.view_count, reverse=True)
     return results
 
-@app.get("/public/sets/most_liked", response_model=list[MostViewedSetsOut])
+@app.get("/public/sets/most_liked", response_model=list[MostLikedSetsOut])
 def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
     if period == TimePeriod.day:
@@ -993,7 +993,7 @@ def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
 
     results = []
     for id, name, description, email in set_details:
-        results.append(MostViewedSetsOut(
+        results.append(MostLikedSetsOut(
             id=id,
             name=name,
             description=description,
@@ -1006,7 +1006,7 @@ def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
 
 @app.get("/public/sets/recently_created", response_model=list[RecentlyCreatedSetsOut])
 def get_recently_created_sets(db: Session = Depends(get_db)):
-    recent_sets = db.query(Material.id, Material.name, Material.created_at, FlashcardSet.description, User.email
+    recent_sets = db.query(Material.id, Material.name, FlashcardSet.description, Material.created_at, User.email,
     ).join(
         User, Material.owner_id == User.id
     ).join(
@@ -1029,7 +1029,7 @@ def get_recently_created_sets(db: Session = Depends(get_db)):
             creator=email,
             created_at=created_at
         )
-        for id, name, description, email, created_at in recent_sets
+        for id, name, description, created_at, email in recent_sets
     ]
 
     return results
