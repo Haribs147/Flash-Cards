@@ -3,10 +3,12 @@ import "./SetCard.css";
 type SetCardProps = {
     name: string;
     description: string;
-    initial: string;
+    creator: string;
 };
 
-const SetCard = ({ name, description, initial }: SetCardProps) => {
+const SetCard = ({ name, description, creator }: SetCardProps) => {
+    const initial = creator ? creator[0].toUpperCase() : "?";
+
     return (
         <div className="set-card">
             <div className="set-card-header">
