@@ -5,6 +5,7 @@ export type PublicSet = {
     name: string;
     description: string;
     creator: string;
+    created_at: string;
 };
 
 export type MostLikedSet = PublicSet & {
@@ -15,9 +16,7 @@ export type MostViewedSet = PublicSet & {
     view_count: number;
 };
 
-export type MostRecentSet = PublicSet & {
-    created_at: string;
-};
+export type MostRecentSets = PublicSet;
 
 export type TimePeriod = "day" | "week" | "month" | "year";
 

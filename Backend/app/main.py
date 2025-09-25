@@ -164,26 +164,18 @@ class CommentUpdate(BaseModel):
 class CopySet(BaseModel):
     target_folder_id: Optional[int] = None
 
-class MostViewedSetsOut(BaseModel):
-    id: int
-    name: str
-    description: str
-    creator: str
-    view_count: int
-
-class MostLikedSetsOut(BaseModel):
-    id: int
-    name: str
-    description: str
-    creator: str
-    like_count: int
-
-class RecentlyCreatedSetsOut(BaseModel):
+class BasePublicSetOut(BaseModel):
     id: int
     name: str
     description: str
     creator: str
     created_at: datetime
+
+class MostViewedSetsOut(BasePublicSetOut):
+    view_count: int
+
+class MostLikedSetsOut(BasePublicSetOut):
+    like_count: int
 
 CommentOut.model_rebuild()
 
@@ -872,6 +864,12 @@ def copy_flashcard_set(set_id: int, copy_data: CopySet, db: Session = Depends(ge
 
 @app.get("/public/sets/most_viewed", response_model=list[MostViewedSetsOut])
 def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elastic_search: Elasticsearch = Depends(get_es_client)):
+    public_set_ids_tuple = db.query(FlashcardSet.id).filter(FlashcardSet.is_public == True).all()
+    if not public_set_ids_tuple:
+        return []
+    
+    public_set_ids = [set[0] for set in public_set_ids_tuple]
+
     now = datetime.now(timezone.utc)
     if period == TimePeriod.day:
         cutoff_date = now - timedelta(days=1)
@@ -885,12 +883,26 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
     query = {
         "size": 0,
         "query": {
-            "range": {
-                "timestamp": {
-                    "gte": cutoff_date.isoformat(),
-                    "lte": now.isoformat(),
-                }
+            "bool": {
+                "must": [
+                    {
+                        "range": {
+                            "timestamp": {
+                                "gte": cutoff_date.isoformat(),
+                                "lte": now.isoformat(),
+                            }
+                        }
+                    }
+                ],
+                "filter": [
+                    {
+                        "terms":{
+                            "set_id": public_set_ids
+                        }
+                    }
+                ]
             }
+            
         },
         "aggs": {
             "top_sets": {
@@ -916,7 +928,7 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
     set_view_counts = {bucket["key"]: bucket["doc_count"] for bucket in buckets}
     set_ids = list(set_view_counts.keys())
 
-    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email
+    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email, Material.created_at
     ).join(
         User, Material.owner_id == User.id
     ).join(
@@ -928,12 +940,13 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
 
     results = []
 
-    for id, name, description, email in set_details:
+    for id, name, description, email, created_at in set_details:
         results.append(MostViewedSetsOut(
             id=id,
             name=name,
             description=description,
             creator=email,
+            created_at=created_at,
             view_count=set_view_counts.get(id, 0)
         ))
     
@@ -981,7 +994,7 @@ def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
     like_counts = {set_id: count for set_id, count in top_sets_query}
     set_ids = list(like_counts.keys())
 
-    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email
+    set_details = db.query(Material.id, Material.name, FlashcardSet.description, User.email, Material.created_at
     ).join(
         User, Material.owner_id == User.id
     ).join(
@@ -992,19 +1005,20 @@ def get_most_liked_sets(period: TimePeriod, db: Session = Depends(get_db)):
     ).all()
 
     results = []
-    for id, name, description, email in set_details:
+    for id, name, description, email, created_at in set_details:
         results.append(MostLikedSetsOut(
             id=id,
             name=name,
             description=description,
             creator=email,
+            created_at=created_at,
             like_count=like_counts.get(id, 0)
         ))
     
     results.sort(key=lambda x: x.like_count, reverse=True)
     return results
 
-@app.get("/public/sets/recently_created", response_model=list[RecentlyCreatedSetsOut])
+@app.get("/public/sets/recently_created", response_model=list[BasePublicSetOut])
 def get_recently_created_sets(db: Session = Depends(get_db)):
     recent_sets = db.query(Material.id, Material.name, FlashcardSet.description, Material.created_at, User.email,
     ).join(
@@ -1022,7 +1036,7 @@ def get_recently_created_sets(db: Session = Depends(get_db)):
         return []
     
     results = [
-        RecentlyCreatedSetsOut(
+        BasePublicSetOut(
             id=id,
             name=name,
             description=description,
