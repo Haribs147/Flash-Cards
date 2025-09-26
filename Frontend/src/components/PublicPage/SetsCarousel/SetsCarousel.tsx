@@ -1,4 +1,4 @@
-import { act, useState } from "react";
+import { act, useCallback, useEffect, useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import SetCard from "../SetCard/SetCard";
 import "./SetsCarousel.css";
@@ -25,9 +25,14 @@ const SetsCarousel = ({
     carouselType,
 }: SetsCarouselProps) => {
     const [activeFilter, setActiveFilter] = useState<TimePeriod>("week");
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [cardsToShow, setCardsToShow] = useState(0);
+    const [cardWidth, setCardWidth] = useState(0);
+
+    const trackRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const queryKey = ["sets", carouselType, activeFilter];
-
     const queryFn = () => {
         switch (carouselType) {
             case "most_viewed":
@@ -50,6 +55,47 @@ const SetsCarousel = ({
         queryFn: queryFn,
         staleTime: carouselType !== "recently_created" ? 1000 * 60 * 5 : 0,
     });
+
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [sets, activeFilter]);
+
+    const calculateLayout = useCallback(() => {
+        if (containerRef.current && trackRef.current?.firstChild) {
+            const containerWidth = containerRef.current.offsetWidth;
+            const card = trackRef.current.firstChild as HTMLElement;
+
+            const trackStyle = window.getComputedStyle(trackRef.current);
+            const gap = parseFloat(trackStyle.gap) || 16;
+
+            const cardWidth = card.offsetWidth + gap;
+            setCardWidth(cardWidth);
+            setCardsToShow(Math.floor(containerWidth / cardWidth));
+        }
+    }, [isLoading]);
+
+    useEffect(() => {
+        calculateLayout();
+        window.addEventListener("resize", calculateLayout);
+        return () => window.removeEventListener("resize", calculateLayout);
+    }, [calculateLayout]);
+
+    const handleNext = () => {
+        if (!sets) {
+            return;
+        }
+        const maxIndex = Math.max(0, sets.length - cardsToShow);
+        setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex));
+    };
+
+    const handlePrev = () => {
+        if (!sets) {
+            return;
+        }
+        setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    };
+
+    const maxIndex = sets ? Math.max(0, sets.length - cardsToShow) : 0;
 
     return (
         <section className="sets-section">
@@ -84,29 +130,56 @@ const SetsCarousel = ({
                     </div>
                 )}
             </div>
-            <div className="carousel-container">
-                <button className="nav-arrow prev">
+            <div className="carousel-container" ref={containerRef}>
+                <button
+                    className="nav-arrow prev"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                >
                     <FiChevronLeft size={24} />
                 </button>
-                <div className="carousel-track">
-                    {sets &&
-                        sets.map(
-                            (
-                                set:
-                                    | MostLikedSet
-                                    | MostViewedSet
-                                    | MostRecentSet,
-                            ) => (
-                                <SetCard
-                                    key={set.id}
-                                    name={set.name}
-                                    description={set.description}
-                                    creator={set.creator}
-                                />
-                            ),
-                        )}
+                <div className="carousel-track-wrapper">
+                    <div
+                        className="carousel-track"
+                        ref={trackRef}
+                        style={{
+                            transform: `translateX(-${currentIndex * cardWidth}px)`,
+                        }}
+                    >
+                        {sets &&
+                            sets.map(
+                                (
+                                    set:
+                                        | MostLikedSet
+                                        | MostViewedSet
+                                        | MostRecentSet,
+                                ) => (
+                                    <SetCard
+                                        key={set.id}
+                                        name={set.name}
+                                        description={set.description}
+                                        creator={set.creator}
+                                        created_at={set.created_at}
+                                        view_count={
+                                            "view_count" in set
+                                                ? set.view_count
+                                                : undefined
+                                        }
+                                        like_count={
+                                            "like_count" in set
+                                                ? set.like_count
+                                                : undefined
+                                        }
+                                    />
+                                ),
+                            )}
+                    </div>
                 </div>
-                <button className="nav-arrow next">
+                <button
+                    className="nav-arrow next"
+                    onClick={handleNext}
+                    disabled={currentIndex >= maxIndex}
+                >
                     <FiChevronRight size={24} />
                 </button>
             </div>

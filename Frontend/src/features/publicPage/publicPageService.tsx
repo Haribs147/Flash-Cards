@@ -16,7 +16,7 @@ export type MostViewedSet = PublicSet & {
     view_count: number;
 };
 
-export type MostRecentSets = PublicSet;
+export type MostRecentSet = PublicSet;
 
 export type TimePeriod = "day" | "week" | "month" | "year";
 
