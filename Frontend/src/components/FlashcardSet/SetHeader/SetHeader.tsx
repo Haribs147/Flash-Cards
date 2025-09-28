@@ -1,13 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import {
-    FiEdit,
-    FiShare2,
-    FiX,
-    FiCopy,
-    FiTrash2,
-    FiThumbsUp,
-    FiThumbsDown,
-} from "react-icons/fi";
+import { FiEdit, FiShare2, FiX, FiCopy, FiTrash2 } from "react-icons/fi";
 import "./SetHeader.css";
 import {
     copySet,

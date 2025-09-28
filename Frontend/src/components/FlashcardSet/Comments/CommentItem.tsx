@@ -9,7 +9,6 @@ import {
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import "./Comments.css";
 import ItemActions from "../../common/ItemActions/ItemActions";
-import { FiThumbsDown, FiThumbsUp } from "react-icons/fi";
 import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
 
 type CommentItemProps = {

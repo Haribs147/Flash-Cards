@@ -267,12 +267,16 @@ def create_new_folder( folder_data: FolderCreate, db: Session = Depends(get_db),
     return new_material
 
 def check_permission(item_id: int, req_access: str, db: Session, current_user: User) -> Material:
-    material = db.query(Material).filter(Material.id == item_id).first()
+    result = db.query(Material, FlashcardSet.is_public).join(Material, FlashcardSet.id == Material.id).filter(Material.id == item_id).first()
     #TODO make a left join here so that it is faster
-    if not material:
+    if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material not found")
-    print(material.owner_id)
-    print(current_user.id)
+    
+    material, is_public = result
+    
+    if is_public:
+        return material
+
     if material.owner_id == current_user.id:
         return material
     
