@@ -24,6 +24,7 @@ const SetHeader = ({ onBackClick, onEditClick }: SetHeaderProps) => {
     const dispatch = useAppDispatch();
 
     const { data: set } = useAppSelector((state) => state.flashcardSet);
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const [emailToShare, setEmailToShare] = useState("");
     const [isSharePopupOpen, setSharePopupOpen] = useState(false);
@@ -180,23 +181,32 @@ const SetHeader = ({ onBackClick, onEditClick }: SetHeaderProps) => {
                         />
                     )}
 
-                    <button className="icon-btn" onClick={onEditClick}>
-                        <FiEdit />
-                    </button>
-                    <button
-                        className="icon-btn"
-                        onClick={() => setIsCopyModalOpen(true)}
-                    >
-                        <FiCopy />
-                    </button>
+                    {isAuthenticated && (
+                        <>
+                            <button className="icon-btn" onClick={onEditClick}>
+                                <FiEdit />
+                            </button>
+                            <button
+                                className="icon-btn"
+                                onClick={() => setIsCopyModalOpen(true)}
+                            >
+                                <FiCopy />
+                            </button>
+                        </>
+                    )}
+
                     <div className="share-button-wrapper">
-                        <button
-                            ref={shareButtonRef}
-                            onClick={() => setSharePopupOpen(!isSharePopupOpen)}
-                            className={`icon-btn ${isSharePopupOpen ? "active" : ""}`}
-                        >
-                            <FiShare2 />
-                        </button>
+                        {isAuthenticated && (
+                            <button
+                                ref={shareButtonRef}
+                                onClick={() =>
+                                    setSharePopupOpen(!isSharePopupOpen)
+                                }
+                                className={`icon-btn ${isSharePopupOpen ? "active" : ""}`}
+                            >
+                                <FiShare2 />
+                            </button>
+                        )}
 
                         {isSharePopupOpen && (
                             <div ref={popupRef} className="share-popup">

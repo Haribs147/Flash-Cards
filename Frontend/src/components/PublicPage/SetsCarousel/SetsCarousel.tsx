@@ -156,6 +156,7 @@ const SetsCarousel = ({
                                 ) => (
                                     <SetCard
                                         key={set.id}
+                                        id={set.id}
                                         name={set.name}
                                         description={set.description}
                                         creator={set.creator}

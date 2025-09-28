@@ -40,7 +40,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         )
         token = request.cookies.get("access_token")
         if token is None:
-             raise credentials_exception
+            raise credentials_exception
 
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -48,9 +48,26 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             if username is None:
                 raise credentials_exception
         except JWTError:
-             raise credentials_exception
+            raise credentials_exception
 
         user = db.query(User).filter(User.email == username).first()
         if user is None:
             raise credentials_exception
+        return user
+
+def get_optional_current_user(request: Request, db: Session = Depends(get_db)):
+        token = request.cookies.get("access_token")
+        if token is None:
+            return None
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if username is None:
+                return None
+        except JWTError:
+            return None
+
+        user = db.query(User).filter(User.email == username).first()
+
         return user

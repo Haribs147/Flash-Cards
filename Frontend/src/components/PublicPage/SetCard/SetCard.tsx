@@ -1,7 +1,9 @@
 import { FiCalendar, FiEye, FiHeart } from "react-icons/fi";
 import "./SetCard.css";
+import { useNavigate } from "react-router-dom";
 
 type SetCardProps = {
+    id: number;
     name: string;
     description: string;
     creator: string;
@@ -17,6 +19,7 @@ const formatNumber = (number: number): string => {
 };
 
 const SetCard = ({
+    id,
     name,
     description,
     creator,
@@ -29,8 +32,15 @@ const SetCard = ({
         ? new Date(created_at).toLocaleDateString()
         : "";
 
+    const navigate = useNavigate();
+
     return (
-        <div className="set-card">
+        <div
+            className="set-card"
+            onClick={() => {
+                navigate(`/set/${id}`);
+            }}
+        >
             <div>
                 <div className="set-card-header">
                     <div className="set-card-initial">{initial}</div>

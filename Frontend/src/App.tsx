@@ -1,8 +1,6 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, type JSX } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
-import Navbar from "./components/Navbar/Navbar";
-import Sidebar from "./components/Sidebar/Sidebar";
 import MaterialsView from "./components/Materials/MaterialsView";
 import NewSetView from "./components/NewSet/NewSetView";
 import FlashcardSetView from "./components/FlashcardSet/FlashcardSetView";
@@ -26,11 +24,6 @@ const AppChildren = () => {
                 <Route path="/" element={<MaterialsView />} />
                 <Route path="/new-set" element={<NewSetView />} />
                 <Route path="/set/edit/:setId" element={<NewSetView />} />
-                <Route path="/set/:setId" element={<FlashcardSetView />} />
-                <Route
-                    path="/set/:setId/check"
-                    element={<KnowledgeCheckView />}
-                />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Layout>
@@ -64,6 +57,23 @@ function App() {
                 />
                 <Route path="/login" element={<LoginView />} />
                 <Route path="/register" element={<RegisterView />} />
+
+                <Route
+                    path="/set/:setId"
+                    element={
+                        <Layout>
+                            <FlashcardSetView />
+                        </Layout>
+                    }
+                />
+                <Route
+                    path="/set/:setId/check"
+                    element={
+                        <Layout>
+                            <KnowledgeCheckView />
+                        </Layout>
+                    }
+                />
                 <Route
                     path="app/*"
                     element={

@@ -20,7 +20,7 @@ from .minio import initialize_minio, minio_client
 from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
-from .security import get_password_hash, verify_password, create_acces_token, get_current_user
+from .security import get_optional_current_user, get_password_hash, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -274,7 +274,7 @@ def check_permission(item_id: int, req_access: str, db: Session, current_user: U
     
     material, is_public = result
     
-    if is_public:
+    if is_public and req_access == PermissionEnum.viewer.value:
         return material
 
     if material.owner_id == current_user.id:
@@ -433,7 +433,7 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
     return set_material
 
 @app.get("/sets/{set_id}", response_model=FlashcardSetOut)
-def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user), elastic_search: Elasticsearch = Depends(get_es_client)):
+def get_set(set_id: int, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user), elastic_search: Elasticsearch = Depends(get_es_client)):
     # flashcard_set = db.query(FlashcardSet).options(
     #     joinedload(FlashcardSet.material).joinedload(Material.owner),
     #     joinedload(FlashcardSet.flashcards)
@@ -457,8 +457,11 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
 
     upvotes = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.vote_type==VoteTypeEnum.upvote).count()
     downvotes = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.vote_type==VoteTypeEnum.downvote).count()
-    user_vote_obj = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.user_id==current_user.id).first()
-    user_vote = user_vote_obj.vote_type if user_vote_obj else None
+
+    user_vote = None
+    if current_user:
+        user_vote_obj = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.user_id==current_user.id).first()
+        user_vote = user_vote_obj.vote_type if user_vote_obj else None
 
     comments_raw = db.query(Comment, User.email).join(User, Comment.user_id==User.id).filter(Comment.material_id == set_id).order_by(Comment.created_at.desc()).all()
 
@@ -472,8 +475,10 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: User = Dep
         ).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
         votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
         
-        user_comment_votes = db.query(Vote).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
-        user_votes_map = {v.votable_id: v.vote_type for v in user_comment_votes}
+        user_votes_map = {}
+        if current_user:
+            user_comment_votes = db.query(Vote).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
+            user_votes_map = {v.votable_id: v.vote_type for v in user_comment_votes}
 
         for comment_id in comment_ids:
             votes_data[comment_id] = {
