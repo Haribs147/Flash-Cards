@@ -35,8 +35,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
-
-
+# zobaczyć jak oprzeć na middleware czyszczenie. 
+# Z klasy przerzucił na słownik, przejechał forem po wpisach, wyczyścił wartość i potem zrobić klasę spowrotem i puścić dalej
 class CsrfSettings(BaseModel):
     secret_key: str = settings.CSRF_SECRET_KEY
 
@@ -427,7 +427,7 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
                 back_content=card.back_content,
             )
             db.add(new_flashcard)
-    
+    # Mozna dodać updated at i to zrobić
     db.commit()
     db.refresh(set_material)
     return set_material
@@ -902,7 +902,8 @@ def get_most_viewed_sets(period: TimePeriod, db: Session = Depends(get_db), elas
                             }
                         }
                     }
-                ],
+                ], # podpiąć elastic searcha jako middleware, żeby logował logi z aplikacji
+                # pobrać wszystkie i potem wybrać 20 publicznych
                 "filter": [
                     {
                         "terms":{

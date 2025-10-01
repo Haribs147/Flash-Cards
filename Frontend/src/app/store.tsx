@@ -1,16 +1,34 @@
-import { configureStore } from "@reduxjs/toolkit";
+import {
+    combineReducers,
+    configureStore,
+    type UnknownAction,
+} from "@reduxjs/toolkit";
 import materialsReducer from "../features/materials/materialsSlice.tsx";
-import authReducer from "../features/auth/authSlice.tsx";
+import authReducer, { logoutUser } from "../features/auth/authSlice.tsx";
 import flashcardSetReducer from "../features/flashcardSets/flashcardSetSlice.tsx";
 import sharesReducer from "../features/shares/sharesSlice.tsx";
 
+// https://stackoverflow.com/questions/35622588/how-to-reset-the-state-of-a-redux-store
+
+const appReducer = combineReducers({
+    materials: materialsReducer,
+    auth: authReducer,
+    flashcardSet: flashcardSetReducer,
+    shares: sharesReducer,
+});
+
+const rootReducer = (
+    state: ReturnType<typeof appReducer> | undefined,
+    action: UnknownAction,
+) => {
+    if (action.type === logoutUser.fulfilled.type) {
+        return appReducer(undefined, action);
+    }
+    return appReducer(state, action);
+};
+
 export const store = configureStore({
-    reducer: {
-        materials: materialsReducer,
-        auth: authReducer,
-        flashcardSet: flashcardSetReducer,
-        shares: sharesReducer,
-    },
+    reducer: rootReducer,
 });
 
 export type RootState = ReturnType<typeof store.getState>;
