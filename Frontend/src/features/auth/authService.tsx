@@ -1,4 +1,6 @@
 import axios from "axios";
+import type { AppStore } from "../../app/store";
+import { logoutUser, setCsrfToken } from "./authSlice";
 
 export interface LoginCredentials {
     email: string;
@@ -43,6 +45,46 @@ export const logoutUserApi = async () => {
     return response.data;
 };
 
+export const refreshTokenApi = async () => {
+    const response = await axios.post(`${API_URL}/refresh`);
+    return response.data;
+};
+
 export const setCsrfHeader = (token: string) => {
     axios.defaults.headers.common["X-CSRF-TOKEN"] = token;
+};
+
+// https://medium.com/@velja/token-refresh-with-axios-interceptors-for-a-seamless-authentication-experience-854b06064bde
+export const setupAxiosInterceptor = (store: AppStore) => {
+    axios.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+            const isRefreshRequest = originalRequest.url.endsWith("/refresh");
+            const isLoginRequest = originalRequest.url.endsWith("/login");
+            const isRegisterRequest = originalRequest.url.endsWith("/register");
+            const isLogoutRequest = originalRequest.url.endsWith("/logout");
+            if (
+                error.response.status === 401 &&
+                !originalRequest._retry &&
+                !isRefreshRequest &&
+                !isLoginRequest &&
+                !isRegisterRequest &&
+                !isLogoutRequest
+            ) {
+                originalRequest._retry = true;
+                try {
+                    const { csrf_token } = await refreshTokenApi();
+
+                    store.dispatch(setCsrfToken(csrf_token));
+                    originalRequest.headers["X-CSRF-TOKEN"] = csrf_token;
+                    return axios(originalRequest);
+                } catch (refreshError) {
+                    store.dispatch(logoutUser());
+                    return Promise.reject(refreshError);
+                }
+            }
+            return Promise.reject(error);
+        },
+    );
 };

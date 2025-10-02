@@ -14,8 +14,8 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        dispatch(logoutUser());
         navigate("/");
+        dispatch(logoutUser());
     };
 
     const handleLogin = () => {

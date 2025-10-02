@@ -6,6 +6,12 @@ import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { setupAxiosInterceptor } from "./features/auth/authService.tsx";
+import { checkAuthStatus } from "./features/auth/authSlice.tsx";
+
+setupAxiosInterceptor(store);
+
+store.dispatch(checkAuthStatus());
 
 const queryClient = new QueryClient();
 

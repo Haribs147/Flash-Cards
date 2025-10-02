@@ -18,18 +18,32 @@ type Flashcard = {
 
 const FlashcardSetView = () => {
     const { setId } = useParams<{ setId: string }>();
-    console.log(setId);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
     const {
         data: set,
         status,
         error,
     } = useAppSelector((state) => state.flashcardSet);
-    const dispatch = useAppDispatch();
-    const navigate = useNavigate();
+
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const [cards, setCards] = useState<Flashcard[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
+
+    useEffect(() => {
+        if (status === "failed" && error?.statusCode === 401) {
+            navigate("/login", { replace: true });
+        }
+    }, [status, error, navigate]);
+
+    useEffect(() => {
+        if (set && !set.is_public && !isAuthenticated) {
+            navigate("/login", { replace: true });
+        }
+    }, [isAuthenticated, set, navigate]);
 
     useEffect(() => {
         if (setId) {
@@ -89,7 +103,10 @@ const FlashcardSetView = () => {
     }
 
     if (status == "failed") {
-        return <div>Error: {error}</div>;
+        if (error?.statusCode === 401) {
+            return <div></div>;
+        }
+        return <div>Error: {error?.message}</div>;
     }
 
     if (!set || cards.length === 0) {

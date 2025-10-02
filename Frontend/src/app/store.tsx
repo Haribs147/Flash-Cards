@@ -22,7 +22,14 @@ const rootReducer = (
     action: UnknownAction,
 ) => {
     if (action.type === logoutUser.fulfilled.type) {
-        return appReducer(undefined, action);
+        const initialState = appReducer(undefined, action);
+        return {
+            ...initialState,
+            auth: {
+                ...initialState.auth,
+                status: "failed",
+            },
+        };
     }
     return appReducer(state, action);
 };
@@ -33,3 +40,5 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export type AppStore = typeof store;

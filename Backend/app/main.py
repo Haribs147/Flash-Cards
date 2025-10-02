@@ -20,7 +20,7 @@ from .minio import initialize_minio, minio_client
 from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
-from .security import get_optional_current_user, get_password_hash, verify_password, create_acces_token, get_current_user
+from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -214,8 +214,11 @@ def register_user(response: Response, user_in: UserCreate, db: Session = Depends
     db.commit()
 
     access_token = create_acces_token(data={"sub": new_user.email})
+    refresh_token = create_refresh_token(data={"sub": new_user.email})
+
     csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="lax", max_age=1800)
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="strict", path="/refresh", max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60)
     csrf_protect.set_csrf_cookie(signed_csrf_token, response)
 
     return {"message": "User registered successfully", "csrf_token": csrf_token}
@@ -228,10 +231,11 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nieprawidłowy email lub hasło")
     
     access_token = create_acces_token(data={"sub": db_user.email})
+    refresh_token = create_refresh_token(data={"sub": db_user.email})
 
     csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="lax", max_age=1800)
-    
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", path="/refresh", max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60)
     csrf_protect.set_csrf_cookie(signed_csrf_token, response)
 
     return{"message": "Login succesfull", "csrf_token": csrf_token, "user": db_user}
@@ -239,9 +243,19 @@ def login_for_access_token(response: Response, form_data: Annotated[OAuth2Passwo
 @app.post("/logout")
 def logout(response: Response):
     response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token", path="/refresh")
     response.delete_cookie(key="fastapi-csrf-token")
 
     return {"message": "Logout succesful"}
+
+@app.post("/refresh")
+def refresh_token(response: Response, csrf_protect: CsrfProtect = Depends(), current_user: User = Depends(get_current_user_from_refresh_token)):
+    new_access_token = create_acces_token(data={"sub": current_user.email})
+    csrf_token, signed_csrf_token = csrf_protect.generate_csrf_tokens()
+    response.set_cookie(key="access_token", value=new_access_token, httponly=True, secure=False, samesite="lax", max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    csrf_protect.set_csrf_cookie(signed_csrf_token, response)
+
+    return{"message": "Access token refreshed succesfully", "csrf_token": csrf_token}
 
 @app.get("/users/me", response_model=UserOut)
 def read_users_me(current_user: User= Depends(get_current_user)):
@@ -273,9 +287,11 @@ def check_permission(item_id: int, req_access: str, db: Session, current_user: U
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Material not found")
     
     material, is_public = result
-    
     if is_public and req_access == PermissionEnum.viewer.value:
         return material
+
+    if current_user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permission")
 
     if material.owner_id == current_user.id:
         return material

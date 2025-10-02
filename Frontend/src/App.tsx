@@ -5,10 +5,9 @@ import MaterialsView from "./components/Materials/MaterialsView";
 import NewSetView from "./components/NewSet/NewSetView";
 import FlashcardSetView from "./components/FlashcardSet/FlashcardSetView";
 import KnowledgeCheckView from "./components/FlashcardSet/KnowledgeCheckView";
-import { useAppDispatch, useAppSelector } from "./app/hooks";
+import { useAppSelector } from "./app/hooks";
 import LoginView from "./components/Auth/LoginView";
 import RegisterView from "./components/Auth/RegisterView";
-import { checkAuthStatus } from "./features/auth/authSlice";
 import PublicPage from "./components/PublicPage/PublicPage";
 import Layout from "./components/Layouts/Layout";
 
@@ -31,14 +30,7 @@ const AppChildren = () => {
 };
 
 function App() {
-    const dispatch = useAppDispatch();
     const authStatus = useAppSelector((state) => state.auth.status);
-
-    useEffect(() => {
-        if (authStatus == "idle") {
-            dispatch(checkAuthStatus());
-        }
-    }, [authStatus, dispatch]);
 
     if (authStatus == "loading" || authStatus == "idle") {
         return <div className="App"></div>;

@@ -58,13 +58,23 @@ export interface FlashcardSetData {
 export interface FlashcardSetState {
     data: null | FlashcardSetData;
     status: "idle" | "loading" | "saving" | "failed" | "succeded";
-    error: string | null;
+    error: {
+        message: string | null;
+        statusCode: number | null;
+    } | null;
 }
 
 const initialState: FlashcardSetState = {
     data: null,
     status: "idle",
     error: null,
+};
+
+const handleApiError = (error: any, defaultMessage: string) => {
+    return {
+        message: error.response?.data?.detail || defaultMessage,
+        statusCode: error.response?.status || 500,
+    };
 };
 
 export const getSet = createAsyncThunk(
@@ -75,7 +85,7 @@ export const getSet = createAsyncThunk(
             return data;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to get the set",
+                handleApiError(error, "Failed to get the set"),
             );
         }
     },
@@ -88,7 +98,10 @@ export const saveSet = createAsyncThunk(
         const setData = state.flashcardSet.data;
 
         if (!setData) {
-            return rejectWithValue("No set data to save");
+            return rejectWithValue({
+                message: "No set data to save",
+                statusCode: 400,
+            });
         }
 
         const { id, ...updateData } = setData;
@@ -106,7 +119,7 @@ export const saveSet = createAsyncThunk(
             }
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to save the set",
+                handleApiError(error, "Failed to save the set"),
             );
         }
     },
@@ -122,7 +135,7 @@ export const shareSet = createAsyncThunk(
             return await shareSetApi(setId, email);
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to add the share",
+                handleApiError(error, "Failed to add the share"),
             );
         }
     },
@@ -139,7 +152,7 @@ export const removeShare = createAsyncThunk(
             return userId;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to remove the share",
+                handleApiError(error, "Failed to remove the share"),
             );
         }
     },
@@ -162,7 +175,7 @@ export const savePermissionChanges = createAsyncThunk(
             return updates;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to update the shares",
+                handleApiError(error, "Failed to update the shares"),
             );
         }
     },
@@ -181,9 +194,7 @@ export const voteOnMaterial = createAsyncThunk(
             const data = await voteOnMaterialApi(materialId, vote_type);
             return data;
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.detail || "Failed to vote",
-            );
+            return rejectWithValue(handleApiError(error, "Failed to vote"));
         }
     },
 );
@@ -211,7 +222,7 @@ export const addComment = createAsyncThunk(
             return { newComment, parentCommentId };
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to add a new comment",
+                handleApiError(error, "Failed to add a new comment"),
             );
         }
     },
@@ -225,7 +236,7 @@ export const deleteComment = createAsyncThunk(
             return commentId;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to delete a comment",
+                handleApiError(error, "Failed to delete a comment"),
             );
         }
     },
@@ -248,7 +259,7 @@ export const updateComment = createAsyncThunk(
             return updatedComment;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to update a comment",
+                handleApiError(error, "Failed to update a comment"),
             );
         }
     },
@@ -301,9 +312,7 @@ export const voteOnComment = createAsyncThunk(
             const data = await voteOnCommentApi(commentId, vote_type);
             return { commentId, data };
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.detail || "Failed to vote",
-            );
+            return rejectWithValue(handleApiError(error, "Failed to vote"));
         }
     },
 );
@@ -354,7 +363,7 @@ export const copySet = createAsyncThunk(
             return newMaterial;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.detail || "Failed to copy the set",
+                handleApiError(error, "Failed to copy the set"),
             );
         }
     },
@@ -431,6 +440,14 @@ export const flashcardSetSlice = createSlice({
         resetFlashcardSet: () => initialState,
     },
     extraReducers: (builder) => {
+        const handleRejected = (state: FlashcardSetState, action: any) => {
+            state.status = "failed";
+            state.error = action.payload as {
+                message: string;
+                statusCode: number;
+            };
+        };
+
         builder
             .addCase(getSet.pending, (state) => {
                 state.status = "loading";
@@ -439,10 +456,7 @@ export const flashcardSetSlice = createSlice({
                 state.status = "succeded";
                 state.data = action.payload;
             })
-            .addCase(getSet.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.payload as string;
-            })
+            .addCase(getSet.rejected, handleRejected)
             .addCase(saveSet.pending, (state) => {
                 state.status = "saving";
             })
@@ -453,13 +467,11 @@ export const flashcardSetSlice = createSlice({
                     state.data.name = action.payload.name;
                 }
             })
-            .addCase(saveSet.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.payload as string;
-            })
+            .addCase(saveSet.rejected, handleRejected)
             .addCase(shareSet.fulfilled, (state, action) => {
                 state.data?.shared_with.push(action.payload);
             })
+            .addCase(shareSet.rejected, handleRejected)
             .addCase(removeShare.fulfilled, (state, action) => {
                 if (state.data) {
                     state.data.shared_with = state.data.shared_with.filter(
@@ -467,6 +479,7 @@ export const flashcardSetSlice = createSlice({
                     );
                 }
             })
+            .addCase(removeShare.rejected, handleRejected)
             .addCase(savePermissionChanges.fulfilled, (state, action) => {
                 if (state.data) {
                     const updatesMap = new Map(
@@ -481,6 +494,7 @@ export const flashcardSetSlice = createSlice({
                     });
                 }
             })
+            .addCase(savePermissionChanges.rejected, handleRejected)
             .addCase(voteOnMaterial.fulfilled, (state, action) => {
                 if (state.data) {
                     state.data.upvotes = action.payload.upvotes;
@@ -488,6 +502,7 @@ export const flashcardSetSlice = createSlice({
                     state.data.user_vote = action.payload.user_vote;
                 }
             })
+            .addCase(voteOnMaterial.rejected, handleRejected)
             .addCase(addComment.fulfilled, (state, action) => {
                 if (!state.data) {
                     return;
@@ -514,6 +529,7 @@ export const flashcardSetSlice = createSlice({
                     state.data.comments.unshift(newComment);
                 }
             })
+            .addCase(addComment.rejected, handleRejected)
             .addCase(updateComment.fulfilled, (state, action) => {
                 if (state.data?.comments) {
                     state.data.comments = findAndUpdateComment(
@@ -522,6 +538,7 @@ export const flashcardSetSlice = createSlice({
                     );
                 }
             })
+            .addCase(updateComment.rejected, handleRejected)
             .addCase(deleteComment.fulfilled, (state, action) => {
                 if (state.data?.comments) {
                     state.data.comments = findAndRemoveComment(
@@ -530,6 +547,7 @@ export const flashcardSetSlice = createSlice({
                     );
                 }
             })
+            .addCase(deleteComment.rejected, handleRejected)
             .addCase(voteOnComment.fulfilled, (state, action) => {
                 if (state.data?.comments) {
                     const { commentId, data } = action.payload;
@@ -539,7 +557,8 @@ export const flashcardSetSlice = createSlice({
                         data,
                     );
                 }
-            });
+            })
+            .addCase(voteOnComment.rejected, handleRejected);
     },
 });
 

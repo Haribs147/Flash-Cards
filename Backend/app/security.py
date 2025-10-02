@@ -10,10 +10,12 @@ from .database import SessionLocal, User, get_db
 from .config import settings
 from sqlalchemy.orm import Session
 
-SECRET_KEY = settings.SECRET_KEY
+ACCESS_TOKEN_SECRET_KEY = settings.ACCESS_TOKEN_SECRET_KEY
+REFRESH_TOKEN_SECRET_KEY = settings.REFRESH_TOKEN_SECRET_KEY
 PEPPER = settings.PEPPER
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 5
+REFRESH_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,7 +31,14 @@ def create_acces_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, ACCESS_TOKEN_SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, REFRESH_TOKEN_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
@@ -43,7 +52,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             raise credentials_exception
 
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, ACCESS_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
             if username is None:
                 raise credentials_exception
@@ -56,18 +65,49 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         return user
 
 def get_optional_current_user(request: Request, db: Session = Depends(get_db)):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         token = request.cookies.get("access_token")
         if token is None:
             return None
 
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, ACCESS_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
             if username is None:
-                return None
+                raise credentials_exception
         except JWTError:
-            return None
+            raise credentials_exception
 
         user = db.query(User).filter(User.email == username).first()
+        if user is None:
+            raise credentials_exception
 
         return user
+
+def get_current_user_from_refresh_token(request: Request, db: Session = Depends(get_db)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate refresh token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token is None:
+        raise credentials_exception
+    
+    try:
+        payload = jwt.decode(refresh_token, REFRESH_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = db.query(User).filter(User.email == username).first()
+    if user is None:
+        raise credentials_exception
+    
+    return user
