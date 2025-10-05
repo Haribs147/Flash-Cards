@@ -35,6 +35,7 @@ const rootReducer = (
 };
 
 export const store = configureStore({
+    // @ts-ignore
     reducer: rootReducer,
 });
 

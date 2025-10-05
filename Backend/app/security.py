@@ -5,7 +5,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+import nh3
 from passlib.context import CryptContext
+from pydantic import AfterValidator
 from .database import SessionLocal, User, get_db
 from .config import settings
 from sqlalchemy.orm import Session
@@ -111,3 +113,38 @@ def get_current_user_from_refresh_token(request: Request, db: Session = Depends(
         raise credentials_exception
     
     return user
+
+def sanitize_html(text: str) -> str:
+    allowed_tags = {
+        'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 
+        'blockquote', 'ul', 'ol', 'li', 'span', 'img', 'div'
+    }
+    allowed_attributes = {
+        'img': {'src', 'alt'},
+        'span': {'style'}, # highlighting
+        'div': { 
+            'data-type', # The image-grid block id
+            'data-cols', # setting number of cols in img grid
+            'style',     # allow inlince --cols css
+        }
+    }
+    allowed_styles = {
+        'background-color', # Highlighting
+        '--cols',           # For the ImageGrid
+    }
+    allowed_classes = {
+        '*': {
+            'ProseMirror', 'ProseMirror-selectednode', 'ProseMirror-dragging',
+            'is-active', 'interactive-image-wrapper', 'image-placeholder',
+            'text-left', 'text-center', 'text-right', 'text-justify',
+        }
+        
+    }
+    cleaned_text = nh3.clean(
+        html=text,
+        tags=allowed_tags,
+        attributes=allowed_attributes,
+        filter_style_properties=allowed_styles,
+        allowed_classes=allowed_classes,
+    )
+    return cleaned_text

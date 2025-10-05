@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
-from pydantic import BaseModel, EmailStr
+from pydantic import AfterValidator, BaseModel, EmailStr
 from sqlalchemy import case, func, or_, and_
 from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
@@ -20,7 +20,7 @@ from .minio import initialize_minio, minio_client
 from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
-from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, verify_password, create_acces_token, get_current_user
+from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, sanitize_html, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,6 +48,8 @@ def get_csrf_config():
 def csrf_protect_exception_handler(request: Request, exc: CsrfProtectError):
     return Response(status_code=exc.status_code, content=exc.message)
 
+SanitizedStr = Annotated[str, AfterValidator(sanitize_html)]
+
 class TimePeriod(str, enum.Enum):
     day="day"
     week="week"
@@ -67,14 +69,10 @@ class LoginResponse(BaseModel):
     csrf_token: str
     user: UserOut
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 class MaterialOut(BaseModel):
     id: int
     item_type: str
-    name: str
+    name: SanitizedStr
     parent_id: Optional[int] = None
     linked_material_id: Optional[int] = None
 
@@ -83,39 +81,39 @@ class MaterialOut(BaseModel):
 
 class MaterialUpdate(BaseModel):
     parent_id: Optional[int] = None
-    name: Optional[str] = None
+    name: Optional[SanitizedStr] = None
 
 class FolderCreate(BaseModel):
-    name: str
+    name: SanitizedStr
     parent_id: Optional[int] = None
 
 class FlashcardData(BaseModel):
     id: Optional[int] = None
-    front_content: str
-    back_content: str
+    front_content: SanitizedStr
+    back_content: SanitizedStr
 
 class FlashcardSetUpdateAndCreate(BaseModel):
-    name: str
-    description: str
+    name: SanitizedStr
+    description: SanitizedStr
     is_public: bool
     parent_id: Optional[int] = None
     flashcards: list[FlashcardData]
 
 class FlashcardSetUpdate(BaseModel):
-    name: str
-    description: str
+    name: SanitizedStr
+    description: SanitizedStr
     is_public: bool
     flashcards: list[FlashcardData]
 
 class SharedUser(BaseModel):
     user_id: int
-    email: EmailStr
+    email: SanitizedStr
     permission: PermissionEnum
 
 class CommentOut(BaseModel):
     id: int
-    text: str
-    author_email: str
+    text: SanitizedStr
+    author_email: SanitizedStr
     created_at: datetime
     upvotes: int
     downvotes: int
@@ -124,10 +122,10 @@ class CommentOut(BaseModel):
 
 class FlashcardSetOut(BaseModel):
     id: int
-    name: str
-    description: str
+    name: SanitizedStr
+    description: SanitizedStr
     is_public: bool
-    creator: str
+    creator: SanitizedStr
     flashcards: list[FlashcardData]
     shared_with: list[SharedUser]
     upvotes: int
@@ -136,7 +134,7 @@ class FlashcardSetOut(BaseModel):
     comments: list[CommentOut]
 
 class ShareData(BaseModel):
-    email: EmailStr
+    email: SanitizedStr
     permission: PermissionEnum
 
 class ShareUpdate(BaseModel):
@@ -148,27 +146,27 @@ class ShareUpdateData(BaseModel):
 
 class PendingShareOut(BaseModel):
     share_id: int
-    material_name: str
-    sharer_email: str
+    material_name: SanitizedStr
+    sharer_email: SanitizedStr
 
 class VoteData(BaseModel):
     vote_type: VoteTypeEnum
 
 class CommentCreate(BaseModel):
-    text: str   
+    text: SanitizedStr
     parent_comment_id: Optional[int] = None
 
 class CommentUpdate(BaseModel):
-    text: str
+    text: SanitizedStr
 
 class CopySet(BaseModel):
     target_folder_id: Optional[int] = None
 
 class BasePublicSetOut(BaseModel):
     id: int
-    name: str
-    description: str
-    creator: str
+    name: SanitizedStr
+    description: SanitizedStr
+    creator: SanitizedStr
     created_at: datetime
 
 class MostViewedSetsOut(BasePublicSetOut):
