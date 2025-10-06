@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import AfterValidator, BaseModel, EmailStr
-from sqlalchemy import case, func, or_, and_
+from sqlalchemy import case, func, or_, and_, text
 from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
 import enum
@@ -118,7 +118,12 @@ class CommentOut(BaseModel):
     upvotes: int
     downvotes: int
     user_vote: Optional[VoteTypeEnum] = None
-    replies: list["CommentOut"] = []
+    parent_id: Optional[int] = None
+    replies: list[int] = []
+
+class CommentsDataOut(BaseModel):
+    comments: dict[int, CommentOut]
+    top_level_comment_ids: list[int]
 
 class FlashcardSetOut(BaseModel):
     id: int
@@ -131,7 +136,7 @@ class FlashcardSetOut(BaseModel):
     upvotes: int
     downvotes: int
     user_vote: Optional[VoteTypeEnum] = None
-    comments: list[CommentOut]
+    comments_data: CommentsDataOut
 
 class ShareData(BaseModel):
     email: SanitizedStr
@@ -174,8 +179,6 @@ class MostViewedSetsOut(BasePublicSetOut):
 
 class MostLikedSetsOut(BasePublicSetOut):
     like_count: int
-
-CommentOut.model_rebuild()
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -477,46 +480,45 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: Optional[U
         user_vote_obj = db.query(Vote).filter(Vote.votable_id==set_id, Vote.votable_type=="material", Vote.user_id==current_user.id).first()
         user_vote = user_vote_obj.vote_type if user_vote_obj else None
 
-    comments_raw = db.query(Comment, User.email).join(User, Comment.user_id==User.id).filter(Comment.material_id == set_id).order_by(Comment.created_at.desc()).all()
+    query = text("""
+        SELECT
+            c.id,
+            c.text,
+            c.created_at,
+            c.parent_comment_id,
+            u.email AS author_email,
+            COALESCE(SUM(CASE WHEN v.vote_type = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes,
+            COALESCE(SUM(CASE WHEN v.vote_type = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes,
+            (SELECT vote_type FROM votes WHERE votable_id = c.id AND votable_type = 'comment' AND user_id = :user_id) AS user_vote
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        LEFT JOIN votes v on v.votable_id = c.id AND v.votable_type = 'comment'
+        WHERE c.material_id = :set_id
+        GROUP BY c.id, u.email
+        ORDER BY c.path;
+    """)
+    user_id = current_user.id if current_user else None
+    comment_results = db.execute(query, {"set_id": set_id, "user_id": user_id})
 
-    comment_ids = [c.id for c, email in comments_raw]
-    votes_data = {}
-    if comment_ids:
-        votes_summary = db.query(
-            Vote.votable_id,
-            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("upvotes"),
-            func.sum(case((Vote.vote_type == VoteTypeEnum.downvote, 1), else_=0)).label("downvotes"),
-        ).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
-        votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
-        
-        user_votes_map = {}
-        if current_user:
-            user_comment_votes = db.query(Vote).filter(Vote.votable_id.in_(comment_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
-            user_votes_map = {v.votable_id: v.vote_type for v in user_comment_votes}
+    comments = {}
+    top_level_comment_ids = []
 
-        for comment_id in comment_ids:
-            votes_data[comment_id] = {
-                "upvotes": votes_map.get(comment_id, {}).get("upvotes", 0),
-                "downvotes": votes_map.get(comment_id, {}).get("downvotes", 0),
-                "user_vote": user_votes_map.get(comment_id)
-            }
+    for row in comment_results:
+        comment_dict = dict(row._mapping)
+        comment_dict['parent_id'] = comment_dict.pop('parent_comment_id')
+        comments[row.id] = CommentOut(**comment_dict, replies=[])
 
-    comment_map = {
-        comment.id: CommentOut(
-            id=comment.id, text=comment.text, author_email=email, created_at=comment.created_at,
-            **votes_data.get(comment.id, {"upvotes": 0, "downvotes": 0, "user_vote": None})
-        )
-        for comment, email in comments_raw
-    }
-
-    nested_comments = []
-    for comment_obj, email in comments_raw:
-        if comment_obj.parent_comment_id:
-            parent = comment_map.get(comment_obj.parent_comment_id)
-            if parent:
-                parent.replies.append(comment_map[comment_obj.id])
+    for comment_id, comment in comments.items():
+        if comment.parent_id:
+            if comment.parent_id in comments:
+                comments[comment.parent_id].replies.append(comment_id)
         else:
-            nested_comments.append(comment_map[comment_obj.id])
+            top_level_comment_ids.append(comment_id)
+    
+    comments_data = CommentsDataOut(
+        comments=comments,
+        top_level_comment_ids=top_level_comment_ids,
+    )
 
     # Add the event to elastic search
     try:
@@ -542,7 +544,7 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: Optional[U
         "upvotes": upvotes,
         "downvotes": downvotes,
         "user_vote": user_vote,
-        "comments": nested_comments,
+        "comments_data": comments_data,
     }
     return flashcard_data
 
@@ -745,7 +747,7 @@ def new_comment(material_id: int, comment_data: CommentCreate, db: Session = Dep
     db.add(new_commment)
     db.commit()
     db.refresh(new_commment)
-
+    
     return CommentOut(
         id=new_commment.id,
         text=new_commment.text,
@@ -754,6 +756,7 @@ def new_comment(material_id: int, comment_data: CommentCreate, db: Session = Dep
         upvotes=0,
         downvotes=0,
         user_vote=None,
+        parent_id=new_commment.parent_comment_id,
         replies=[]
     )
 
@@ -774,7 +777,10 @@ def delete_comment(comment_id: int, db: Session = Depends(get_db), current_user:
 
 @app.patch("/comments/{comment_id}", status_code=status.HTTP_200_OK)
 def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    comment_to_update = db.query(Comment).options(joinedload(Comment.author)).filter(Comment.id == comment_id).first()
+    comment_to_update = db.query(Comment).options(
+        joinedload(Comment.author),
+        joinedload(Comment.replies)
+    ).filter(Comment.id == comment_id).first()
 
     if not comment_to_update:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
@@ -792,34 +798,7 @@ def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = D
     user_vote_obj = db.query(Vote).filter(Vote.votable_id==comment_id, Vote.votable_type=="comment", Vote.user_id==current_user.id).first()
     user_vote = user_vote_obj.vote_type if user_vote_obj else None
 
-    replies = []
-    if comment_to_update.replies:
-        reply_ids = [reply.id for reply in comment_to_update.replies]
-        votes_summary = db.query(
-            Vote.votable_id,
-            func.sum(case((Vote.vote_type == VoteTypeEnum.upvote, 1), else_=0)).label("upvotes"),
-            func.sum(case((Vote.vote_type == VoteTypeEnum.downvote, 1), else_=0)).label("downvotes"),
-        ).filter(Vote.votable_id.in_(reply_ids), Vote.votable_type == "comment").group_by(Vote.votable_id).all()
-        votes_map = {votable_id: {"upvotes": up, "downvotes": down} for votable_id, up, down in votes_summary}
-        
-        user_comment_votes = db.query(Vote.votable_id, Vote.vote_type).filter(Vote.votable_id.in_(reply_ids), Vote.votable_type == "comment", Vote.user_id == current_user.id).all()
-        user_votes_map = {votable_id: vote_type for votable_id, vote_type in user_comment_votes}
-
-
-        for reply in comment_to_update.replies:
-            counts = votes_map.get(reply.id, {"upvotes": 0, "downvotes": 0})
-            user_reply_vote = user_votes_map.get(reply.id)
-
-            replies.append(CommentOut(
-                id=reply.id,
-                text=reply.text,
-                author_email=reply.author.email,
-                created_at=reply.created_at,
-                upvotes=counts["upvotes"],
-                downvotes=counts["downvotes"],
-                user_vote=user_reply_vote,
-                replies=[]
-            ))
+    reply_ids = [reply.id for reply in comment_to_update.replies]
 
     return CommentOut(
         id=comment_to_update.id,
@@ -829,7 +808,8 @@ def update_comment(comment_id: int, comment_data: CommentUpdate, db: Session = D
         upvotes=upvotes,
         downvotes=downvotes,
         user_vote=user_vote,
-        replies=replies
+        parent_id=comment_to_update.parent_comment_id,
+        replies=reply_ids
     )
 
 @app.post("/comments/{comment_id}/vote", status_code=status.HTTP_200_OK)

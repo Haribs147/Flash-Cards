@@ -2,8 +2,7 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <changeSet id="1" author="Michal">
         <createTable tableName="users">
@@ -213,10 +212,10 @@
                 <constraints nullable="false" foreignKeyName="fk_comment_user" references="users(id)" deleteCascade="true"/>
             </column>
             <column name="material_id" type="INT">
-                <constraints nullable="false" foreignKeyName="fk_comment_material" references="materials(id)" deleteCascade="true"/>/>
+                <constraints nullable="false" foreignKeyName="fk_comment_material" references="materials(id)" deleteCascade="true"/>
             </column>
             <column name="parent_id" type="INT">
-                <constraints nullable="true" foreignKeyName="fk_comment_parent" references="comments(id)" deleteCascade="true"/>/>
+                <constraints nullable="true" foreignKeyName="fk_comment_parent" references="comments(id)" deleteCascade="true"/>
             </column>
 
         </createTable>
@@ -237,6 +236,41 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
+    </changeSet>
+
+    <changeSet id="15" author="Michal">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS ltree;
+        </sql>
+
+        <addColumn tableName="comments">
+            <column name="path" type="LTREE"/>
+        </addColumn>
+
+        <createIndex indexName="index_comments_path_gist" tableName="comments" using="gist">
+            <column name="path"/>
+        </createIndex>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION set_comment_path() RETURNS TRIGGER AS '
+            DECLARE
+                parent_path ltree;
+            BEGIN
+                IF NEW.parent_comment_id IS NULL THEN
+                    UPDATE comments SET path = NEW.id::text::ltree WHERE id = NEW.id;
+                ELSE
+                    SELECT path INTO parent_path FROM comments WHERE id = NEW.parent_comment_id;
+                    UPDATE comments SET path = parent_path || NEW.id::text WHERE id = NEW.id;
+                END IF;
+                RETURN NEW;
+            END;
+            ' LANGUAGE plpgsql; </sql>
+
+        <sql>
+            CREATE TRIGGER comment_path_trigger
+            AFTER INSERT ON comments
+            FOR EACH ROW EXECUTE PROCEDURE set_comment_path();
+        </sql>
     </changeSet>
     
 </databaseChangeLog>

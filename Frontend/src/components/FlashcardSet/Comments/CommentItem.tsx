@@ -12,18 +12,25 @@ import ItemActions from "../../common/ItemActions/ItemActions";
 import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
 
 type CommentItemProps = {
-    comment: Comment;
+    commentId: number;
     materialId: number;
     isTopLevel: boolean;
 };
 
 export const CommentItem = ({
-    comment,
+    commentId,
     materialId,
     isTopLevel,
 }: CommentItemProps) => {
     const dispatch = useAppDispatch();
+    const comment = useAppSelector(
+        (state) => state.flashcardSet.data?.comments_data.comments[commentId],
+    );
     const { user } = useAppSelector((state) => state.auth);
+
+    if (!comment) {
+        return null;
+    }
 
     const [isReplying, setIsReplying] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -159,10 +166,10 @@ export const CommentItem = ({
                 )}
                 {comment.replies && comment.replies.length > 0 && (
                     <div className="comment-replies">
-                        {comment.replies.map((reply) => (
+                        {comment.replies.map((replyId) => (
                             <CommentItem
-                                key={reply.id}
-                                comment={reply}
+                                key={replyId}
+                                commentId={replyId}
                                 materialId={materialId}
                                 isTopLevel={false}
                             />

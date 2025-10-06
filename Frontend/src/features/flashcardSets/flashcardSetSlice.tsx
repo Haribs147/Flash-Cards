@@ -38,7 +38,13 @@ export interface Comment {
     upvotes: number;
     downvotes: number;
     user_vote: "upvote" | "downvote" | null;
-    replies: Comment[];
+    parent_id: number | null;
+    replies: number[];
+}
+
+export interface CommentsData {
+    comments: { [id: number]: Comment };
+    top_level_comment_ids: number[];
 }
 
 export interface FlashcardSetData {
@@ -52,7 +58,7 @@ export interface FlashcardSetData {
     upvotes: number;
     downvotes: number;
     user_vote: "upvote" | "downvote" | null;
-    comments: Comment[];
+    comments_data: CommentsData;
 }
 
 export interface FlashcardSetState {
@@ -219,7 +225,7 @@ export const addComment = createAsyncThunk(
                 text,
                 parentCommentId,
             );
-            return { newComment, parentCommentId };
+            return newComment;
         } catch (error: any) {
             return rejectWithValue(
                 handleApiError(error, "Failed to add a new comment"),
@@ -265,40 +271,6 @@ export const updateComment = createAsyncThunk(
     },
 );
 
-const findAndUpdateComment = (
-    comments: Comment[],
-    updatedComment: Comment,
-): Comment[] => {
-    return comments.map((comment) => {
-        if (comment.id === updatedComment.id) {
-            return updatedComment;
-        }
-        if (comment.replies?.length) {
-            return {
-                ...comment,
-                replies: findAndUpdateComment(comment.replies, updatedComment),
-            };
-        }
-        return comment;
-    });
-};
-
-const findAndRemoveComment = (
-    comments: Comment[],
-    commentId: number,
-): Comment[] => {
-    return comments.reduce((acc, comment) => {
-        if (comment.id === commentId) {
-            return acc;
-        }
-        if (comment.replies?.length) {
-            comment.replies = findAndRemoveComment(comment.replies, commentId);
-        }
-        acc.push(comment);
-        return acc;
-    }, [] as Comment[]);
-};
-
 export const voteOnComment = createAsyncThunk(
     "flashcardSet/voteOnComment",
     async (
@@ -316,38 +288,6 @@ export const voteOnComment = createAsyncThunk(
         }
     },
 );
-
-const findAndUpdateCommentVotes = (
-    comments: Comment[],
-    commentId: number,
-    voteData: {
-        upvotes: number;
-        downvotes: number;
-        user_vote: "upvote" | "downvote";
-    },
-): Comment[] => {
-    return comments.map((comment) => {
-        if (comment.id === commentId) {
-            return {
-                ...comment,
-                upvotes: voteData.upvotes,
-                downvotes: voteData.downvotes,
-                user_vote: voteData.user_vote,
-            };
-        }
-        if (comment.replies?.length) {
-            return {
-                ...comment,
-                replies: findAndUpdateCommentVotes(
-                    comment.replies,
-                    commentId,
-                    voteData,
-                ),
-            };
-        }
-        return comment;
-    });
-};
 
 export const copySet = createAsyncThunk(
     "flashcardSet/copySet",
@@ -393,7 +333,10 @@ export const flashcardSetSlice = createSlice({
                 upvotes: 0,
                 downvotes: 0,
                 user_vote: null,
-                comments: [],
+                comments_data: {
+                    comments: {},
+                    top_level_comment_ids: [],
+                },
             };
         },
         setName: (state, action: PayloadAction<string>) => {
@@ -504,58 +447,89 @@ export const flashcardSetSlice = createSlice({
             })
             .addCase(voteOnMaterial.rejected, handleRejected)
             .addCase(addComment.fulfilled, (state, action) => {
-                if (!state.data) {
+                const newComment = action.payload;
+                if (!state.data || !state.data.comments_data) {
                     return;
                 }
 
-                const { newComment, parentCommentId } = action.payload;
+                state.data.comments_data.comments[newComment.id] = newComment;
 
-                if (!state.data.comments) {
-                    state.data.comments = [];
-                }
-
-                if (parentCommentId) {
-                    const parentComment = state.data.comments.find(
-                        (comment) => comment.id === parentCommentId,
-                    );
-                    if (parentComment) {
-                        if (!parentComment.replies) {
-                            parentComment.replies = [];
-                        }
-
-                        parentComment.replies.unshift(newComment);
+                if (newComment.parent_id) {
+                    const parent =
+                        state.data.comments_data.comments[newComment.parent_id];
+                    if (parent) {
+                        parent.replies.unshift(newComment.id);
                     }
                 } else {
-                    state.data.comments.unshift(newComment);
+                    state.data.comments_data.top_level_comment_ids.unshift(
+                        newComment.id,
+                    );
                 }
             })
             .addCase(addComment.rejected, handleRejected)
             .addCase(updateComment.fulfilled, (state, action) => {
-                if (state.data?.comments) {
-                    state.data.comments = findAndUpdateComment(
-                        state.data.comments,
-                        action.payload,
-                    );
+                const updatedComment = action.payload;
+                if (!state.data || !state.data.comments_data) {
+                    return;
                 }
+                state.data.comments_data.comments[updatedComment.id] = {
+                    ...state.data.comments_data.comments[updatedComment.id],
+                    ...updatedComment,
+                };
             })
             .addCase(updateComment.rejected, handleRejected)
             .addCase(deleteComment.fulfilled, (state, action) => {
-                if (state.data?.comments) {
-                    state.data.comments = findAndRemoveComment(
-                        state.data.comments,
-                        action.payload,
-                    );
+                const commentIdToDelete = action.payload;
+                if (!state.data || !state.data.comments_data) {
+                    return;
                 }
+
+                const comments_data = state.data.comments_data;
+                const commentToDelete =
+                    comments_data.comments[commentIdToDelete];
+                if (!commentToDelete) {
+                    return;
+                }
+
+                const deleteChildren = (id: number) => {
+                    const comment = comments_data.comments[id];
+                    if (!comment) {
+                        return;
+                    }
+                    comment.replies.forEach((replyId) =>
+                        deleteChildren(replyId),
+                    );
+                    delete comments_data.comments[id];
+                };
+
+                // Remove from parents replies array orfrom top level id comments
+                if (commentToDelete.parent_id) {
+                    const parent =
+                        comments_data.comments[commentToDelete.parent_id];
+                    if (parent) {
+                        parent.replies = parent.replies.filter(
+                            (id) => id !== commentIdToDelete,
+                        );
+                    }
+                } else {
+                    comments_data.top_level_comment_ids =
+                        comments_data.top_level_comment_ids.filter(
+                            (id) => id !== commentIdToDelete,
+                        );
+                }
+                deleteChildren(commentIdToDelete);
             })
             .addCase(deleteComment.rejected, handleRejected)
             .addCase(voteOnComment.fulfilled, (state, action) => {
-                if (state.data?.comments) {
-                    const { commentId, data } = action.payload;
-                    state.data.comments = findAndUpdateCommentVotes(
-                        state.data.comments,
-                        commentId,
-                        data,
-                    );
+                if (!state.data || !state.data.comments_data) {
+                    return;
+                }
+                const { commentId, data } = action.payload;
+                const comment = state.data.comments_data.comments[commentId];
+                if (comment) {
+                    comment.upvotes = data.upvotes;
+                    comment.downvotes = data.downvotes;
+                    comment.user_vote = data.user_vote;
                 }
             })
             .addCase(voteOnComment.rejected, handleRejected);

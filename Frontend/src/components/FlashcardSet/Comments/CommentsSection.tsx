@@ -7,9 +7,10 @@ import "./Comments.css";
 export const CommentSection = () => {
     const dispatch = useAppDispatch();
     const { data: set } = useAppSelector((state) => state.flashcardSet);
+    const commentsData = set?.comments_data;
     const [newComment, setNewComment] = useState("");
 
-    if (!set || !set.id) {
+    if (!set || !set.id || !commentsData) {
         return null;
     }
 
@@ -25,10 +26,12 @@ export const CommentSection = () => {
             setNewComment("");
         }
     };
+
+    const numberOfComments = Object.keys(commentsData.comments).length;
     return (
         <div className="comments-section">
             <div className="divider"></div>
-            <h2>Comments ({set.comments?.length || 0})</h2>
+            <h2>Comments ({numberOfComments})</h2>
             <div className="comment-input-form">
                 <textarea
                     value={newComment}
@@ -40,10 +43,10 @@ export const CommentSection = () => {
                 </button>
             </div>
             <div className="comments-list">
-                {(set.comments || []).map((comment) => (
+                {commentsData.top_level_comment_ids.map((commentId) => (
                     <CommentItem
-                        key={comment.id}
-                        comment={comment}
+                        key={commentId}
+                        commentId={commentId}
                         materialId={set.id!}
                         isTopLevel={true}
                     />
