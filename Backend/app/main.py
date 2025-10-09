@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
+import io
 from typing import Annotated, Optional
 import uuid
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
@@ -20,7 +21,7 @@ from .minio import initialize_minio, minio_client
 from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
-from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, sanitize_html, verify_password, create_acces_token, get_current_user
+from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, sanitize_html, validate_and_sanitize_img, verify_password, create_acces_token, get_current_user
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -646,16 +647,19 @@ def reject_share(share_id: int, db: Session = Depends(get_db), current_user: Use
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.post("/upload-image", status_code=status.HTTP_201_CREATED)
-def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    image = await file.read()
+
+    sanitized_image, mime_type = validate_and_sanitize_img(image)
+
     try:
-        file_extension = file.filename.split(".")[-1]
+        file_extension = mime_type.split("/")[1]
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         minio_client.put_object(
             bucket_name=settings.MINIO_BUCKET,
             object_name=unique_filename,
-            data=file.file,
-            length=-1,
-            part_size=10*1024*1024,
+            data=io.BytesIO(sanitized_image),
+            length=len(sanitized_image),
             content_type=file.content_type,
         )
 

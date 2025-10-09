@@ -1,3 +1,4 @@
+import io
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
@@ -5,6 +6,8 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+import magic
+from PIL import Image, UnidentifiedImageError
 import nh3
 from passlib.context import CryptContext
 from pydantic import AfterValidator
@@ -148,3 +151,47 @@ def sanitize_html(text: str) -> str:
         allowed_classes=allowed_classes,
     )
     return cleaned_text
+
+def validate_and_sanitize_img(image: bytes) -> tuple[bytes, str]:
+    max_file_size = 5 * 1024 * 1024 # 5MB
+    allowed_mime_types = {
+        "image/jpeg": "JPEG",
+        "image/png": "PNG",
+        "image/gif": "GIF",
+    }
+    max_img_width = 1920
+    max_img_height = 1080
+
+    if len(image) > max_file_size:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=F"Image is too large, the limit is: {max_file_size // 1024 // 1024}MB"
+        )
+    
+    mime_type = magic.from_buffer(image, mime=True)
+    if mime_type not in allowed_mime_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=F"File type '{mime_type}' not allowed"
+        )
+    
+    try:
+        with Image.open(io.BytesIO(image)) as img:
+            if img.width <= 0 or img.height <= 0:
+                raise UnidentifiedImageError("Image has bad size")
+            
+            img.thumbnail((max_img_width, max_img_height))
+
+            io_buffer = io.BytesIO()
+            img_format = allowed_mime_types[mime_type]
+
+            if img_format == "JPEG" and img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            img.save(io_buffer, format=img_format)
+            return io_buffer.getvalue(), mime_type
+    except UnidentifiedImageError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=F"The uploaded file was not an valid image"
+        )
