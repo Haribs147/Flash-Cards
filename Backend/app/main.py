@@ -650,17 +650,17 @@ def reject_share(share_id: int, db: Session = Depends(get_db), current_user: Use
 async def upload_image(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     image = await file.read()
 
-    sanitized_image, mime_type = validate_and_sanitize_img(image)
+    sanitized_image, img_format, mime_type = validate_and_sanitize_img(image)
 
     try:
-        file_extension = mime_type.split("/")[1]
+        file_extension = img_format.lower()
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         minio_client.put_object(
             bucket_name=settings.MINIO_BUCKET,
-            object_name=unique_filename,
+            object_name=unique_filename,    
             data=io.BytesIO(sanitized_image),
             length=len(sanitized_image),
-            content_type=file.content_type,
+            content_type=mime_type,
         )
 
         image_url = f"http://{settings.MINIO_ENPOINT}/{settings.MINIO_BUCKET}/{unique_filename}"
