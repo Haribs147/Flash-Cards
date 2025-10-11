@@ -50,3 +50,8 @@ export const deleteItemApi = async (itemId: number) => {
     );
     return response.data;
 };
+
+export const getRecentSetsApi = async () => {
+    const response = await axios.get(`${API_URL}/sets/recent`);
+    return response.data;
+};

@@ -170,7 +170,6 @@ def validate_and_sanitize_img(image: bytes) -> tuple[bytes, str, str]:
     try:
         with Image.open(io.BytesIO(image)) as img:
             img_format = img.format
-            print(img_format)
 
             if img_format not in allowed_formats:
                 raise HTTPException(

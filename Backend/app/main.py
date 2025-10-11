@@ -181,6 +181,15 @@ class MostViewedSetsOut(BasePublicSetOut):
 class MostLikedSetsOut(BasePublicSetOut):
     like_count: int
 
+class LastViewedSet(BaseModel):
+    id: int
+    name: str
+    author_initial: str
+    viewed_at: datetime
+
+class LastViewedSetsOut(BaseModel):
+    sets: list[LastViewedSet]
+
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
 
@@ -522,10 +531,12 @@ def get_set(set_id: int, db: Session = Depends(get_db), current_user: Optional[U
     )
 
     # Add the event to elastic search
+    user_id = current_user.id if current_user else -1
     try:
         elastic_search.index(
             index="view_events",
             document={
+                "user_id": user_id,
                 "set_id": set_id,
                 "timestamp": datetime.now(timezone.utc)
             },
@@ -1055,3 +1066,63 @@ def get_recently_created_sets(db: Session = Depends(get_db)):
     ]
 
     return results
+
+@app.get("/sets/recent", response_model=LastViewedSetsOut)
+def get_last_viewed_sets(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    elastic_search: Elasticsearch = Depends(get_es_client),
+):
+    es_query = {
+        "size": 100,
+        "sort": [{"timestamp": "desc"}],
+        "query": {
+            "bool": {
+                "must": [
+                    {"match": {"user_id": current_user.id}}
+                ]
+            }
+        }
+    }
+
+    try:
+        response = elastic_search.search(index="view_events", body=es_query)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not retrieve last viewed sets")
+    
+    latest_views = {}
+    ordered_set_ids = []
+    for hit in response['hits']['hits']:
+        source = hit['_source']
+        set_id = source['set_id']
+        if set_id not in latest_views:
+            latest_views[set_id] = source['timestamp']
+            ordered_set_ids.append(set_id)
+
+    if not ordered_set_ids:
+        return {"sets": []}
+    order_by_map = {set_id: index for index, set_id in enumerate(ordered_set_ids)}
+    order_by_case = case(order_by_map, value=Material.id)
+
+    sets_details = db.query(
+        Material.id,
+        Material.name,
+        User.email,
+    ).join(
+        User, Material.owner_id == User.id
+    ).filter(
+        Material.id.in_(ordered_set_ids), Material.item_type == "set"
+    ).order_by(order_by_case).all()
+
+    last_viewed_sets = []
+    for set_id, set_name, author_email in sets_details:
+        last_viewed_sets.append(
+            LastViewedSet(
+                id=set_id,
+                name=set_name,
+                author_initial=author_email[0].upper(),
+                viewed_at=latest_views[set_id]
+            )
+        )
+
+    return {"sets", last_viewed_sets}

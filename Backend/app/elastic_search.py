@@ -24,6 +24,7 @@ def create_view_events_index():
     index_name = "view_events"
     mapping = {
         "properties": {
+            "user_id":{"type": "integer"},
             "set_id" :{"type": "integer"},
             "timestamp": {"type": "date"}
         }
