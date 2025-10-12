@@ -36,8 +36,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
-# zobaczyć jak oprzeć na middleware czyszczenie. 
-# Z klasy przerzucił na słownik, przejechał forem po wpisach, wyczyścił wartość i potem zrobić klasę spowrotem i puścić dalej
+
 class CsrfSettings(BaseModel):
     secret_key: str = settings.CSRF_SECRET_KEY
 
@@ -785,7 +784,12 @@ def delete_comment(comment_id: int, db: Session = Depends(get_db), current_user:
     if comment_to_delete.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this comment")
 
-    db.delete(comment_to_delete)
+    parent_comment_path = comment_to_delete.path
+
+    db.query(Comment).filter(
+        Comment.path.descendant_of(parent_comment_path)
+    ).delete(synchronize_session=False)
+
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
