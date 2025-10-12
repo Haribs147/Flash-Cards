@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./RecentSetsList.css";
-import axios from "axios";
 import { getRecentSetsApi } from "../../../features/materials/materialsService";
+import { useNavigate } from "react-router-dom";
 
 type RecentSetsListProps = {
     searchTerm: string;
@@ -18,6 +18,8 @@ type GroupedSets = {
     [date: string]: RecentSet[];
 };
 const RecentSetsList = ({ searchTerm }: RecentSetsListProps) => {
+    const navigate = useNavigate();
+
     const [groupedSets, setGroupedSets] = useState<GroupedSets>({});
     const [isLoading, setIsLoading] = useState(true);
 
@@ -84,7 +86,11 @@ const RecentSetsList = ({ searchTerm }: RecentSetsListProps) => {
                     <h3 className="date-header">{date}</h3>
                     <div className="item-list">
                         {setsOnDate.map((set) => (
-                            <div key={set.id} className="list-item-set">
+                            <div
+                                key={set.id}
+                                className="list-item-set"
+                                onClick={() => navigate(`/set/${set.id}`)}
+                            >
                                 <div
                                     className="set-avatar"
                                     style={{ backgroundColor: "blue" }}

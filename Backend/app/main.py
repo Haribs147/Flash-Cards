@@ -1067,7 +1067,7 @@ def get_recently_created_sets(db: Session = Depends(get_db)):
 
     return results
 
-@app.get("/sets/recent", response_model=LastViewedSetsOut)
+@app.get("/recent-sets", response_model=LastViewedSetsOut)
 def get_last_viewed_sets(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -1124,5 +1124,4 @@ def get_last_viewed_sets(
                 viewed_at=latest_views[set_id]
             )
         )
-
-    return {"sets", last_viewed_sets}
+    return {"sets": last_viewed_sets}

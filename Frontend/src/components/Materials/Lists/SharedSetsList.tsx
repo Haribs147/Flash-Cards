@@ -76,7 +76,7 @@ const SharedSetsList = ({ searchTerm }: SharedSetsListProps) => {
                 </div>
             ))}
             {pendingShares.length === 0 && status === "succeded" && (
-                <div className="no-shares-message">No pending shares</div>
+                <div className="no-shares-message">Brak udostępnień</div>
             )}
         </div>
     );
