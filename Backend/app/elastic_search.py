@@ -12,7 +12,8 @@ def connect_to_es():
     global es_client
     print("Connecting to Elasticsearch ...")
     es_client = Elasticsearch(
-        [{"host": settings.ELASTICSEARCH_HOST, "port": settings.ELASTICSEARCH_PORT, "scheme": "http"}]
+        [{"host": settings.ELASTICSEARCH_HOST, "port": settings.ELASTICSEARCH_PORT, "scheme": "http"}],
+        basic_auth=(settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD)
     )
     if not es_client.ping():
         raise ConnectionError("Failed to connect to Elasticsearch")

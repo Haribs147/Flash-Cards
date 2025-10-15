@@ -14,6 +14,8 @@ class Settings(BaseSettings):
 
     ELASTICSEARCH_HOST: str
     ELASTICSEARCH_PORT: int
+    ELASTICSEARCH_USERNAME: str
+    ELASTICSEARCH_PASSWORD: str
 
     model_config = SettingsConfigDict(env_file="../.env", extra="ignore")
 

@@ -18,8 +18,8 @@ services:
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - POSTGRES_DB=
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     ports:
       - "9200:9200"
     volumes:
@@ -37,6 +37,33 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:8.10.2
+    container_name: apm-server
+    ports:
+      - "8200:8200"
+    depends_on:
+      - elasticsearch
+    command: >
+      apm-server -e
+        -E apm-server.host="0.0.0.0:8200"
+        -E output.elasticsearch.hosts=["http://elasticsearch:9200"]
+        -E output.elasticsearch.username=${ELASTICSEARCH_USERNAME}
+        -E output.elasticsearch.password=${ELASTICSEARCH_PASSWORD}
+        -E apm-server.otlp.http.enabled=true
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=["http://elasticsearch:9200"]
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
 
 volumes:
   postgres_data:

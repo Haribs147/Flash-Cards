@@ -14,6 +14,8 @@ from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
 import enum
 
+from .telemetry import setup_telemetry
+
 from .elastic_search import close_es_connection, connect_to_es, get_es_client
 
 from .minio import initialize_minio, minio_client
@@ -26,6 +28,7 @@ from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPI
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup")
+    setup_telemetry(app)
     initialize_minio()
     connect_to_es()
     yield
