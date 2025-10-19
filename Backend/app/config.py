@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     CSRF_SECRET_KEY: str 
     
     MINIO_ENPOINT: str
+    MINIO_PUBLIC_URL: str
     MINIO_ACCESS_KEY: str
     MINIO_SECRET_KEY: str
     MINIO_BUCKET: str

@@ -1,6 +1,39 @@
-version: "3.8"
-
 services:
+  flashcards-backend:
+    build: ./backend
+    container_name: flashcards-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend:/app
+    depends_on:
+      my-postgres-db:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      apm-server:
+        condition: service_started
+      minio-container:
+        condition: service_started
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
+      - REFRESH_TOKEN_SECRET_KEY=${REFRESH_TOKEN_SECRET_KEY}
+      - PEPPER=${PEPPER}
+      - CSRF_SECRET_KEY=${CSRF_SECRET_KEY}
+      - MINIO_ENPOINT=${MINIO_ENPOINT}
+      - MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+      - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT}
+      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+
   my-postgres-db:
     image: postgres:latest
     container_name: my-postgres-db
@@ -20,10 +53,24 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=true
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - xpack.security.http.ssl.enabled=false
     ports:
       - "9200:9200"
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [
+          "CMD",
+          "curl",
+          "-s", # silent
+          "-f", # fail fast (non-200 exits with error)
+          "-u",
+          "elastic:${ELASTICSEARCH_PASSWORD}",
+          "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
   minio-container:
     image: minio/minio
@@ -46,7 +93,7 @@ services:
     depends_on:
       - elasticsearch
     command: >
-      apm-server -e
+      apm-server -e -d "*"
         -E apm-server.host="0.0.0.0:8200"
         -E output.elasticsearch.hosts=["http://elasticsearch:9200"]
         -E output.elasticsearch.username=${ELASTICSEARCH_USERNAME}

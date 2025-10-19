@@ -28,16 +28,17 @@ from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPI
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup")
-    setup_telemetry(app)
+    # setup_telemetry(app)
     initialize_minio()
     connect_to_es()
     yield
     print("Application shutdown")
     close_es_connection()
 
-
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
+# This setup telemetry has to be here as the FastAPI instrumentor for telemtry doesn't work otherwise
+setup_telemetry(app)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
 
 class CsrfSettings(BaseModel):
@@ -676,7 +677,7 @@ async def upload_image(file: UploadFile = File(...), current_user: User = Depend
             content_type=mime_type,
         )
 
-        image_url = f"http://{settings.MINIO_ENPOINT}/{settings.MINIO_BUCKET}/{unique_filename}"
+        image_url = f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET}/{unique_filename}"
 
         return {"url": image_url}
     
