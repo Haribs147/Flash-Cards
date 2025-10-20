@@ -35,6 +35,24 @@ def create_view_events_index():
     get_es_client().indices.create(index=index_name, mappings=mapping, ignore=400)
     print(f"Index {index_name} is running")
 
+def create_tags_index():
+    index_name = "flashcard_sets_tags"
+    mapping = {
+        "properties": {
+            "set_id":{"type": "integer"},
+            "name" :{"type": "text"},
+            "description": {"type": "text"},
+            "tags": {"type": "keyword"},
+            "is_public": {"type": "boolean"},
+            "creator_email": {"type": "text"},
+            "created_at": {"type": "date"}
+        }
+    }
+
+    #ignore 400 means it won't raise error if the index exists
+    get_es_client().indices.create(index=index_name, mappings=mapping, ignore=400)
+    print(f"Index {index_name} is running")
+
 def close_es_connection():
     global es_client
     if es_client:

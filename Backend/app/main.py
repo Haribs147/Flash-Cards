@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import io
 from typing import Annotated, Optional
 import uuid
+from bs4 import BeautifulSoup
 from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,6 +14,8 @@ from sqlalchemy import case, func, or_, and_, text
 from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
 import enum
+
+from Backend.app.gemini_client import generate_tags
 
 from .telemetry import setup_telemetry
 
@@ -37,7 +40,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
-# This setup telemetry has to be here as the FastAPI instrumentor for telemtry doesn't work otherwise
+# This setup telemetry has to be here as the FastAPI instrumentor for telemtry doesn't work in the lifespan otherwise
 setup_telemetry(app)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)
 
@@ -192,6 +195,9 @@ class LastViewedSet(BaseModel):
 
 class LastViewedSetsOut(BaseModel):
     sets: list[LastViewedSet]
+
+class PublicSetSearchOut(BasePublicSetOut):
+    tags: list[str] = []
 
 def validate_password(password: str) -> Optional[str]:
     special_characters = "!@#$%^&*()-+?_=,<>/"
@@ -1133,3 +1139,98 @@ def get_last_viewed_sets(
             )
         )
     return {"sets": last_viewed_sets}
+
+async def generate_and_save_tags(set_id: int, db: Session, elastic_search: Elasticsearch):
+    set_material = db.query(Material).options(
+        joinedload(Material.flashcard_set).joinedload(FlashcardSet.flashcards),
+        joinedload(Material.owner)
+    ).filter(Material.id == set_id).first()
+
+    if not set_material or not set_material.flashcard_set or not set_material.owner:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Set not found")
+
+    flashcard_set = set_material.flashcard_set
+
+    flashcard_content = []
+    for card in flashcard_set.flashcards:
+
+        soup = BeautifulSoup(card.front_content, "html.parser")
+        front_content_stripped = soup.get_text(separator=" ", strip=True)
+        flashcard_content.append(front_content_stripped)
+
+        soup = BeautifulSoup(card.back_content, "html.parser")
+        back_content_stripped = soup.get_text(separator=" ", strip=True)
+        flashcard_content.append(back_content_stripped)
+    
+    combined_flashcard_content = " ".join(flashcard_content)
+
+    tags = generate_tags(
+        name=set_material.name,
+        description=flashcard_set.description,
+        flashcards_content=combined_flashcard_content,
+    )
+
+    if not tags:
+        print(f"No tags generated for set: {set_id}")
+
+    document = {
+        "set_id": set_id,
+        "name": set_material.name,
+        "description": flashcard_set.description,
+        "tags": tags,
+        "is_public": flashcard_set.is_public,
+        "creator_email": set_material.owner.email,
+        "created_at": set_material.created_at,
+    }
+
+    elastic_search.index(
+        index="flashcard_sets_tags",
+        id=set_id,
+        document=document,
+    )
+
+@app.post("/public/search", response_model=list[PublicSetSearchOut])
+def search_public_sets(
+    text_query: str,
+    elastic_search: Elasticsearch,
+):
+    if text_query:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, text="Search query cannot be empty")
+    
+    query = {
+        "size": 20,
+        "query": {
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "query": text_query,
+                        "fields": ["name", "description", "tags"],
+                        "fuzziness": "AUTO",
+                    }
+                },
+                "filter": {
+                    "term": {"is_public": True}
+                }
+            }
+        }
+    }
+
+    try:
+        response = elastic_search.search(index="flashcard_sets_tags", body=query)
+    except Exception as e:
+        print(f"Error getting most viewed sets: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get search")
+
+    results = []
+    for hit in response['hits']['hits']:
+        source = hit['_source']
+        results.append(PublicSetSearchOut(
+            id=source["set_id"],
+            name=source["name"],
+            description=source["description"],
+            creator=source["creator_email"],
+            created_at=source["created_at"],
+            tags=source.get("tags", [])
+        ))
+    
+    return results
