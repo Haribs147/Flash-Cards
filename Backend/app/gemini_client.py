@@ -3,8 +3,7 @@ import google.generativeai as gemini
 from .config import settings
 
 gemini.configure(api_key=settings.GEMINI_API_KEY)
-model = gemini.GenerativeModel("gemini-1.5-flash-latest")
-print("Gemini client initialized succesfully")
+model = gemini.GenerativeModel("gemini-2.0-flash")
 
 def generate_tags(name: str, description: str, flashcards_content: str) -> list[str]:
     if not flashcards_content.strip():
@@ -28,10 +27,9 @@ def generate_tags(name: str, description: str, flashcards_content: str) -> list[
 
     Example output:
     {{
-        "tags: ["biology", "cells", "science", "genomes", "genetics"]
+        "tags": ["biology", "cells", "science", "genomes", "genetics"]
     }} 
     """
-
     try:
         response = model.generate_content(
             prompt,

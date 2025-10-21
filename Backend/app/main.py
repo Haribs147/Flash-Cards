@@ -4,7 +4,7 @@ import io
 from typing import Annotated, Optional
 import uuid
 from bs4 import BeautifulSoup
-from fastapi import FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
+from fastapi import BackgroundTasks, FastAPI, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_csrf_protect import CsrfProtect
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, joinedload
 from elasticsearch import Elasticsearch
 import enum
 
-from Backend.app.gemini_client import generate_tags
+from .gemini_client import generate_tags
 
 from .telemetry import setup_telemetry
 
@@ -27,6 +27,15 @@ from .config import settings
 
 from .database import Flashcard, FlashcardSet, Material, MaterialShare, PermissionEnum, ShareStatusEnum, User, Vote, VoteTypeEnum, Comment, get_db
 from .security import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_SECRET_KEY, create_refresh_token, get_current_user_from_refresh_token, get_optional_current_user, get_password_hash, sanitize_html, validate_and_sanitize_img, verify_password, create_acces_token, get_current_user
+
+import logging
+import sys
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -396,7 +405,13 @@ def delete_material(item_id: int, db: Session = Depends(get_db), current_user: U
     return get_all_items_to_delete(item_id, db)
 
 @app.post("/sets", status_code=status.HTTP_201_CREATED, response_model=MaterialOut)
-def create_new_set(set_data: FlashcardSetUpdateAndCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_new_set(
+    set_data: FlashcardSetUpdateAndCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    elastic_search: Elasticsearch = Depends(get_es_client),
+):
     new_material = Material(
         name=set_data.name,
         parent_id=set_data.parent_id,
@@ -424,11 +439,26 @@ def create_new_set(set_data: FlashcardSetUpdateAndCreate, db: Session = Depends(
 
     db.add(new_flashcard_set)
     db.commit()
+
+    background_tasks.add_task(
+        generate_and_save_tags,
+        set_id=new_material.id,
+        db=db,
+        elastic_search=elastic_search,
+    )
+
     return new_material
 
 
 @app.patch("/sets/{set_id}", status_code=status.HTTP_200_OK, response_model=MaterialOut)
-def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_set(
+    set_id: int,
+    update_set_data: FlashcardSetUpdate,
+    background_tasks: BackgroundTasks,
+    db: Session=Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    elastic_search: Elasticsearch = Depends(get_es_client),
+):
     check_permission(item_id=set_id, req_access=PermissionEnum.editor.value, current_user=current_user, db=db)
 
     set_material = db.query(Material).options(
@@ -466,6 +496,14 @@ def update_set(set_id: int, update_set_data: FlashcardSetUpdate, db: Session=Dep
     # Mozna dodać updated at i to zrobić
     db.commit()
     db.refresh(set_material)
+
+    background_tasks.add_task(
+        generate_and_save_tags,
+        set_id=set_material.id,
+        db=db,
+        elastic_search=elastic_search,
+    )
+
     return set_material
 
 @app.get("/sets/{set_id}", response_model=FlashcardSetOut)
@@ -1192,10 +1230,10 @@ async def generate_and_save_tags(set_id: int, db: Session, elastic_search: Elast
 @app.post("/public/search", response_model=list[PublicSetSearchOut])
 def search_public_sets(
     text_query: str,
-    elastic_search: Elasticsearch,
+    elastic_search: Elasticsearch = Depends(get_es_client),
 ):
-    if text_query:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, text="Search query cannot be empty")
+    if not text_query:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Search query cannot be empty")
     
     query = {
         "size": 20,
