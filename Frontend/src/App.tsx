@@ -10,6 +10,7 @@ import LoginView from "./components/Auth/LoginView";
 import RegisterView from "./components/Auth/RegisterView";
 import PublicPage from "./components/PublicPage/PublicPage";
 import Layout from "./components/Layouts/Layout";
+import SearchPage from "./components/PublicPage/SearchPage";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -63,6 +64,14 @@ function App() {
                     element={
                         <Layout>
                             <KnowledgeCheckView />
+                        </Layout>
+                    }
+                />
+                <Route
+                    path="/search"
+                    element={
+                        <Layout>
+                            <SearchPage />
                         </Layout>
                     }
                 />
