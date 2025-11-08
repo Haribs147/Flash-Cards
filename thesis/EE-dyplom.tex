@@ -1,0 +1,203 @@
+% !TEX program = pdflatex
+% !TeX encoding = utf8
+% !TeX spellcheck = pl-PL
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Wybierz rodzaj pracy dyplomowej oraz wydział
+% Pick thesis type and faculty
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[thesis=inz,faculty=ee]{EE-dyplom} 
+
+% thesis=[inz|mgr|bsc|msc]
+%  * inz - praca inżynierska
+%  * mgr - praca magisterska
+%  * bsc - bachelor thesis
+%  * msc - master thesis
+
+% Skróty nazw wydziałów zgodne z domenami internetowymi
+% Abbreviations of Faculties according to Internet subdomains
+% faculty=[
+%	arch,
+%	gik,
+%	ee,
+%	wip
+%	]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Konfiguracja - do personalizacji
+% Configuration - to be personalized
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\instytut{Instytut Elektrotechniki Teoretycznej i Systemów Informacyjno-Pomiarowych}
+\kierunek{Informatyka Stosowana}
+\specjalnosc{Inżynieria Oprogramowania}
+\title{Aplikacja internetowa do zarządzania fiszkami}
+\engtitle{A web app for managing flashcards }
+\album{325473}
+\author{inż. Michał Jagodziński}
+\promotor{inż. Marek Wdowiak}
+\date{2025}
+\longdate{2025-12-31}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Streszczenie pracy i abstract.
+% In case of thesis in English swap the order - English version goes first.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\streszczeniepracy{
+To jest streszczenie. To jest trochę za krótkie, jako że powinno zająć całą stronę.
+
+Streszczenie to nie to samo co wstęp. Streszczenie przedstawia informacje o tym, co się znajduje w tekście poszczególnych rozdziałów danej pracy podczas gdy ,,Wstęp'' służy przedstawieniu zagadnienia podjętego w~pracy. Streszczenie prezentuje aktualny stan pracy dyplomowej, której pisanie zostało zakończone a~więc należy w~nim posługiwać się czasem teraźniejszym.
+
+} % koniec streszczenia
+
+\slowakluczowe{A, B, C}
+
+\thesisabstract{
+This is abstract. This one is a little too short as it should occupy the whole page.
+
+An abstract is not the same as an introduction. The abstract provides information about what is contained in the text of specific chapters of a given work, whereas the introduction serves to present the topic addressed in the work. The abstract presents the current state of the diploma thesis, the writing of which has been completed, and therefore it should be written in the present tense.
+} % end of abstract
+
+\thesiskeywords{X, Y, Z}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tu zaczyna się dokument
+% Here is the beginning of the document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+    % Strony nagłówkowe - musi być
+    % Headers - must exist
+    \frontpages
+    
+    % Tekst pracy - osobne pliki do edycji
+    % Thesis text - separate files for edition
+
+    1. wstep
+    1.1 Wprowadzenie do problematyki
+        opisał bym na pół/jedną stronę bym opisał czemu moja aplikacja powstała. Na przykład: "W ciągu życia każdy człowiek nieustannie
+        pragnie pogłebiać swoją wiedzę. Jest to jednak trudne albowiem w ciągu dnia brakuje czasu, więc ludzi muszą jakoś wypełniać luki
+        czasu które spędzają na przykład w drodze tramwajem na studia lub do pracy, albo ... . W erze internetu jest na to proste rozwiazanie,
+        można przełożyć wiedzę na proste fiszki łatwe do wykorzystwania za pomocą telefonu lub komputera itp. itd. tak na pół/jedną strone.
+    1.2 Analiza porównawcza // Pytanie czy tutaj po prostu zrobić wprowadzenie do problemu, i cel i zakres pracy, a analize porównawczą potem
+        Na więcej stron czy tak jak teraz:
+
+        Tutaj bym opisał  na stronę że obecne rozwiązania są grosza warte. Za quizleta trzeba płacić,
+            nie ma folderów, udostępniania itp. Wiele niepotrzebnych funkcji, cięzkie UI w którym sie łatwo zgubić. 
+            Anki na przykład z drugiej strony ma jeszcze gorsze UI i w sumie to te same problemy.
+    1.3 Cel i zakres pracy
+        Tutaj chciałbym **opisać cel pracy** Czyli np. celem pracy jest zaprojektowanie i stworzenie
+        internetowej aplikacji do zarządzania fiszkami. Aplikacja ta musi być przyjazna dla użytkownika,
+        bezpieczna i przede wszystkim wydajna. Użytkownicy mogą używać takiej aplikacji do wspomagania procesów
+        nauczania i zapamiętywania.
+
+        Potem opisałbym zakres pracy, czyli szczegółowo określiłym bym zakres funkcjonalny systemu.
+        Aplikacja musi zawierać następujące moduły:
+        - Uwierzytelniania użytkowników
+        - Zarządzania zestawami fiszek
+        - Zarządzania zasobami
+        - Wyszukiwania i przegladania fiszek
+        - Oceniania i kommentowania
+        - Udostępniania 
+
+        Opisałbym każdy z modółów w 2-3 zdaniach, np.
+        **Uwierzytelnianie** - Użytkownicy mają możliwość rejstacji i logowania do aplikacji za pomocą swojego maila i bezpiecznego hasła.
+        **Zarządzanie zestawami fiszek** - Użytkownicy mają możliwość tworzenia fiszek w formacie WYSIWYG, mogą wstawiać zdjęcia,
+        nazwę zestawu, opis i zarządzać jego dostępnością (publiczny/prywatny)
+        **Zarządzanie zasobami** - Użytkownicy mogą tworzyć i usuwać foldery. Foldery mają chierachiczną strukturę, 
+        dzięki czemu można robić podfoldery przemieszczając je między menu okruszkowemu
+        **Wyszukiwania i przegladania fiszek** - Użytkownicy bez względu na stan uwierzytelnienia mają dostęp do strony publicznej, zawierającej
+        najnowsze, najpopularniejsze i najbardziej lubiane publiczne zestawy fiszek. Każdy użytkownik może także przeszukiwać bazę publicznych zestawów fiszek
+        za pomocą wyszukiwarki tekstowej.
+
+        **Nie wiem czy ten podrozdział zamienić na dwa podrozdziały, czyli 1.1 cel i 1.2 zakres pracy?**
+
+    1.4 Przegląd zastosowanych technologii
+        Po krótce opisać 1-2 zdania opisane technologie tak jak to z panem rozmawialiśmy
+        Nie opisywać czym jest python, tylko może bardziej że fastapi, i że szybkie jeśli są długie operacje I/O itp.
+        Że do sanityzacji nh3 itp.
+        Opisać mikroservicy w 2-3 zdaniach i jak to pospinałem (elastic search, minio, kibana z apm serwerem)
+        Opisać że wykorzystałem react + redux + ts do frontendu a do WYSIWYG użyłem TIPTAP
+    
+    1.4 Struktura pracy (Opis zawartości kolejnych rozdziałów [Nie wiem czy to potrzebne?, zapytać się] promotora)
+
+    2. Projekt systemu
+    2.1 Wymagania funkcjonalne
+    np.:
+    - Uwierzytelnianie (rejestracja, logowanie, wylogowanie, ochrona CSRF).
+    - Zarządzanie materiałami (tworzenie folderów, zestawów fiszek, zmiana nazwy, usuwanie, przeciąganie).
+    - Tworzenie i edycja fiszek (obsługa tekstu sformatowanego, obrazów, siatek obrazów).
+    - Nauka (przeglądanie fiszek, odwracanie, tasowanie, odwracanie awers/rewers).
+    - Funkcje społecznościowe (udostępnianie (z uprawnieniami viewer/editor), akceptacja/odrzucenie zaproszenia, głosowanie, komentowanie zagnieżdżone).
+    - Wyszukiwanie (globalne wyszukiwanie zestawów).
+    2.2 Wymagania niefunkcjonalne
+    np. 
+    - Wydajność: Szybkie odpowiedzi API (uzasadnia FastAPI), szybkie wyszukiwanie (uzasadnia Elasticsearch).
+    - Skalowalność: Możliwość obsługi dużej liczby obrazów (uzasadnia Minio) i użytkowników (architektura Docker).
+    - Bezpieczeństwo: Ochrona danych użytkownika (JWT, httponly cookies, hashowanie haseł z pepperem, sanityzacja HTML).
+    - Niezawodność: Odporność na awarie poszczególnych komponentów (architektura mikrousług).
+    - Użyteczność: Nowoczesny i responsywny interfejs (uzasadnia React).
+    2.3 Architektura systemu i przepływ danych
+        Diagram architektury pokazujący połączenie miedzy elastic searchem, minio, kibana + apm server
+        Może jakis opis przepływu danych dla kluczowych operacji np. dodawanie obrazka albo dodawanie tagów
+    2.4 Interfejs Użytkownika (Frontend)
+        Opisać kluczowe elementy, np. stronę publiczną z filtrowaniem po danym okresie czasu, eksplorator plików zrobiony z breadcrumbsumi.
+        Opisać tiptap że jest headless i musiałem samemu dodać obrazki itp. Opisać komentarze, że mogą być zagnieżdżane, lajkowane itp
+    2.5 Serwer (Backend)
+        Opisanie że backend zrobiony został jako REST API opisać co to jest i jak to zostało zaimplementowane, opisać modele pydantic itp.
+    2.6 Architektura bazy danych
+        Zamieścić diagram ERD (Entity-Relationship-Diagram)
+        Omówić najciekawsze i najważniejsze relacje, takie jak np.
+        Polimorficzna struktura materials (jak item_type, parent_id i linked_material_id tworzą system plików i udostępniania)
+        Relacja 1-do-1 między materials a flashcard_sets
+        Implementacja głosowania (votes jako tabela polimorficzna votable_type, votable_id)
+        Implementacja zagnieżdżonych komentarzy (wyjaśnienie użycia parent_comment_id oraz ltree z changelog.xml)
+    3.  Implementacja systemu
+
+    3.1 Implementacja API
+    
+    3.1.1 Moduł Uwierzytelniania
+    3.1.2 Zarządzanie Materiałami
+    3.1.3 Moduł Funkcji Społecznościowych (Like'owanie, komentowanie)
+    3.1.5 Moduł wyszukiwania i strony publicznej
+    3.1.6 Integracja z zewnętrznymi serwisami
+    
+    3.2 Implementacja interfejsu użytkownika
+
+    3.2.1 Zarządzanie stanem
+    3.2.2 Edytor WYSIWYG (TipTap że jest headless i że sam musiałem obrazki zaimplementować jak przesyła dane)
+
+    3.3 Implementacja mechanizmów bezpieczeństwa
+    
+    3.3.1 No własnie nie wiem czy tu opisać ten moduł uwierzytelniania czy wcześniej, tu jeszcze by były csrf, sanityzacja obrazów i tekstu
+    3.4 Zarządzanie migracjami bazy danych (Tu bym opisał Liquibase) 
+        
+    4. Wdrożenie i utrzymanie systemu
+
+    4.1 Konteneryzacja
+    4.2 Strategia obserwowalności z openTelemetry
+
+    5. Obszary do rozwoju
+    6. Podsumowanie
+
+    \input{tekst/wstep}
+	\input{tekst/analiza}
+	\input{tekst/realizacja}
+	\input{tekst/podsumowanie}
+
+    % Bibliografia - musi być, jest w pliku EE-dyplom.bib
+    % Bibliography - must exist, is in the file EE-dyplom.bib
+    \bibliografia
+
+    % Strony końcowe - można zakomentować, jeśli zbędne
+    % Additional pages - comment out if not needed
+    
+    % Wykaz symboli i skrótów - patrz opis w tekście przykładowym
+    \acronymslist
+    % Spis rysunków
+    \listoffigures
+    % Spis tabel
+    \listoftables
+    % Załączniki (plik appendices.tex)
+    \easyappendices
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
