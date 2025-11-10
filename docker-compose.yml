@@ -35,6 +35,20 @@ services:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
 
+  flashcards-frontend:
+    build:
+      context: ./Frontend
+    container_name: flashcards-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - flashcards-backend
   my-postgres-db:
     image: postgres:latest
     container_name: my-postgres-db
