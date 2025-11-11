@@ -1,0 +1,359 @@
+\chapter{Projekt Systemu}
+\label{ch:projekt_systemu}
+
+Przed rozpoczęciem implementacji systemu, kluczowym etapem było zdefiniowanie jego projektu. 
+Faza ta obejmowała określenie zbioru wymagań zarówno funkcjonalnych jak i niefunkcjonalnych na 
+podstawie wcześniej przeprowadzonej analizy porównawczej. Zdefiniowane wymagania były fundamentem 
+projektu architektury ułatwiającej późniejszą pracę nad implementacją aplikacji.
+
+\section{Wymagania funkcjonalne}
+
+Wymagania funkcjonalne określają funkcje i zachowania, które musi spełniać system aby w pełni zrealizować określone wymagania użytkowników. 
+W ramach stworzenia wymagań funkcjonalych zdefinowany został szczegółowy zakres działania aplikacji oraz 
+zidnetyfikowane zostały wszystkie niezbędne funkcje systemu. 
+
+Początkowa lista sprecyzowanych wymagań funkcjonalnych szybko rozrosła się do rozmiarów ciężkich w zarządzaniu. 
+Z tego powodu podjęto decyzje o pogrupowaniu powiązanych ze sobą funkcji w siedem głównych modułów. Taki podział 
+pozwolił na sensowną separację głównych funkcjonalności systemu co ułatwiło późniejsze modelowanie architektury.
+
+Poniższy diagram \ref{rys:use_case_diagram} ilustruje powyżej wspomniany podział na siedem wysokopoziomowych modułów:
+
+\begin{itemize}
+    \item \textbf{Przeglądanie fiszek}: Komponent umożliwiający odwracanie, tasowanie i przeglądanie fiszek.
+    \item \textbf{Przeglądanie i wyszukiwanie publicznych materiałów}: Moduł dostępny dla niezalogowanych użytkowników pozwalajacy na przeszukiwanie publicznych zasobów.
+    \item \textbf{Tworzenie i edycja fiszek}: Zaawansowany moduł do tworzenia fiszek w tym edytor WYSIWYG umożliwiający formatowanie tekstu i wstawianie obrazów.
+    \item \textbf{Uwierzytelnianie i zarządzanie kontem}: Obejmuje procesy rejstracji, logowania, wylogowywania oraz zarządzania sesją użytkownika.
+    \item \textbf{Zarządzanie materiałami}: Pozwala na tworzenie folderów i porządkowanie w nich materiałów.
+    \item \textbf{Dodawanie komentarzy i ocen}: Moduł umożliwiający interakcję między użytkownikami poprzez komentowanie i ocenianie fiszek bądź komentarzy.
+    \item \textbf{Udostępnianie oraz kopiowanie}: Komponent umożliwiający udostępnianie własnych zestawów innym użytkownikom i zarządzanie uprawnieniami.
+\end{itemize}
+
+\begin{figure}[!htbp]
+	\centering \includegraphics[width=0.75\linewidth]{Use_case_diagram_thesis.pdf} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Wysokopoziomowy diagram modułów}
+	\label{rys:use_case_diagram}
+\end{figure}
+
+\subsection*{Uwierzytelnianie i zarządzanie kontem}
+Moduł Uwierzytelniania i zarządzania kontem definiuje wszystkie operacje związane z uwierzytelnianiem użytkowników i kontrolą dostępu.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może zarejstrować się za pomocą adresu e-mail i hasła.
+    \item Użytkownik może zalogować się za pomocą adresu e-mail i hasla.
+    \item Użytkownik może wylogować się z aplikacji, czyszcząc przy tym sesję.
+    \item System zapisuje sesję zalogowanego użytkownika po udanym logowaniu.
+\end{itemize}
+
+\subsection*{Zarządzanie materiałami}
+Moduł ten opisuje wszystkie operacje jakie mogą być wykonywane w eksploratorze plików aplikacji.
+W eksploratorze plików znajdują się materiały, gdzie materiałem jest folder lub zestaw fiszek.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może tworzyć, zmieniać nazwę i usuwać foldery.
+    \item Użytkownik może zagnieżdżać foldery tworząc hierarchiczną strukturę.
+    \item Użytkownik może przenosić materiały między folderami.
+    \item Użytkownik może wyszukiwać materiały w obrębie danego folderu po ich nazwie.
+\end{itemize}
+
+\subsection*{Tworzenie i edycja zestawów fiszek}
+Moduł tworzenia i edycji fiszek kluczowe funkcje tworzenia nowych zestawów fiszek.
+Zestaw fiszek oprócz fiszek posiada 3 dodatkowe atrybuty: nazwę, opis oraz dostępność.
+Dostępność jest to flaga przyjmująca dwie wartości: publiczny/prywatny. W przypadku zestawu publiczengo każdy,
+nawet nie zalogowany użytkownik może go przeglądać.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może tworzyć i usuwać zestawy fiszek.
+    \item Użytkownik może edytować atrybuty zestawu fiszek (nazwa, opis, dostępność).
+    \item Użytkownik może dodawać, usuwać i edytować pojedyńcze fiszki w ramach danego zestawu fiszek.
+    \item Użytkownik może umieszczać obrazy w treści fiszek.
+\end{itemize}
+
+\subsection*{Przeglądanie i nauka fiszek}
+Moduł przeglądania określa funkcje systemu jakie można wykorzystywać podczas nauki fiszek.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może przeglądać dowolną fiszkę z wybranego zestawu fiszek do którego ma dostęp.
+    \item Użytkownik może odwrócić fiszkę żeby zobaczyć jej rewers.
+    \item Użytkownik może potasować fiszki w zestawie, losowo zmieniając ich kolejność.
+    \item Użytkownik może zamienić stronę fiszek (awers/rewers) w jakiej podstawowo się wyświetlają.
+\end{itemize}
+
+\subsection*{Przeglądanie i wyszukiwanie publicznych materiałów}
+W tym module opisane są operacje dostępne dla wszystkich użytkowników. Głównie są to funkcje systemu opierające się na
+publicznych zestawach, takie jak wyszukiwanie lub przeglądanie.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item System udostępnia globalną wyszukiwarkę, która przeszukuje wszystkie publiczne zestawy fiszek.
+    \item System prezentuje publiczne zestawy pogrupowane w kategorię (najpopularniejsze, najbardziej lubiane, najnowsze).
+    \item Użytkownik może filtrować kategorie publicznych zestawów według określonych ram czasowych, np. najpopularniejsze w ostatnim tygodniu. 
+\end{itemize}
+
+\subsection*{Udostępnianie, współdzielenie oraz kopiowanie materiałów}
+Moduł ten definiuje funkcje współpracy między użytkownikami.
+Użytkownicy mogą udostępniać swoje prywatne zestawy fiszek innym i zarządzać ich uprawnieniami.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może udostępnić swój prywatny zestaw fiszek innemu zarejstrowanemu użytkownikowi za pomocą e-maila. 
+    \item Użytkownik może zarządzać uprawnieniami do udostępnionego materiału (przeglądający/edytujący).
+    \item Użytkownik może zaakceptować lub odrzucić zaproszenie do udostępnionego materiału.
+    \item Użytkownik może stworzyć kopię dowolnego zestawu, do którego posiada dostęp.
+\end{itemize}
+
+\subsection*{Dodawanie komentarzy i ocen}
+Komponent ten realizuje funkcje społecznościowe aplikacji. Pozwalają one na interakcję
+między użytkownikami i ocenę komentarzy/zestawów fiszek.
+
+\textbf{Wymagania funkcjonalne:}
+\begin{itemize}
+    \item Użytkownik może dodawać, edytować i usuwać własne komentarze pod zestawami fiszek. 
+    \item System zezwala na zagnieżdżanie komenatrzy do najwyżej jednego poziomu.
+    \item Użytkownik może oceniać fiszki i komentarze za pomocą zostawiania łapki w górę/dół.
+\end{itemize}
+
+
+
+
+\section{Wymagania niefunkcjonalne}
+\label{sec:wymagania_niefunkcjonalne}
+
+Dzięki wymaganiom funkcjonalnym zostało już zdefiniowane co aplikacja ma robić.
+Równie istotne jednak jest określenie jak ma to robić. Wymagania niefunkcjonalne definiują standardy i cechy
+jakie system musi spełniać aby działać skutecznie. Sprecyzowanie poniższych wymagań niefunkcjonalnych było
+podstawą późniejszego modelowania architektury systemu.
+
+\subsection*{Bezpieczeństwo}
+System musi zapewniać ochronę danych użytkowników oraz integralność całej aplikacji.
+
+\begin{itemize}
+    \item \textbf{Zarządzanie sesją:} System musi implementować bezpieczny sposób zarządzania sesją minimalizujący ryzyko jej przechwycenia.
+    \item \textbf{Autoryzacja:} System musi kontrolować dostęp użytkowników do zasobów. Użytkownik nie będący włascicielem materiału lub niemający do niego uprawnień nie powinien uzyskać do niego dostępu.
+    \item \textbf{Sanityzacja:} System musi sanityzować wszystkie dane wejściowe aby uniemożliwić wstrzyknięcie złośliwego oprogramowania.
+    \item \textbf{Przechowywanie haseł:} Dane wrażliwe użytkowników takie jak np. hasła muszą być zaszyfrowane (hash) przy użyciu silnego algorytmu kryptograficznego przed zapisaniem do bazy danych.
+    \item \textbf{Walidacja plików:} System musi walidować wszystkie pliki przesyłane przez użytkowników pod kątem rozmiaru, typu i możliwie zagnieżdzonego złośliwego kodu.
+\end{itemize}
+
+\subsection*{Wydajność}
+System musi zapewniać szybki czas odpowiedzi oraz płynne działanie.
+
+\begin{itemize}
+    \item \textbf{Czas odpowiedzi wyszukiwania:} Czas odpowiedzi wyszukiwania publicznych materiałów powinien średnio zajmować mniej niż dwie sekundy.
+    \item \textbf{Operacje asynchroniczne:} Czasochłonne operacje wejścia/wyjścia (I/O) nie mogą blokować interfejsu użytkownika ani serwera.
+    \item \textbf{Buforowanie danych:} Aplikacja po stronie klienta musi buforować część danych pobieranych z serwera w celu zredukowania liczby zapytań i niepotrzebnego obciążania systemu.
+    \item \textbf{Wydajność zapytań:} System musi efektywnie pobierać złożone chierarchiczne struktury dancyh, aby nie powodować nadmiernego obciążenia bazy danych.
+\end{itemize}
+
+\subsection*{Niezawodność i Odporność}
+System musi być stabilny i odporny na błędy.
+
+\begin{itemize}
+    \item \textbf{Monitorowanie i logowanie:} System musi zapewnić monitorowanie stanu aplikacji, wydajności serwera oraz logowanie błędów.
+    \item \textbf{Integralność danych:} System musi gwarantować spójność danych. Usunięcie zasobu nadrzędnego musi powodować usunięcie wszystkich zasobów podrzędnych. 
+\end{itemize}
+
+\subsection*{Użyteczność}
+Interfejs użytkownika musi być intuicyjny i łatwy w użyciu
+\begin{itemize}
+    \item \textbf{Edytor fiszek:} System musi zapewniać intuicyjny i łatwy w użyciu edytor tekstu (WYSIWYG) do tworzenia fiszek umożliwiajacy formatowanie tekstu i dodawanie obrazków.
+    \item \textbf{Ochrona przed błędami użytkownika:} System musi chronić użytkowników przed przypadkową utratą danych poprzez wymóg potwierdzenia przed każdą operacją usunięcia.
+    \item \textbf{Przepływ pracy:} Aplikacja wspiera płynny przepływ pracy użytkownika poprzez automatyczne przekierowania np. po udanym zalogowaniu.
+\end{itemize}
+
+\subsection*{Skalowalność i łatwość utrzymania}
+System musi być przygotowany na wzrost liczby aktywnych użytkowników lub gromadzonych danych. 
+
+\begin{itemize}
+    \item \textbf{Skalowalność horyzontalna:} Serwer musi być bezstanowy (stateless) aby umożliwić uruchomienie jego wielu instacji i rozdzielenie ruchu sieciowego (load balancing).
+    \item \textbf{Separacja komponentów:} Kluczowe komponenty (np. logika aplikacji, system wyszukiwania.) powinny być od siebie oddzielone aby umożliwić ich niezależne skalowanie w przyszłości.
+    \item \textbf{Wersjonowanie schematu bazy danych:} Zmiany w bazie danych muszą być zarządzane za pomocą migracji, które pozwalają na śledzenie historii zmian.
+\end{itemize}
+
+\section{Architektura systemu}
+
+System został zaprojektowany według standardowego wzorca architektonicznego klient-serwer w modelu 'headless'. 
+Oznacza to całkowitą separację aplikacji klienckiej ('głowy') od serwera ('ciała'), który jedynie udostępnia swoje API. 
+Podstawą tej separacji jest logiczny podział systemu na trzy warstwy:
+\begin{itemize}
+    \item \textbf{Warstwa Prezentacji} - Jest to warstwa interfejsu użytkownika. Zajmuje się wyświetlaniem i zbieraniem danych wprowadzonych przez użytkownika.
+    \item \textbf{Warstwa Logiki} - Jest odpowiedzialna za przetwarzanie wszystkich żądań od użytkownika. Jest pośrednikiem między warstwą prezentacji a danych, kordynując przepływ danych między nimi.
+    \item \textbf{Warstwa Danych} - Warstwa odpowiedzialna za zarządzanie i przechowywanie danych. 
+\end{itemize}
+Taka separacja odpowiedzialności (separtaion of concerns) ułatwia zarządzanie kodem i przyszłe skalowanie aplikacji .
+
+Aplikacja działa w oparciu o model 'cienkiego' klienta i 'grubego' serwera.
+Oznacza to, że całe przetwarzanie i zarządzanie danymi odbywa się na serwerze (w warstwach logiki i danych), 
+a zadaniem klienta (warstwy prezentacji) jest tylko obsłużenie interfejsu użytkownika i wysyłanie żądań do serwera.
+
+Warto zauważyć, że poszczególne komponenty aplikacji (klient, serwer, itp.) zostały skonteneryzowane 
+przy użyciu platformy Docker, co jeszcze bardziej rodziela odpowiedzialności i ułatwia skalowanie 
+w przyszłości. 
+Cała architektura została zamodelowana na diagramie \ref{rys:architecture_diagram} przedstawiającym
+poszczególne komponenty i interakcje między nimi.
+
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+Ile tu musialbym jeszcze dać tekstu żeby to potem przeszło na drugą stronę
+
+\begin{figure}
+    \centering \includegraphics[width=0.85\linewidth]{architecture_diagram_wieksze_czcionki.pdf} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Diagram architektury systemu}
+	\label{rys:architecture_diagram}
+\end{figure}
+
+
+\subsection{Warstwa prezentacji}
+Pierwszym etapem projektowania warstwy prezentacji było zaprojektowanie i zwizualizowanie najistotniejszych ekranów 
+interfejsu użytkownika za pomocą narzędzia Figma. Dzięki temu trywialne stało się wydzielenie kluczowych, 
+reużywalnych komponentów, co znacznie przyspieszyło późniejszą implementację.
+
+\begin{figure}
+    \centering \includegraphics[width=0.85\linewidth]{figma_materials_screen.pdf} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Ekran materiałów zamodelowany w figmie}
+	\label{rys:figma_materials_screen}
+\end{figure}
+
+Interfejs użytkownika został zaimplementowany jako aplikacja typu Single Page Application (SPA). SPA to aplikacja 
+składająca się technicznie tylko z jednej strony (jednego pliku HTML), dzięki czemu nie ma konieczności ciągłego przeładowywania całej strony, a dynamicznie
+aktualizowane są tylko wybrane elementy interfejsu. Pełni ona rolę cienkiego klienta, odpowiedzialnego za renderowanie interfejsu
+użytkownika i obsługę interakcji z użytkownikiem.
+
+Do implementacji aplikacji użyto biblioteki React wraz z TypeScriptem, który jest nadzbiorem języka JavaScript.
+Taki stos technologiczny pozwolił na pisanie bardziej czystego, skalowalnego i odpornego na błędy kodu. Do obsłużenia 
+nawigacji po stronie klienta posłużyła biblioteka React Router, dzięki której nie ma konieczności przeładowywania 
+całej strony a aplikacja realizuje wzorzec SPA. 
+
+% Bardzo ważnym elementem w projektowaniu interfejsu użytkownika jest koncept zarządzania stanem. W tym przypadku zdecydowano się 
+% na podejście hybrydowe. Globalny stan aplikacji, taki jak np. status uwierzytelnienia lub prywatne materiały użytkownika, jest 
+% obsługiwany za pomocą Redux Toolkit co zwiększa wydajność w przypadku długoterminowych danych, które utrzymują się aż do odświeżenia strony. 
+% Aby spełnić wymagania niefunkcjonalne, konieczne było zastosowanie biblioteki React Query, która zezwala na tymczasowe buforowanie danych.
+Bardzo ważnym elementem w projektowaniu interfejsu użytkownika jest koncept zarządzania stanem. W tym przypadku zdecydowano się 
+na podejście hybrydowe:
+\begin{itemize}
+    \item \textbf{Globalny stan} taki jak np. status uwierzytelnienia czy prywatne materiały użytkownika, jest 
+obsługiwany za pomocą Redux Toolkit.
+    \item \textbf{Dane tymczasowe} takie jak np. najbardziej popularne czy najczęściej wyświetlane zestawy fiszek na stronie publicznej
+są zarządzane i tymczasowo buforowane dzięki bibliotece React Query.
+\end{itemize}
+Takie podejście hybrydowe zapewniło scentralizowanie stanu dla długoterminowych niezmiennych danych i łatwe zarządzanie danymi 
+tymczasowymi poprzez czasowe buforowanie. 
+
+Najważniejszym elementem interfejsu użytkownika realizującym jedno z kluczowych wymagań funkcjonalnych jest edytor WYSIWYG. Istnieje
+wiele gotowych rozwiązań w internecie, ale niewiele z nich oferowało elastyczność wymaganą do zaimplementowania wszystkich niezbędnych funkcjonalności. 
+Do implementacji takiego edytora wybrano framework TipTap. TipTap to edytor typu 'headless' czyli nie dostarcza żadnego gotowego interfejsu a jedynie samą logikę obsługi edytora.
+Dzięki temu możliwe było stworzenie niestandardowych rozwiązań realizujących bardziej skomplikowane operacje. Przykładem takiej implementacji 
+może być komponent 'ImageGrid', pozwalający na wstawianie wielu obrazów w jednym rzędzie.
+
+\subsection{Warstwa logiki}
+
+\subsection{Warstwa logiki}
+
+Warstwa logiki stanowi centralny komponent całej architektury, realizując model "grubego serwera". 
+Jest ona odpowiedzialna za implementację całej logiki biznesowej aplikacji, przetwarzanie żądań 
+przychodzących od klienta, walidację danych oraz zarządzanie uwierzytelnianiem i autoryzacją. 
+Działa jako pośrednik, koordynując przepływ informacji między warstwą prezentacji a warstwą danych.
+
+Do implementacji tej warstwy wykorzystano framework \textbf{FastAPI} napisany w języku \textbf{Python}. 
+Wybór ten został podyktowany kilkoma kluczowymi czynnikami, które bezpośrednio odpowiadają 
+na zdefiniowane wymagania niefunkcjonalne:
+\begin{itemize}
+    \item \textbf{Wydajność:} FastAPI jest frameworkiem asynchronicznym (opartym na ASGI), 
+    co pozwala na obsługę wielu żądań jednocześnie bez blokowania serwera. Jest to 
+    kluczowe dla spełnienia wymagania wydajności, zwłaszcza przy operacjach I/O.
+    \item \textbf{Walidacja danych:} Wbudowana integracja z biblioteką Pydantic 
+    umożliwia automatyczną walidację i sanityzację wszystkich danych przychodzących 
+    do API. Gwarantuje to, że do systemu trafiają tylko poprawne dane, co jest 
+    fundamentem wymagania bezpieczeństwa.
+    \item \textbf{Szybkość implementacji:} FastAPI automatycznie generuje interaktywną 
+    dokumentację API (Swagger UI), co jest nieocenioną pomocą w architekturze 'headless' 
+    i znacząco przyspiesza proces integracji z aplikacją kliencką.
+\end{itemize}
+
+Architektonicznie, serwer został zaprojektowany jako \textbf{bezstanowe (stateless) API RESTful}. 
+Oznacza to, że serwer nie przechowuje żadnych informacji o stanie sesji użytkownika. Każde żądanie 
+od klienta musi zawierać wszystkie niezbędne informacje do jego przetworzenia. Taki model jest 
+fundamentem dla \textbf{skalowalności horyzontalnej}, co było jednym z kluczowych wymagań.
+
+Aby zrealizować wymagania bezpieczeństwa w modelu bezstanowym, zaimplementowano następujące wzorce:
+\begin{itemize}
+    \item \textbf{Uwierzytelnianie oparte na tokenach JWT:} System wykorzystuje mechanizm 
+    dwóch tokenów (Access Token i Refresh Token) przesyłanych w bezpiecznych ciasteczkach 
+    (HttpOnly cookies). Pozwala to na bezpieczne zarządzanie sesją bez przechowywania jej 
+    stanu po stronie serwera.
+    \item \textbf{Ochrona CSRF:} Każde żądanie modyfikujące dane jest dodatkowo weryfikowane 
+    za pomocą tokena CSRF, co chroni aplikację przed atakami typu Cross-Site Request Forgery.
+    \item \textbf{Wstrzykiwanie zależności (Dependency Injection):} FastAPI wykorzystuje 
+    ten wzorzec do zarządzania zależnościami, takimi jak sesje bazy danych czy pobieranie 
+    aktualnie zalogowanego użytkownika. Upraszcza to kod i ułatwia testowanie.
+\end{itemize}
+
+Ponadto, aby sprostać wymaganiu wydajności dotyczącemu operacji asynchronicznych, 
+warstwa logiki wykorzystuje mechanizm \textbf{zadań w tle (Background Tasks)}. 
+Czasochłonne operacje, takie jak np. generowanie tagów dla fiszek przy użyciu AI, 
+są delegowane do wykonania w tle. Dzięki temu użytkownik natychmiast otrzymuje odpowiedź 
+od serwera, a operacja jest przetwarzana asynchronicznie, nie blokując interfejsu.
+
+\subsection{Warstwa danych}
+
+Warstwa danych jest fundamentem każdej aplikacji, jej zadaniem jest zarządzanie i przechowywanie danych.
+Ze względu na różnorodność typów przechowywanych danych i wymagania niefunkcjonalne dotyczące 
+wydajności, system został zaprojektowany według modelu persystencji poliglotycznej (ang. polyglot presistence). 
+Model ten polega na używaniu wielu technologi magazynowania danych, aby zwiększyć wydajność działania aplikacji
+poprzez wykorzystywanie rozwiązań zoptymalizowanych pod konkretne zadania. W ramach systemu wyróżniono 3 główne 
+magazyny danych z których każdy pełni inną rolę:
+\begin{itemize}
+    \item \textbf{Relacyjna baza danych (PostgreSQL)} - Służy do przechowywania danych relacyjnych takich jak np. użytkownicy, 
+    fiszki czy materiały.
+    \item \textbf{Magazyn obiektów (MinIO)} - Przechowuje pliki (dane binarne) nie posiadające żadnej struktury, takie jak np. obrazki.
+    \item \textbf{Wyszukiwarkę pełnotekstową (ElasticSearch)} - Przechowuje dane w formie dokumentów JSON, z których budowane są odwrócone indeksy co pozwala na szybkie pełnotekstowe wyszukiwanie.
+\end{itemize}
+
+\subsection*{Relacyjna baza danych}
+
+PostgreSQL jest głównym magazynem danych aplikacji. Został on wybrany ze względu na jego niezawodność, 
+wsparcie dla różnych typów danych i rozszerzeń. W nim przechowywane są wszystkie informacje użytkowników takie jak:
+dane logowania, materiały, zestawy fiszek itp. Schemat bazy danych jest zarządzany przy użyciu narzędzia Liquibase, 
+co pozwala na łatwe śledzenie i zarządzanie zmian.
+Cały schemat bazy danych został zamodelowany na diagramie związków encji (ang. ERD) poniżej (Rys. \ref{rys:database_erd_diagram}). 
+Cała architektura bazy danych opiera się na trzech kluczowych konceptach:
+
+\subsubsection*{Materials}
+Punktem centralnym całej bazy danych jest tabela materials. Jej zadaniem jest przechowywanie podstawowych informacji wszystkich 
+zasobów (nazwę, czas kreacji, folder w jakim się znajduje i id właściciela). Tabela ta
+jest swego rodzaju eksploratorem plików, ponieważ pozwala na przechowywanie dowolnego zasobu, dzięki wykorzystaniu
+wzorca Single Table Inheritance (STI). STI pozwala przechowywać w tabeli zarówno foldery jak i zestawy fiszek, a w 
+przypadku dalszego rozwoju aplikacji inne nowe zasoby takie jak np. quizy. Wszystko to jest możliwe dzięki kolumnie 
+item\_type. Item\_type określa typ zasobu jaki znajduje się w określonym wierszu (zestaw fiszek lub folder). Tabela materials 
+posiada podstawowe dane takiego zasobu o których mowa była wcześniej, a dodatkowe informacje 
+takie jak np. opis czy dostępność zestawu fiszek, znajdują się w oddzielnej tabeli połączonej z materials za pomocą klucza obcego
+będącego jednocześnie kluczem głównym (tabela flashcard\_sets). Dzięki temu encja materials staje się tabelą nadrzędną, z której dziedziczą 
+tabele podrzędne takie jak np. flashcard\_sets czy w przyszłości quizes. W tabeli materials znajdują się także dwa autoreferencyjne 
+klucze obce (self-referencing foreign keys):
+\begin{itemize}
+    \item linked\_material\_id - Odpowiada za skrót do udostępnionego materiału, przez co zachowane zostaje jedno źródło prawdy, a usunięcie zestawu 
+    wskazującego na inny zestaw (skrótu) nie powoduje usunięcia oryginalnego zestawu.
+    \item parent\_id - Pozwala na tworzenie hierarchicznej struktury, gdzie każdy materiał ma swojego rodzica.
+\end{itemize}
+Tabela comments także posiada identyczną kolumnę o nazwie parent\_comment_id,  
+
+
+\begin{figure}
+    \centering \includegraphics[width=1\linewidth]{database_erd_diagram.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Diagram związków encji bazy danych}
+	\label{rys:database_erd_diagram}
+\end{figure}
+
+asdasd
+
+
