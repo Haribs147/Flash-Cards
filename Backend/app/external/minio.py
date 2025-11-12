@@ -1,7 +1,7 @@
 import json
 from minio import Minio
 from minio.error import S3Error
-from ..core.config import settings
+from app.core.config import settings
 
 minio_client = Minio(
     settings.MINIO_ENPOINT,
