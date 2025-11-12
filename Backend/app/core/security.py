@@ -11,11 +11,11 @@ import nh3
 from passlib.context import CryptContext
 from pydantic import AfterValidator
 from sqlalchemy.orm import Session
-from .config import settings
+from app.core.config import settings
 
-from .config import settings
-from ..db.database import get_db
-from ..db.models import User
+from app.core.config import settings
+from app.db.database import get_db
+from app.db.models import User
 
 ACCESS_TOKEN_SECRET_KEY = settings.ACCESS_TOKEN_SECRET_KEY
 REFRESH_TOKEN_SECRET_KEY = settings.REFRESH_TOKEN_SECRET_KEY

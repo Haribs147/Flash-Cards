@@ -8,7 +8,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.instrumentation.elasticsearch import ElasticsearchInstrumentor
 
-from ..db.database import engine
+from app.db.database import engine
 
 def setup_telemetry(app):
 
