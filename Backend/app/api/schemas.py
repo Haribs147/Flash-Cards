@@ -2,7 +2,7 @@ from datetime import datetime
 import enum
 from typing import Annotated, Optional
 
-from pydantic import AfterValidator, BaseModel, EmailStr
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr
 
 from app.db.models import VoteTypeEnum, PermissionEnum, VoteTypeEnum
 from app.core.security import sanitize_html
@@ -48,6 +48,8 @@ class FolderCreate(BaseModel):
     parent_id: Optional[int] = None
 
 class FlashcardData(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: Optional[int] = None
     front_content: SanitizedStr
     back_content: SanitizedStr
@@ -66,11 +68,15 @@ class FlashcardSetUpdate(BaseModel):
     flashcards: list[FlashcardData]
 
 class SharedUser(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     user_id: int
     email: SanitizedStr
     permission: PermissionEnum
 
 class CommentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     text: SanitizedStr
     author_email: SanitizedStr
@@ -86,6 +92,8 @@ class CommentsDataOut(BaseModel):
     top_level_comment_ids: list[int]
 
 class FlashcardSetOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: SanitizedStr
     description: SanitizedStr
@@ -128,6 +136,8 @@ class CopySet(BaseModel):
     target_folder_id: Optional[int] = None
 
 class BasePublicSetOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: SanitizedStr
     description: SanitizedStr
@@ -141,6 +151,8 @@ class MostLikedSetsOut(BasePublicSetOut):
     like_count: int
 
 class LastViewedSet(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     author_initial: str
@@ -150,4 +162,6 @@ class LastViewedSetsOut(BaseModel):
     sets: list[LastViewedSet]
 
 class PublicSetSearchOut(BasePublicSetOut):
+    model_config = ConfigDict(from_attributes=True)
+
     tags: list[str] = []

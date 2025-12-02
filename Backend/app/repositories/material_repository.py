@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.schemas import MaterialUpdate
-from app.db.models import FlashcardSet, Material
+from app.db.models import FlashcardSet, Material, User
 
 def get_all_materials_for_user(db: Session, user_id: int) -> list[Material]:
     return db.query(Material).filter(Material.owner_id == user_id).all()

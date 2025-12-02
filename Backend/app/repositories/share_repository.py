@@ -17,7 +17,7 @@ def find_share_by_user_and_material(
     material_id: int,
     user_id: int
 ) -> MaterialShare | None:
-    return db.query(MaterialShare, User).filter(
+    return db.query(MaterialShare).filter(
         MaterialShare.material_id == material_id,
         MaterialShare.user_id == user_id
     ).first()
@@ -35,13 +35,10 @@ def create_share(
 ) -> MaterialShare:
     new_share = MaterialShare(material_id=material_id, user_id=user_id, permission=permission)
     db.add(new_share)
-    db.commit()
-    db.refresh(new_share)
     return new_share
 
 def delete_share(db: Session, share: MaterialShare):
     db.delete(share)
-    db.commit()
 
 def update_share_permissions(
     db: Session,
@@ -55,8 +52,6 @@ def update_share_permissions(
             MaterialShare.material_id == material_id,
             MaterialShare.user_id == update.user_id
         ).update({"permission": update.permission})
-
-    db.commit()
 
 def get_pending_shares_for_user(db: Session, user_id: int) -> list[tuple[int, str, str]]:
     return db.query(
@@ -72,4 +67,3 @@ def get_pending_shares_for_user(db: Session, user_id: int) -> list[tuple[int, st
 
 def update_status(db: Session, share: MaterialShare, status: ShareStatusEnum):
     share.status = status
-    db.commit

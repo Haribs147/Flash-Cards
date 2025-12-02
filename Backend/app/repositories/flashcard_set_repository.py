@@ -19,8 +19,8 @@ def create_flashcard_set(db: Session, set_id: int, data: FlashcardSetUpdateAndCr
     new_flashcards = [
         Flashcard(
             set_id=set_id,
-            front_content=data.front_content,
-            back_content=data.back_content,
+            front_content=card.front_content,
+            back_content=card.back_content,
         ) for card in data.flashcards
     ]
     db.add_all(new_flashcards)
@@ -55,7 +55,8 @@ def update_flashcard_set(db: Session, flashcard_set: FlashcardSet, data: Flashca
     return flashcard_set
 
 def get_public_set_ids(db: Session) -> list[int]:
-    return [id for id in db.query(FlashcardSet.id).filter(FlashcardSet.is_public == True).all()]
+    query_result = db.query(FlashcardSet.id).filter(FlashcardSet.is_public == True).all()
+    return [id for (id, ) in query_result]
 
 def get_most_liked_sets(db: Session, cutoff_date: datetime) -> list[tuple[int, int]]:
     like_count = func.count(Vote.id).label("like_count")

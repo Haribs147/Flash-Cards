@@ -53,7 +53,6 @@ def create_vote(
         vote_type=vote_type,
     )
     db.add(new_vote)
-    db.refresh(new_vote)
     return new_vote
 
 def delete(

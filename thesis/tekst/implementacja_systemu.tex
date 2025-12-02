@@ -1,0 +1,97 @@
+\chapter{Implementacja Systemu}
+\label{ch:implementacja_systemu}
+
+\section{Warstwa Prezentacji}
+
+\section{Warstwa Logiki}
+Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
+frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie opisywano podział logiczny, ten rozdział 
+będzie opisywał organizację kodu, konfigurację serwera i mechanizmy scalające poszczególne komponenty systemu.
+
+Kod źródłowy serwera jest zorganizowany w pakiety, odzwierciedlające podział na warstwy przyjęty podczas projektowania:
+\begin{itemize}
+    \item {\texttt{api/routes}} -- Zawiera definicję punktów końcowych, z których korzysta aplikacja kliencka.
+    \item {\texttt{services}} -- Implementuje logikę biznesową aplikacji. Serwisy przetwarzają dane uzyskane od repozytoriów 
+    i przekazują je do tras.
+    \item {\texttt{repositories}} -- Warstwa dostępu do danych. Cały kod znajdujący się w tym pakiecie wykonuje bezpośrednie 
+    zawołania do bazy danych, Elasticsearch lub MinIO w celu pobrania danych.
+    \item {\texttt{api/schemas}} -- Przechowuje modele Pydantic (DTO) dla poszczególnych modułów.
+    \item {\texttt{core}} -- Zawiera podstawowe konfiguracje systemu i często wykorzystywane funkcje pomocnicze.
+    \item {\texttt{db}} -- Odpowiada za definicję modeli ORM oraz konfigurację połączenia z relacyjną bazą danych.
+    \item {\texttt{external}} -- Zawiera pliki odpowiedzialne za inicjalizację i obsługę zewnętrznych systemów 
+    (MinIO, ElasticSearch, Gemini).
+\end{itemize}
+Taka separacja pozwala na łatwe testowanie i utrzymanie kodu, ponieważ zmiany 
+w logice biznesowej aplikacji, nie wymagają zmian w pakietach routes i repositories.
+Każdy moduł systemu, zobrazowany na diagramie modułów funkcjonalności systemu 
+(Rys \ref{rys:use_case_diagram}), posiada oddzielny router, serwis i repozytorium, 
+co znacznie ułatwia poruszanie się po bazie kodu. 
+
+Aplikacja do przechowywania wrażliwych danych konfiguracyjnych wykorzystuje bibliotekę pydantic-settings. 
+Pozwala ona na walidowanie i wczytywanie wrażliwych danych (klucze API, sól, itp. ) z pliku .env do
+klasy Settings. Dzięki temu aplikacja nie uruchomi się, jeżeli zabraknie któregoś z parametrów konfiguracyjnych 
+w pliku .env.
+
+Punktem wejściowym całego serwera jest plik main.py, w którym tworzony jest obiekt FastAPI. Podczas tworzenia instancji 
+FastAPI, definiowany jest także cykl życia aplikacji. Pozwala on na zainicjalizowanie serwisów przed rozpoczęciem 
+przyjmowania żądań od klienta i uruchomienie kodu czyszczącego po zakończeniu działania serwera. Szczególną rolę w tym procesie 
+odgrywa zarządzanie połączeniami do poszczególnych źródeł danych. Tak jak wspomniano w rozdziale Projekt Systemu, zainicjalizowane 
+zasoby są udostępniane komponentom systemu za pomocą mechanizmu wstrzykiwania zależności (Dependency Injection). W zależności od 
+zasobu, przyjęto odmienne strategie zarządzania jego cyklem życia:
+\begin{itemize}
+    \item {\textbf{Relacyjna baza danych}} -- Do zarządzania połączeniem do relacyjnej bazy danych użyto mechanizmu sesji na żądanie 
+    (session per request). Oznacza to, że każde zapytanie do serwera otrzymuje swoje własne połączenie do bazy danych, które wygasa po zwróceniu 
+    wyniku do klienta.
+    \item {\textbf{Wyszukiwarka pełnotekstowa}} -- Wyszukiwarki pełnotekstowe takie jak Elasticsearch posiadają wewnętrznego klienta 
+    , który zarządza jego pulą połączeń HTTP. Do zarządzania jego cyklem życia stosuje się wzorzec Singleton. Oznacza to, że podczas inicjalizacji 
+    aplikacji tworzona jest jedna wspólna instancja klienta ElasticSearch, która jest współdzielona przez wszystkie wątki i żądania. Dzięki temu aplikacja unika 
+    kosztownego narzutu tworzenia nowego klienta dla każdego żądania.
+\end{itemize}
+Poniższy listing pokazuje implementację obu wyżej omówionych strategi. Funkcja \texttt{get\_db} wykorzystuje block try...finally
+do bezpiecznego zamknięcia połączenia niezależnie od wyniku operacji. Z kolej funkcja \texttt{get\_es\_client} zwraca referencję do 
+wcześniej zainicjalizowanego globalnego obiektu.
+
+\begin{lstlisting}[language=Python,
+	caption={Startegie zarządzania cyklem życia obiektu},
+	label={lst:cykl_zycia}]
+    # Session per request
+    def get_db():
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+    
+    # Singleton
+    def get_es_client():
+        if es_client is None:
+            raise RuntimeError(
+                "Elasticsearch client is not initialized"
+            )
+        return es_client
+\end{lstlisting} 
+
+
+\subsection{Moduł Uwierzytelniania i zarządzania kontem}
+Bezpieczeństwo aplikacji jest podstawą każdego systemu. Wszystkie mechanizmy powiązane z uwierzytelnianiem i zarządzaniem kontem 
+znajdują się w serwise \texttt{AuthService} i pakiecie \texttt{core.security}. W przeciwieństwie do prostych rozwiązań opierających 
+się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów.
+Proces logowania i utrzymywania sesji opiera się na dwóch tokenach:
+\begin{itemize}
+    \item \textbf{Access token} -- Krótkoterminowy token dostępu (ważny przez 5 minut) pozwalający na autoryzację użytkownika.
+    \item \textbf{Refresh token} -- Długoterminowy token odświeżania (ważny przez 30 minut) służący do odnawiania sesji użytkownika, bez 
+    konieczności ponownego logowania.
+\end{itemize}
+Oba tokeny nie są zwracane w ciele odpowiedzi (podatność na ataki XSS), lecz ustawiane są jako ciasteczka z flagą \texttt{HttpOnly}. 
+Takie rozwiązanie ma swoje wady i zalety, ponieważ uniemożliwia one ukradnięcie tokenów przy pomocy ataku XSS, 
+lecz powstają nowe zagrożenia takie jak np. atak Man-in-the-Middle (MitM) czy Cross-Site Request Forgery (CSRF). W celu zapobiegania tym 
+atakom ciasteczko tworzone jest z jeszcze dwoma dodatkowymi flagami:
+\begin{itemize}
+    \item \textbf{Secure} -- Przeglądarka dołączy ciasteczko z tokenem tylko wtedy, gdy strona korzysta z protokołu HTTPS, dzięki czemu 
+    ciasteczko zawsze będzie zaszyfrowane.
+    \item \textbf{SameSite=lax} -- Ogranicza wysyłanie ciasteczka między stronami. W trybie lax przeglądarka blokuje przesyłanie ciasteczka 
+    do żądań zainicjowanych przez zewnętrzne serwisy, ale zezwala na jego przesłanie podczas nawigacji najwyższego poziomu (np. kliknięcie w link nawigujący do
+    mojej aplikacji).
+\end{itemize}
+CSRF do ciasteczek 
+\section{Opis wybranych modułów}    

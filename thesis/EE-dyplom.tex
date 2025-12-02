@@ -177,9 +177,13 @@ An abstract is not the same as an introduction. The abstract provides informatio
 
     % 5. Obszary do rozwoju
     % 6. Podsumowanie
-
-    \input{tekst/wstep}
+    \pagenumbering{arabic}
+    \setcounter{page}{1}
+    \pagestyle{empty}
+    % \input{tekst/wstep}
     \input{tekst/projekt_systemu}
+    \input{tekst/implementacja_systemu}
+
 
 	% \input{tekst/analiza}
 	% \input{tekst/realizacja}
@@ -197,9 +201,9 @@ An abstract is not the same as an introduction. The abstract provides informatio
     % Spis rysunków
     \listoffigures
     % Spis tabel
-    \listoftables
-    % Załączniki (plik appendices.tex)
-    \easyappendices
+    % \listoftables
+    % % Załączniki (plik appendices.tex)
+    % \easyappendices
 \end{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

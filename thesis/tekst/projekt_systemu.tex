@@ -8,7 +8,7 @@ projektu architektury ułatwiającej późniejszą pracę nad implementacją apl
 
 \section{Wymagania funkcjonalne}
 
-Wymagania funkcjonalne określają funkcje i zachowania, które musi spełniać system, aby w pełni zrealizować określone wymagania użytkowników. 
+Wymagania funkcjonalne określają funkcje i zachowania, które musi spełniać system, aby w pełni zrealizować określone wymagania użytkowników \cite{sommerville2015}. 
 W ramach stworzenia wymagań funkcjonalnych zdefiniowany został szczegółowy zakres działania aplikacji oraz 
 zidentyfikowane zostały wszystkie niezbędne funkcje systemu. 
 
@@ -119,7 +119,7 @@ między użytkownikami i ocenę komentarzy/zestawów fiszek.
 
 Dzięki wymaganiom funkcjonalnym zostało już zdefiniowane, co aplikacja ma robić.
 Równie istotne jest określenie, jak ma to robić. Wymagania niefunkcjonalne definiują standardy i cechy, 
-jakie system musi spełniać, aby działać skutecznie i wydajnie. Sprecyzowanie poniższych wymagań niefunkcjonalnych było
+jakie system musi spełniać, aby działać skutecznie i wydajnie \cite{sommerville2015}. Sprecyzowanie poniższych wymagań niefunkcjonalnych było
 podstawą późniejszego modelowania architektury systemu.
 
 \subsection*{Bezpieczeństwo}
@@ -170,24 +170,24 @@ System musi być przygotowany na wzrost liczby aktywnych użytkowników lub grom
 
 \section{Architektura systemu}
 
-System został zaprojektowany według standardowego wzorca architektonicznego klient-serwer w modelu headless. 
+System został zaprojektowany według standardowego wzorca architektonicznego klient-serwer w modelu headless \cite{fowler2002}. 
 Oznacza to całkowitą separację aplikacji klienckiej ('głowy') od serwera ('ciała'), który jedynie udostępnia swoje API. 
-Podstawą tej separacji jest logiczny podział systemu na trzy warstwy tworzące architekturę trójwarstwową (3-Tier Architecture):
+Podstawą tej separacji jest logiczny podział systemu na trzy warstwy tworzące architekturę trójwarstwową (3-Tier Architecture) \cite{sommerville2015}:
 \begin{itemize}
     \item \textbf{Warstwa Prezentacji} -- Jest to warstwa interfejsu użytkownika. Zajmuje się wyświetlaniem i zbieraniem danych wprowadzonych przez użytkownika.
     \item \textbf{Warstwa Logiki} -- Jest odpowiedzialna za przetwarzanie wszystkich żądań od użytkownika. Jest pośrednikiem między warstwą prezentacji a danych, kordynując przepływ danych między nimi.
     \item \textbf{Warstwa Danych} -- Warstwa odpowiedzialna za zarządzanie i przechowywanie danych. 
 \end{itemize}
-Taka separacja odpowiedzialności (separation of concerns) ułatwia zarządzanie kodem i przyszłe skalowanie aplikacji.
+Taka separacja odpowiedzialności (separation of concerns) ułatwia zarządzanie kodem i przyszłe skalowanie aplikacji \cite{cleancode}.
 
 Aplikacja kliencka została zrealizowana jako Single Page Application (SPA).
 Całe przetwarzanie i zarządzanie danymi odbywa się na serwerze (w warstwach logiki i danych), 
 a zadaniem klienta (warstwy prezentacji) jest renderowanie i obsługa interfejsu użytkownika oraz wysyłanie żądań do serwera.
-Komunikacja między klientem a serwerem odbywa się asynchroniczne przy wykorzystaniu protokołu HTTP. Cały przesył danych jest realizowany 
-przy pomocy obiektów transferów danych (Data Transfer Objects), które przed wysyłką są serializowane do formatu JSON.
+Komunikacja między klientem a serwerem odbywa się asynchroniczne przy wykorzystaniu protokołu HTTP \cite{tanenbaum_networks}. Cały przesył danych jest realizowany 
+przy pomocy obiektów transferów danych (Data Transfer Objects) \cite{fowler2002}, które przed wysyłką są serializowane do formatu JSON.
 
 Warto zauważyć, że poszczególne komponenty aplikacji (klient, serwer itp.) zostały skonteneryzowane 
-przy użyciu platformy Docker, co pozwala na większe rozdzielenie odpowiedzialności i ułatwia skalowanie aplikacji
+przy użyciu platformy Docker \cite{docker_docs}, co pozwala na większe rozdzielenie odpowiedzialności i ułatwia skalowanie aplikacji
 w przyszłości. 
 Cała architektura została zamodelowana na diagramie (Rys. \ref{rys:architecture_diagram}) przedstawiającym
 poszczególne komponenty i interakcje między nimi.
@@ -213,7 +213,7 @@ co znacząco przyśpieszyło dalszą fazę projektowania i implementacji.
 
 Interfejs użytkownika został zaimplementowany jako aplikacja typu Single Page Application (SPA). SPA to aplikacja 
 składająca się technicznie tylko z jednej strony (jednego pliku HTML), a cała nawigacja i zmiany widoków odbywają się 
-dynamicznie poprzez modyfikację drzewa DOM (Document Object Model) po stronie przeglądarki użytkownika. 
+dynamicznie poprzez modyfikację drzewa DOM (Document Object Model) po stronie przeglądarki użytkownika \cite{react_docs}. 
 Główną rolą zaprojektowanej aplikacji klienckiej jest wizualizacja danych otrzymanych od serwera oraz obsłużenie jej interkacji z użytkownikiem.    
 
 \begin{figure}
@@ -222,7 +222,7 @@ Główną rolą zaprojektowanej aplikacji klienckiej jest wizualizacja danych ot
 	\label{rys:figma_flashcard_screen}
 \end{figure}
 
-Do implementacji aplikacji użyto biblioteki React wraz z TypeScriptem, który jest nadzbiorem języka JavaScript.
+Do implementacji aplikacji użyto biblioteki React \cite{react_docs} wraz z TypeScriptem, który jest nadzbiorem języka JavaScript.
 Taki stos technologiczny pozwolił na pisanie czystszego, bardziej skalowalnego i odpornego na błędy kodu. Do obsłużenia 
 nawigacji po stronie klienta posłużyła biblioteka React Router, dzięki której nie ma konieczności przeładowywania 
 całej strony przy zmianie widoku, co pozwala na realizację architektury SPA. 
@@ -249,11 +249,11 @@ Dzięki temu możliwe było stworzenie niestandardowych rozszerzeń realizujący
 wstawianie wielu obrazków w jednym rzędzie.
 
 \subsection{Warstwa logiki}
-Warstwa logiki pełni rolę serwera aplikacji. Jest ona odpowiedzialna za całą logikę biznesową, 
-przetwarzanie i bezpieczeństwo danych. Do implementacji serwera wykorzystano framework FastAPI. FastAPI 
+Warstwa logiki pełni rolę serwera aplikacji udostępniającego interfejs REST API \cite{fielding_rest}. Jest ona odpowiedzialna za całą logikę biznesową, 
+przetwarzanie i bezpieczeństwo danych. Do implementacji serwera wykorzystano framework FastAPI \cite{fastapi_docs}. FastAPI 
 to nowoczesny framework webowy dla języka python pozwalający na tworzenie wydajnych API w możliwie najkrótszym 
 czasie. FastAPI jest zbudowany na podstawie standardu ASGI (Asynchronous Server Gateway Interface), co pozwala na 
-asynchroniczne przetwarzanie zapytań klienta i jednoczesną obsługę wielu operacji wejścia/wyjścia (I/O). Dzięki integracji 
+współbieżne przetwarzanie zapytań klienta i jednoczesną obsługę wielu operacji wejścia/wyjścia (I/O). Dzięki integracji 
 z biblioteką Pydantic FastAPI automatycznie waliduje wszystkie dane przychodzące z żądań HTTP, a także serializuje dane zwracane do klienta.
 
 Backend został zaimplementowany w oparciu o model wielowarstwowy. Takie podejście pozwala na wyraźne rozdzielenie 
@@ -272,16 +272,18 @@ odpowiedzialności, co czyni kod czystszym i łatwiejszym w zarządzaniu. Wyró�
 	\caption{Diagram architektury warstwy logiki}
 	\label{rys:backend}
 \end{figure}
-Centralnym mechanizmem łączącym warstwy jest wzorzec wstrzykiwania zależności (dependency injection). Wzorzec ten został wykorzystany 
-do przekazywania instancji serwisów do poszczególnych tras oraz do zarządzania cyklem życia zasobów. Dzięki temu połączenie do bazy danych 
+Centralnym mechanizmem łączącym te warstwy jest wzorzec wstrzykiwania zależności (dependency injection). Wzorzec ten, zapewniający luźne powiązania między obiektami (loose coupling), został wykorzystany  
+do przekazywania instancji serwisów do poszczególnych tras oraz do zarządzania cyklem życia zasobów \cite{seemann_di}. Dzięki temu połączenie do bazy danych 
 jest automatycznie tworzone dla przychodzącego zapytania i zamykane po wysłaniu odpowiedzi do klienta. 
 
 Serwer został zaprojektowany jako bezstanowy, co oznacza, że sesja użytkownika jest przechowywana po stronie przeglądarki użytkownika, 
-a nie po stronie serwera. Taka architektura pozwala na skalowanie horyzontalne, gdzie każda instancja serwera może 
-obsługiwać dowolnego użytkownika. Aplikacja, aby spełnić to założenie, używa tokenów JWT (JSON Web Tokens) do uwierzytelniania użytkowników, które 
+a nie po stronie serwera. Jest to potrzebne, aby spełnić kluczowe założenie REST API, które wymaga, żeby w każdym żądaniu zostały przesłane 
+wszystkie informacje potrzebne do jego obsłużenia. Taka architektura pozwala na skalowanie horyzontalne, gdzie każda instancja serwera może 
+obsługiwać dowolnego użytkownika. Aplikacja, aby spełnić to założenie, używa tokenów JWT (JSON Web Tokens) do uwierzytelniania użytkowników \cite{rfc7519}, które 
 generowane są na serwerze przy użyciu biblioteki python-jose. Równie istotne z poziomu bezpieczeństwa aplikacji jest sanityzacja danych i zabezpieczenie haseł. 
-Wszystkie dane wejściowe od użytkownika są sanityzowane za pomocą bibliotek nh3 (dane tekstowe) oraz pillow (obrazy), a hasła haszowane 
-za pomocą biblioteki passlib. Proces haszowania polega na dodaniu soli i pieprzu do hasła, a następnie zahaszowaniu go przy pomocy algorytmu argon2.
+Wszystkie dane wejściowe są sanityzowane za pomocą bibliotek nh3 (dane tekstowe) oraz pillow (obrazy), a hasła haszowane 
+za pomocą biblioteki passlib. Proces haszowania polega na dodaniu soli i pieprzu do hasła, a następnie zahaszowaniu go przy pomocy algorytmu argon2, co jest zgodne 
+z obecnymi zaleceniami dotyczącymi bezpieczeństwa aplikacji \cite{owasp_passwords}.
 
 Serwer, aby spełnić kluczowe wymaganie jakościowe dotyczące wysokiej repsonsywności systemu, musi obsługiwać długie operacje wejścia/wyjścia bez blokowania 
 głównego wątku serwera i aplikacji klienta. W przypadku długotrwałych operacji takich jak np. generowanie tagów przez zewnętrzne API (Gemini) system 
@@ -291,7 +293,7 @@ operacja generowania tagów odbywa się asynchroniczne w tle na serwerze.
 
 Warstwa danych jest fundamentem każdej aplikacji, jej jedynym zadaniem jest optymalne zarządzanie i przechowywanie danych.
 Ze względu na różnorodność przechowywanych danych i wymagania niefunkcjonalne dotyczące 
-wydajności, system został zaprojektowany według modelu persystencji poliglotycznej (polyglot presistence). 
+wydajności, system został zaprojektowany według modelu persystencji poliglotycznej (polyglot presistence) \cite{nosql_distilled}. 
 Model ten polega na używaniu wielu technologii przechowywania danych, w celu zwiększenia wydajności aplikacji
 poprzez wykorzystywanie rozwiązań zoptymalizowanych pod konkretne zadania. W ramach systemu wyróżniono 3 główne 
 magazyny danych, z których każdy odgrywa inną rolę:
@@ -305,12 +307,12 @@ magazyny danych, z których każdy odgrywa inną rolę:
 
 \subsection*{Relacyjna baza danych}
 
-PostgreSQL jest głównym magazynem danych aplikacji. Został on wybrany ze względu na jego niezawodność, 
+PostgreSQL jest głównym magazynem danych aplikacji \cite{postgresql_docs}. Został on wybrany ze względu na jego niezawodność, 
 wsparcie dla różnych typów danych i rozszerzeń. Przechowywane są w nim wszystkie dane użytkowników takie jak:
 dane logowania, materiały, zestawy fiszek itp. Schemat bazy danych jest zarządzany przy użyciu narzędzia Liquibase, 
 co pozwala na łatwe śledzenie i zarządzanie zmian.
-Schemat bazy danych został zamodelowany na diagramie związków encji (ERD) (Rys. \ref{rys:database_erd_diagram}). 
-Cała architektura relacyjnej bazy danych opiera się na trzech kluczowych konceptach:
+Schemat bazy danych został zamodelowany na diagramie związków encji (ERD) (Rys. \ref{rys:database_erd_diagram}), 
+a cała architektura relacyjnej bazy danych opiera się na trzech kluczowych konceptach:
 
 \begin{figure}[h!]
     \centering \includegraphics[width=1\linewidth]{database_erd_diagram.png} % 0.618 to złoty podział, bardzo dobra szerokość
@@ -338,7 +340,7 @@ klucze obce (self-referencing foreign keys):
 
 
 \subsubsection*{Comments i Votes}
-Tabela comments oprócz standardowej referencji do rodzica (parent\_comment\_id) wykorzystuje także rozszerzenie PostgreSQL o nazwie ltree. 
+Tabela comments oprócz standardowej referencji do rodzica (parent\_comment\_id) wykorzystuje także rozszerzenie PostgreSQL o nazwie ltree \cite{postgresql_docs}. 
 Kolumna path wykorzystuje to rozszerzenie w celu przechowania całej ścieżki drzewa dla każdego komentarza. Pozwala to na 
 pobranie całego drzewa komentarzy w jednym wydajnym zapytaniu unikając powolnego zaptania rekurencyjnego. 
 
@@ -361,7 +363,7 @@ w tekście fiszki. Kubełek ma ustawione pubiliczne uprawnienia odczytu więc kl
 wyświetlenia obrazka co znacznie upraszcza implementacje.
 
 \subsection*{Wyszukiwanie pełnotekstowe}
-System, aby spełnić wymaganie jakościowe dotyczące czasu odpowiedzi wyszukiwania, implementuje serwis wyszukiwania pełnotekstowego. 
+System, aby spełnić wymaganie jakościowe dotyczące czasu odpowiedzi wyszukiwania, implementuje serwis wyszukiwania pełnotekstowego \cite{elasticsearch_guide}. 
 ElasticSearch został użyty jako silnik wyszukiwania pełnotekstowego, gdyż umożliwia on zarówno przechowywanie danych, jak i tworzenie z nich indeksów odwróconych. 
 Indeks odwrócony mapuje terminy na listę dokumentów je zawierających, co pozwala na natychmiastowe wyszukiwanie wszystkich dokumentów zawierających dany termin. PostgreSQL 
 także zawiera możliwość zbudowania indeksu odwróconego (np. GIN), jednak zdecydowano się na ElasticSearch z kilku powodów:
@@ -371,7 +373,5 @@ także zawiera możliwość zbudowania indeksu odwróconego (np. GIN), jednak zd
     \item \textbf{Rozdzielenie odpowiedzialności} -- W przypadku zaimplementowania indeksu odwróconego w PostgreSQL, wyszukiwanie pełnotekstowe 
     dzieli te same zasoby co standardowe operacje bazodanowe. Skomplikowane wyszukiwanie pełnotekstowe może doprowadzić do spowolnienia działania bazy danych dla prostych operacji.
     \item \textbf{Wbudowana agregacja} -- ElasticSearch posiada wbudowany mechanizm agregacji, który pozwala na szybkie i łatwe tworzenie rankingów, bez obciążania głównej bazy danych.  
-\end{itemize}
-
-
+\end{itemize}   
 

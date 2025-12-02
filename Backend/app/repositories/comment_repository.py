@@ -24,7 +24,6 @@ def get_comment_by_id_with_details(
 
 def get_comments_for_set(
     db: Session,
-    comment_id: int,
     set_id: int,
     user_id: int | None,
 ) -> CommentsDataOut:
