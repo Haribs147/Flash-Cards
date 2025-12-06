@@ -75,19 +75,20 @@ wcześniej zainicjalizowanego globalnego obiektu.
 \subsection{Moduł Uwierzytelniania i zarządzania kontem}
 Bezpieczeństwo aplikacji jest podstawą każdego systemu. Wszystkie mechanizmy powiązane z uwierzytelnianiem i zarządzaniem kontem 
 znajdują się w serwisie \texttt{AuthService} i pakiecie \texttt{core.security}. W przeciwieństwie do prostych rozwiązań opierających 
-się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów.
-Proces logowania i utrzymywania sesji opiera się na dwóch tokenach:
+się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów,
+zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów. Proces logowania i utrzymywania sesji 
+opiera się na dwóch tokenach:
 \begin{itemize}
     \item \textbf{Access token} -- Krótkoterminowy token dostępu (ważny przez 5 minut) pozwalający na autoryzację użytkownika.
     \item \textbf{Refresh token} -- Długoterminowy token odświeżania (ważny przez 30 minut) służący do odnawiania sesji użytkownika, bez 
     konieczności ponownego logowania.
 \end{itemize}
-Oba tokeny nie są zwracane w ciele odpowiedzi (podatność na ataki XSS), lecz ustawiane są jako ciasteczka z flagą \texttt{HttpOnly}. 
-Takie rozwiązanie ma swoje wady i zalety, ponieważ uniemożliwia one ukradnięcie tokenów przy pomocy ataku XSS, 
-lecz powstają nowe zagrożenia takie jak np. atak Man-in-the-Middle (MitM) czy Cross-Site Request Forgery (CSRF). W celu zapobiegania tym 
-atakom ciasteczko tworzone jest z jeszcze dwoma dodatkowymi flagami:
+Oba tokeny nie są zwracane w ciele odpowiedzi (co tworzy podatność na ataki XSS), lecz ustawiane są jako ciasteczka z flagą \texttt{HttpOnly}. 
+Takie rozwiązanie ma swoje wady i zalety, ponieważ uniemożliwia ono kradzież tokenów przy pomocy ataku XSS, 
+lecz tworzy nowe zagrożenia takie jak np. atak Man-in-the-Middle (MitM) czy Cross-Site Request Forgery (CSRF). W celu zapobiegania tym 
+atakom ciasteczko tworzone jest z dwiema dodatkowymi flagami:
 \begin{itemize}
-    \item \textbf{Secure} -- Przeglądarka dołączy ciasteczko z tokenem tylko wtedy, gdy strona korzysta z protokołu HTTPS, dzięki czemu 
+    \item \textbf{Secure} -- Przeglądarka dołącza ciasteczko z tokenem tylko wtedy, gdy strona korzysta z protokołu HTTPS, dzięki czemu 
     ciasteczko zawsze będzie zaszyfrowane.
     \item \textbf{SameSite=lax} -- Ogranicza wysyłanie ciasteczka między stronami. W trybie lax przeglądarka blokuje przesyłanie ciasteczka 
     do żądań zainicjowanych przez zewnętrzne serwisy, ale zezwala na jego przesłanie podczas nawigacji najwyższego poziomu (np. kliknięcie w link nawigujący do
@@ -102,6 +103,18 @@ polega na podpisaniu tokenu zapisanego w ciasteczku CSRF przy użyciu sekretnego
 serwer najpierw sprawdza poprawność podpisu tokena w ciasteczku, a następnie porównuje jego zawartość z tokenem przesłanym w 
 nagłówku HTTP.
 
+W serwerze zostały zaimplementowane dwa sposoby uwierzytelniania użytkownika oparte o mechanizm wstrzykiwania zależności:
+\begin{itemize}
+    \item \textbf{get\_current\_user} -- Stosowane do uwierzytelnienia użytkownika i uzyskania jego obiektu z bazy danych. 
+    Używane w większości tras wymagających autoryzacji (np. tworzenie folderu, edycja materiałów). Weryfikuje on obecność 
+    i poprawność access tokenu w ciasteczku przesłanym w żądaniu. W przypadku jego braku lub niezgodności, żądanie jest 
+    przerywane błędem 401.
+    \item \textbf{get\_optional\_current\_user} -- Stosowane w endpoincie do pobrania zestawu fiszek (\texttt{GET /sets/{id}}) 
+    w celu sprawdzenia czy użytkownik jest zalogowany. W przypadku zalogowanego użytkownika system zwróci dodatkowe informacje, 
+    takie jak np. głos użytkownika (upvote/downvote) i zapisze zestaw fiszek w ostatnio odwiedzanych zestawach. Niezalogowany użytkownik 
+    otrzyma dostęp do zestawu fiszek, bez potrzeby logowania.
+\end{itemize}
+
 Największym wyzwaniem w implementacji tego rozwiązania było połączenie asynchronicznej biblioteki walidującej CSRF (fastapi\_csrf\_protect) 
 z synchronicznymi endpointami. Zdefiniowanie punktów końcowych jako asynchroniczne znacznie spowolniłoby działanie aplikacji, ponieważ serwer 
 używa synchronicznego sterownika bazy danych i ElasticSearch'a, co doprowadziłoby do zablokowania  głównej pętli zdarzeń (Event Loop). Problem 
@@ -112,19 +125,28 @@ się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wąt
 \begin{lstlisting}[language=Python,
 	caption={Asynchroniczna zależność w synchronicznym endpoincie},
 	label={lst:cykl_zycia}]
+    # Funkcja pomocnicza
     async def validate_csrf(
         request: Request, 
         csrf_protect: CsrfProtect = Depends()
     ):
         await csrf_protect.validate_csrf(request)
 
-    @router.post("/materials", status_code=status.HTTP_201_CREATED)
-    def create_material(
-        material_data: MaterialCreate,
-        _ : None = Depends(validate_csrf),
-        db: Session = Depends(get_db)
+    # Endpoint w ktorym walidowany jest CSRF
+    @router.post(
+        "/materials/{material_id}/comments", 
+        status_code=status.HTTP_201_CREATED, 
+        response_model=CommentOut
+    )
+    def new_comment(
+        material_id: int, 
+        comment_data: CommentCreate, 
+        db: Session = Depends(get_db), 
+        current_user: User = Depends(get_current_user),
+        comment_service: CommentService = Depends(CommentService),
+        _ = Depends(validate_csrf)
     ):
-        return material_service.create(db, material_data)
+        ...
 \end{lstlisting} 
  
 
