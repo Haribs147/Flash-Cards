@@ -74,7 +74,7 @@ wcześniej zainicjalizowanego globalnego obiektu.
 
 \subsection{Moduł Uwierzytelniania i zarządzania kontem}
 Bezpieczeństwo aplikacji jest podstawą każdego systemu. Wszystkie mechanizmy powiązane z uwierzytelnianiem i zarządzaniem kontem 
-znajdują się w serwise \texttt{AuthService} i pakiecie \texttt{core.security}. W przeciwieństwie do prostych rozwiązań opierających 
+znajdują się w serwisie \texttt{AuthService} i pakiecie \texttt{core.security}. W przeciwieństwie do prostych rozwiązań opierających 
 się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów.
 Proces logowania i utrzymywania sesji opiera się na dwóch tokenach:
 \begin{itemize}
@@ -93,5 +93,39 @@ atakom ciasteczko tworzone jest z jeszcze dwoma dodatkowymi flagami:
     do żądań zainicjowanych przez zewnętrzne serwisy, ale zezwala na jego przesłanie podczas nawigacji najwyższego poziomu (np. kliknięcie w link nawigujący do
     mojej aplikacji).
 \end{itemize}
-CSRF do ciasteczek 
+Ustawienie SameSite na \texttt{lax} lub \texttt{strict} nie broni całkowicie przed atakami CSRF. 
+W przypadku ustawienia SameSite na \texttt{lax} atakujący może wymusić wysłanie żądania z ciasteczkiem, 
+inicjując nawigację najwyższego poziomu za pomocą prostego żądania GET. Ustawienie SameSite na \texttt{strict} 
+komplikuje atak, ale nadal można go przeprowadzić poprzez przekierowania po stronie klienta lub podatności na subdomenach.
+W celu większego zabezpieczenia przed tym atakiem zaimplementowano wzorzec Signed Double Submit Cookie. Mechanizm ten 
+polega na podpisaniu tokenu zapisanego w ciasteczku CSRF przy użyciu sekretnego klucza serwera. Podczas weryfikacji żądania 
+serwer najpierw sprawdza poprawność podpisu tokena w ciasteczku, a następnie porównuje jego zawartość z tokenem przesłanym w 
+nagłówku HTTP.
+
+Największym wyzwaniem w implementacji tego rozwiązania było połączenie asynchronicznej biblioteki walidującej CSRF (fastapi\_csrf\_protect) 
+z synchronicznymi endpointami. Zdefiniowanie punktów końcowych jako asynchroniczne znacznie spowolniłoby działanie aplikacji, ponieważ serwer 
+używa synchronicznego sterownika bazy danych i ElasticSearch'a, co doprowadziłoby do zablokowania  głównej pętli zdarzeń (Event Loop). Problem 
+ten rozwiązano wykorzystując wzorzec wstrzykiwania zależności. Walidację tokenu CSRF wydzielono do asynchronicznej funkcji, która uruchamiana 
+jest asynchroniczne przed właściwą logiką endpointu. FastAPI jest w stanie optymalnie zarządzać kontekstem wykonania: walidacja tokena uruchamia 
+się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wątków.
+
+\begin{lstlisting}[language=Python,
+	caption={Asynchroniczna zależność w synchronicznym endpoincie},
+	label={lst:cykl_zycia}]
+    async def validate_csrf(
+        request: Request, 
+        csrf_protect: CsrfProtect = Depends()
+    ):
+        await csrf_protect.validate_csrf(request)
+
+    @router.post("/materials", status_code=status.HTTP_201_CREATED)
+    def create_material(
+        material_data: MaterialCreate,
+        _ : None = Depends(validate_csrf),
+        db: Session = Depends(get_db)
+    ):
+        return material_service.create(db, material_data)
+\end{lstlisting} 
+ 
+
 \section{Opis wybranych modułów}    

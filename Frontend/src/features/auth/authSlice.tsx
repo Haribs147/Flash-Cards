@@ -119,11 +119,18 @@ export const authSlice = createSlice({
             })
             .addCase(
                 checkAuthStatus.fulfilled,
-                (state: AuthState, action: PayloadAction<User>) => {
+                (
+                    state: AuthState,
+                    action: PayloadAction<{ user: User; csrf_token: string }>,
+                ) => {
                     state.isAuthenticated = true;
-                    state.user = action.payload;
+                    state.user = action.payload.user;
+
                     state.error = null;
                     state.status = "succeded";
+
+                    state.csrfToken = action.payload.csrf_token;
+                    setCsrfHeader(action.payload.csrf_token);
                 },
             )
             .addCase(checkAuthStatus.pending, (state: AuthState) => {

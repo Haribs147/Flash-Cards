@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.schemas import MaterialOut, PendingShareOut, ShareData, ShareUpdateData, SharedUser
-from app.core.security import get_current_user
+from app.core.security import get_current_user, validate_csrf
 from app.db.database import get_db
 from app.db.models import User
 from app.services.exceptions import ConflictError, NotFoundError, PermissionDeniedError, ValidationError
@@ -18,7 +18,9 @@ def share_material(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
     share_service: ShareService = Depends(ShareService),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
+
 ):
     try:
         return share_service.share_material(db, item_id, share_data, current_user, material_service)
@@ -36,7 +38,8 @@ def revoke_share_access(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
     share_service: ShareService = Depends(ShareService),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         share_service.revoke_share(db, item_id, user_id, current_user, material_service)
@@ -53,7 +56,8 @@ def update_shares(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
     share_service: ShareService = Depends(ShareService),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         share_service.update_shares(db, item_id, share_update_data, current_user, material_service)
@@ -65,7 +69,7 @@ def update_shares(
 def get_shares(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    share_service: ShareService = Depends(ShareService)
+    share_service: ShareService = Depends(ShareService),
 ):
     return share_service.get_pending_shares(db, current_user)
 
@@ -74,7 +78,8 @@ def accept_share(
     share_id: int, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    share_service: ShareService = Depends(ShareService)
+    share_service: ShareService = Depends(ShareService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return share_service.accept_share(db, share_id, current_user)
@@ -86,7 +91,8 @@ def reject_share(
     share_id: int, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    share_service: ShareService = Depends(ShareService)
+    share_service: ShareService = Depends(ShareService),
+    _ = Depends(validate_csrf),
 ):
     try:
         share_service.reject_share(db, share_id, current_user)

@@ -2,7 +2,7 @@ import io
 import uuid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, validate_csrf
 from app.db.models import User
 from app.services.exceptions import ServiceError, ValidationError
 from app.services.media_service import MediaService
@@ -13,7 +13,8 @@ router = APIRouter(tags=["Media"])
 async def upload_image(
     file: UploadFile = File(...), 
     current_user: User = Depends(get_current_user),
-    media_service: MediaService = Depends(MediaService)
+    media_service: MediaService = Depends(MediaService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return await media_service.upload_image(file)

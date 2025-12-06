@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.services.auth_service import AuthService
 from app.services.exceptions import ConflictError, PermissionDeniedError, ValidationError
 from app.api.schemas import LoginResponse, UserCreate
-from app.core.security import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, create_acces_token, create_refresh_token, get_current_user_from_refresh_token, get_password_hash, verify_password
+from app.core.security import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, create_acces_token, create_refresh_token, get_current_user_from_refresh_token, get_password_hash, validate_csrf, verify_password
 from app.db.database import get_db
 from app.db.models import User
 

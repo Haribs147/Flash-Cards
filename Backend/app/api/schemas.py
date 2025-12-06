@@ -165,3 +165,7 @@ class PublicSetSearchOut(BasePublicSetOut):
     model_config = ConfigDict(from_attributes=True)
 
     tags: list[str] = []
+
+class UserMeResponse(BaseModel):
+    user: UserOut
+    csrf_token: str

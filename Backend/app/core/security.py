@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
+from fastapi_csrf_protect import CsrfProtect
 from jose import JWTError, jwt
 from PIL import Image, UnidentifiedImageError
 import nh3
@@ -21,10 +22,10 @@ ACCESS_TOKEN_SECRET_KEY = settings.ACCESS_TOKEN_SECRET_KEY
 REFRESH_TOKEN_SECRET_KEY = settings.REFRESH_TOKEN_SECRET_KEY
 PEPPER = settings.PEPPER
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 5
-REFRESH_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1
+REFRESH_TOKEN_EXPIRE_MINUTES = 5
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto") #bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") #argon2
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     password_with_pepper = plain_password + PEPPER
@@ -197,3 +198,6 @@ def validate_and_sanitize_img(image: bytes) -> tuple[bytes, str, str]:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=F"The uploaded file was not an valid image"
         )
+
+async def validate_csrf(request: Request, csrf_protect: CsrfProtect = Depends()):
+    await csrf_protect.validate_csrf(request)

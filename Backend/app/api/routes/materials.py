@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.schemas import FolderCreate, MaterialOut, MaterialUpdate, VoteData
-from app.core.security import get_current_user
+from app.core.security import get_current_user, validate_csrf
 from app.db.database import get_db
 from app.db.models import User
 from app.repositories import material_repository
@@ -22,7 +22,8 @@ def create_new_folder(
     folder_data: FolderCreate, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     return material_service.create_folder(db, folder_data, current_user)
 
@@ -32,7 +33,8 @@ def update_material(
     update_data: MaterialUpdate, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return material_service.update_material(db, item_id, update_data, current_user)
@@ -48,7 +50,8 @@ def delete_material(
     item_id: int, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return material_service.delete_material(db, item_id, current_user)
@@ -63,7 +66,8 @@ def vote_on_material(
     vote_data: VoteData, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
-    vote_service: VoteService = Depends(VoteService)
+    vote_service: VoteService = Depends(VoteService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return vote_service.process_vote(

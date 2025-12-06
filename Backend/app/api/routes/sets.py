@@ -11,7 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.schemas import BasePublicSetOut, CopySet, FlashcardSetOut, FlashcardSetUpdate, FlashcardSetUpdateAndCreate, MaterialOut, MostLikedSetsOut, MostViewedSetsOut, PublicSetSearchOut, TimePeriod
-from app.core.security import get_current_user, get_optional_current_user
+from app.core.security import get_current_user, get_optional_current_user, validate_csrf
 from app.db.database import get_db
 from app.db.models import User
 from app.external.elastic import get_es_client
@@ -29,7 +29,8 @@ def create_new_set(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     elastic_search: Elasticsearch = Depends(get_es_client),
-    set_service: FlashcardSetService = Depends(FlashcardSetService)
+    set_service: FlashcardSetService = Depends(FlashcardSetService),
+    _ = Depends(validate_csrf),
 ):
     new_material = set_service.create_set(db, set_data, current_user)
     
@@ -50,7 +51,8 @@ def update_set(
     current_user: User = Depends(get_current_user),
     elastic_search: Elasticsearch = Depends(get_es_client),
     set_service: FlashcardSetService = Depends(FlashcardSetService),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         set_material = set_service.update_set(db, set_id, update_set_data, current_user, material_service)
@@ -92,7 +94,8 @@ def copy_flashcard_set(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user),
     set_service: FlashcardSetService = Depends(FlashcardSetService),
-    material_service: MaterialService = Depends(MaterialService)
+    material_service: MaterialService = Depends(MaterialService),
+    _ = Depends(validate_csrf),
 ):
     try:
         return set_service.copy_set(db, set_id, copy_data, current_user, material_service)
@@ -105,7 +108,7 @@ def copy_flashcard_set(
 def get_most_viewed_sets(
     period: TimePeriod, 
     db: Session = Depends(get_db),
-    public_set_service: PublicSetService = Depends(PublicSetService)
+    public_set_service: PublicSetService = Depends(PublicSetService),
 ):
     try:
         return public_set_service.get_most_viewed(db, period)
@@ -116,21 +119,21 @@ def get_most_viewed_sets(
 def get_most_liked_sets(
     period: TimePeriod, 
     db: Session = Depends(get_db),
-    public_set_service: PublicSetService = Depends(PublicSetService)
+    public_set_service: PublicSetService = Depends(PublicSetService),
 ):
     return public_set_service.get_most_liked(db, period)
 
 @router.get("/public/sets/recently_created", response_model=list[BasePublicSetOut])
 def get_recently_created_sets(
     db: Session = Depends(get_db),
-    public_set_service: PublicSetService = Depends(PublicSetService)
+    public_set_service: PublicSetService = Depends(PublicSetService),
 ):
     return public_set_service.get_recently_created(db)
 
 @router.post("/public/search", response_model=list[PublicSetSearchOut])
 def search_public_sets(
     text_query: str,
-    public_set_service: PublicSetService = Depends(PublicSetService)
+    public_set_service: PublicSetService = Depends(PublicSetService),
 ):
     if not text_query:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Search query cannot be empty")
