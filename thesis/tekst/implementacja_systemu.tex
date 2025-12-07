@@ -149,5 +149,56 @@ się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wąt
         ...
 \end{lstlisting} 
  
+\subsection{Zarządzanie materiałami i zestawami fiszek}
+Centralnym elementem aplikacji jest zarządzanie zasobami użytkownika. Na zasoby użytkownika składają się foldery i zestawy fiszek. Ze względu 
+na chierachiczną strukturę danych i różne relacje między zasobami logika została podzielona na dwa współpracujące ze sobą serwisy: 
+\texttt{MaterialService} i \texttt{FlashcardSetService}.
 
-\section{Opis wybranych modułów}    
+Zgodnie z przyjętym modelem bazy danych każdy materiał (folder/zestaw fiszek) jest reprezentowany przez encję \texttt{Materials}. Serwis 
+\texttt{MaterialService} powstał w celu uniknięcia duplikacji kodu i odpowiada za podstawowe operacje wykonywane na materiałach 
+(przenoszenie między folderami, zmiana nazwy itp.). Jest on warstwą abstrakcyjną nad operacjami wspólnymi dla wszystkich typów materiałów. 
+Kluczowym elementem tego serwisu jest metoda 
+\texttt{check\_permission}, która realizuje autoryzację do poszczególnych materiałow. Przed wykonaniem jakiejkolwiek operacji na zasobie, 
+system za pomocą tej metody weryfikuje uprawnienia użytkownika w oparciu o:
+\begin{enumerate}
+    \item Własność zasobu (czy owner\_id jest taki sam jak id użytkownika)
+    \item Status publiczny zasobu
+    \item Udostępnienia zasobu (encja material\_shares)
+\end{enumerate} 
+Proces tworzenia folderów jest realizowany bezpośrednio przez \texttt{MaterialService}. Metoda \texttt{create\_folder} przyjmuje obiekt DTO, 
+waliduje istnienie rodzica (jeżeli został podany) i tworzy nowy wiersz w tabeli materials z \texttt{item\_type="folder"}.  
+
+Tworzenie zestawu fiszek jest bardziej skomplikowane, ponieważ wymaga zapisu do wielu tabel jednocześnie (\texttt{materials}, 
+\texttt{flashcard\_sets} i \texttt{flashcards}). Proces ten składa się z dwóch etapów:
+\begin{enumerate}
+    \item Repozytorium materiałów jest wywoływane w celu stworzenia nowego materiału o typie \texttt{item\_type="set"}. Dzięki temu 
+    nowy zestaw fiszek otrzymuje unikalne id i zostaje osadzony w hierarchicznej strukturze folderów.
+    \item Następnie serwis wykorzystuje id nowo stworzonego materiału do zapisania szczegołów materiału (opis, widoczność) i listy fiszek
+    w odpowiednich tabelach.
+\end{enumerate} 
+
+Proces tworzenia zestawu fiszek nie jest jednak najbardziej skomplikowaną operacją w obu tych serwisach. Aktualizacja zestawu fiszek, która 
+jest relacją jeden do wielu (zestaw -- fiszki) często implementowana jest poprzez usunięcie wszystkich starych elementów w bazie danych i 
+wstawieniu nowych, przychodzących z żądania. Nie jest to jednak idealne podejście, gdyż w przypadku małej zmiany w dużym zestawie fiszek (np. zmiana jednej fiszki), 
+musi zostać wykonane N operacji usunięcia i N operacji wstawienia do bazy danych gdzie N to liczba fiszek w zestawie. Z tego powodu zastosowano 
+prosty algorytm polegający na pobraniu wszystkich fiszek z bazy danych i porównaniu ich z danymi przychodzącymi z żądania. Fiszki posiadające ID w 
+bazie danych są aktualizowane, nieposiadające ID dodawane, a nieistniejące w bazie danych usuwane. Taki mechanizm minimalizuje liczbę operacji 
+wykonywanych na bazie danych i zachowuje spójność kluczy głównych fiszek.
+
+Istotnym wyzwaniem implementacyjnym była obsługa pobierania szczegółów zestawu fiszek (metoda \texttt{get\_full\_set\_details}).
+Ze względu na fakt, że wyświetlanie zestawu fiszek jest operacją najczęściej wykonywaną przez użytkowników, proces ten musiał zostać odpowiednio zoptymalizowany. 
+Metoda ta pełni rolę agregatora danych, ponieważ pobiera listę fiszek, komentarze, udostępnienia i agreguje głosy. W pierwszej kolejności serwer 
+weryfikuje typ materiału. W przypadku napotkania skrótu (\texttt{item\_type="link"}) system pobiera wyżej wspomniane dane z materiału źródłowego, przy 
+jednoczesnym zachowaniu uprawnień użytkownika. Cały proces kończy się logowaniem wyświetlenia zestawu fiszek do indeksu 
+\texttt{view\_events} w ElasticSearch, co pozwala na późniejsze generowanie rankingu fiszek na stronie publicznej bez obciążania relacyjnej bazy danych.
+
+System umożliwia także funkcjonalność kopiowania zestawów fiszek. Operacja ta pozwala użytkownikowi stworzyć głęboką kopię dowolnego zestawu fiszek, do którego 
+posiada dostęp. Logika biznesowa tego procesu polega na utworzeniu nowego materiału o typie \texttt{item\_type="set"}, a następnie zduplikowaniu wszystkich 
+powiązanych fiszek z oryginalnego materiału. Dzięki temu użytkownik jest właścicielem zkopiowanego zestawu, co pozwala użytkownikowi na swobodną edycję i nadawanie 
+uprawnień bez modyfikacji oryginalnego materiału.
+
+\subsection{Przeglądanie i wyszukiwanie publicznych materiałów}
+Implementacja publicznych funkcjonalności wymagała zintegrowania zewnętrznych systemów i wykroczenia poza ramy standardowej relacyjnej bazy danych. 
+W przeciwieństwie do innych modółów obsługujących prywatne materiały, gdzie ważna była spójność transakcji i zasady ACID, w tym przypadku postawiono 
+na szybkość obsługi zapytań i asynchroniczne przetwarzanie tekstu.
+\section{Opis wybranych modułów}  
