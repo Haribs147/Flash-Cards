@@ -37,7 +37,6 @@ def create_new_set(
     background_tasks.add_task(
         set_service.generate_and_save_tags_bg,
         set_id=new_material.id,
-        db=db,
         elastic_search=elastic_search,
     )
     return new_material
@@ -64,7 +63,6 @@ def update_set(
     background_tasks.add_task(
         set_service.generate_and_save_tags_bg,
         set_id=set_material.id,
-        db=db,
         elastic_search=elastic_search,
     )
     return set_material

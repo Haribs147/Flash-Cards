@@ -185,6 +185,29 @@ prosty algorytm polegający na pobraniu wszystkich fiszek z bazy danych i porów
 bazie danych są aktualizowane, nieposiadające ID dodawane, a nieistniejące w bazie danych usuwane. Taki mechanizm minimalizuje liczbę operacji 
 wykonywanych na bazie danych i zachowuje spójność kluczy głównych fiszek.
 
+Istotnym aspektem opearcji zapisu do bazy danych jest zapewnienie bezpieczeństwa użytkowników, później wyświetlających zapisane dane. 
+Jako że aplikacja pozwala na formatowanie tekstu, treść fiszek jest zapisywana i wyświetlana jako HTML, co rodzi ryzyko ataków XSS. 
+Aby temu zapobiec, zaimplementowano mechanizm sanityzacji danych wejściowych oraz wyjściowych przekazywanych użytkownikowi. Proces 
+sanityzacji danych tekstowych został zaimplementowany przy pomocy biblioteki nh3, która pozwala na zdefiniowanie tagów i atrybutów, 
+które nie zostaną zakodowane. Aby ułatwić zarządzanie sanityzacją danych, cały proces oczyszczania został 
+zintegrowany w niestandardową definicję typu danych \texttt{SanitizedStr}, stworzoną za pomocą biblioteki Pydantic. SanitizedStr 
+wykorzystuje mechanizm \texttt{AfterValidator} do wywołania procesu sanityzacji danych dla każdego pola modelu Pydantic oznaczonego 
+tym typem. Takie podejście zapewnia czystość kodu, poprzez automatyzację i centralizację logiki sanityzacji.
+
+\begin{lstlisting}[language=Python,
+	caption={Asynchroniczna zależność w synchronicznym endpoincie},
+	label={lst:cykl_zycia}]
+    
+    SanitizedStr = Annotated[str, AfterValidator(sanitize_html)]
+
+    class FlashcardData(BaseModel):
+        model_config = ConfigDict(from_attributes=True)
+
+        id: Optional[int] = None
+        front_content: SanitizedStr
+        back_content: SanitizedStr
+\end{lstlisting} 
+
 Istotnym wyzwaniem implementacyjnym była obsługa pobierania szczegółów zestawu fiszek (metoda \texttt{get\_full\_set\_details}).
 Ze względu na fakt, że wyświetlanie zestawu fiszek jest operacją najczęściej wykonywaną przez użytkowników, proces ten musiał zostać odpowiednio zoptymalizowany. 
 Metoda ta pełni rolę agregatora danych, ponieważ pobiera listę fiszek, komentarze, udostępnienia i agreguje głosy. W pierwszej kolejności serwer 
@@ -199,6 +222,81 @@ uprawnień bez modyfikacji oryginalnego materiału.
 
 \subsection{Przeglądanie i wyszukiwanie publicznych materiałów}
 Implementacja publicznych funkcjonalności wymagała zintegrowania zewnętrznych systemów i wykroczenia poza ramy standardowej relacyjnej bazy danych. 
-W przeciwieństwie do innych modółów obsługujących prywatne materiały, gdzie ważna była spójność transakcji i zasady ACID, w tym przypadku postawiono 
+W przeciwieństwie do innych modułów (obsługujących prywatne materiały), gdzie ważna była spójność transakcji i zasady ACID, w tym przypadku postawiono 
 na szybkość obsługi zapytań i asynchroniczne przetwarzanie tekstu.
-\section{Opis wybranych modułów}  
+
+Zaimplementowanie wyszukiwarki pełnotekstowej wymagało zbudowania odwróconego indeksu, aby jak najbardziej zoptymalizować wyszukiwanie. Jednym z kluczowych 
+wyzwań implementacyjnych, był wybór danych, po których działałaby wyszukiwarka. Opieranie mechanizmu wyszukiwania wyłącznie na nazwie i opisie fiszki, mogłoby 
+prowadzić do katastrofalnych skutków, gdyż użytkownicy mogliby pozostawić te pola puste lub stosować nazwy nieoddające merytoryki zestawu (np. "Sprawdzian angielski").
+Z drugiej strony, podejście polegające na wyszukiwaniu na podstawie treści wszystkich fiszek znajdujących się w zestawie mogłoby prowadzić do nadmiaru danych. Nadmiar 
+danych prowadziłby do szumu informacyjnego, więc serwer zwracałby zestawy fiszek zawierające słowo klucz, ale nietrafione kontekstowo.
+
+W celu zapewnienia kompromisu 
+między wydajnością a trafnością wyników zaimplementowano mechanizm automatycznego generowania tagów, opisujących zestaw fiszek. Słowa kluczowe generowane są przy 
+pomocy modelu językowego Google Gemini 2.5 Flash, który analizuje całą treść tekstową wszystkich fiszek danego zestawu. Do modelu przekazywana jest jedynie treść 
+fiszek bez zachowania tagów HTML i plików graficznych. Wstępne przetworzenie tekstu pozwoliło na zminimalizowanie wykorzystywanej liczby tokenów wejściowych, 
+zmniejszenie czasu przetwarzania zapytania przez model i ograniczenia informacji przekazywanych do modelu, które mogłyby rozproszyć model, powodując halucynacje.
+
+Kluczowym elementem było stworzenie jasnego zapytania dla modelu, tak aby ten zwrócił jak najbardziej deterministyczną i najtrafniejszą odpowiedź (prompt engeenering). 
+Prompt składa się z trzech sekcji:
+\begin{itemize}
+    \item \textbf{Definicja roli i zadania} -- Nadaje modelowi odpowiedni kontekst, pozwalający na lepsze dopasowanie odpowiedzi.
+    \item \textbf{Ustawienie reguł} -- Ograniczenia nałożone na model odgrywają kluczową rolę w formacie jego odpowiedzi.
+    \item \textbf{Przekazanie danych} -- Przekazanie nazwy, opisu i zawartości zestawu fiszek.
+\end{itemize}
+
+\begin{lstlisting}[language=Python,
+	caption={Asynchroniczna zależność w synchronicznym endpoincie},
+	label={lst:cykl_zycia}]
+    prompt = f"""
+    You are an expert educational content analyzer and tagging assistant. 
+    Your goal is to generate metadata for flashcards to improve searchability.
+
+    Analyze the provided flashcard set and generate a list of relevant semantic tags.
+
+    Rules:
+    - Return the tags as a JSON object with a single key named: "tags" which would contain a list of tags (strings).
+    - The "tags" list must contain between 5 and 15 strings.
+    - Tags should be 1-2 words maximum.
+    - Tags HAVE to be in lowercase.
+    
+    Input Data:
+    <flashcard_set>
+        <name>{name}</name>
+        <description>{description}</description>
+        <content>
+        {flashcards_content}
+        </content>
+    </flashcard_set>
+    """
+\end{lstlisting} 
+
+Google Gemini API pozwala także na konfigurację żądania i zachowania modelu. Zamiast polegać wyłącznie na tekstowych zasadach 
+przekazanych w prompcie, zdefiniowano schemat danych wyjściowych przy pomocy modelu biblioteki Pydantic. 
+Przekazanie tego schematu do konfiguracji modelu wymusza na nim zwrócenie odpowiedzi w odpowiednim, poprawnym formacie JSON. Skonfigurowano 
+także filtry bezpieczeństwa o wysokim progu blokowania (\texttt{BLOCK\_ONLY\_HIGH}), aby zapobiec błędnej klasyfikacji zestawów 
+fiszek o tematyce edukacyjnej podobnej do filtrów (np. z zakresu historii wojen czy anatomii człowieka). Obniżono 
+temperaturę modelu do 0.2 co ogranicza losowość i czyni jego odpowiedzi bardziej konkretnymi oraz deterministycznymi. Jako dodatkowe 
+zabezpieczenie, ograniczono zużycie modelu do 500 tokenów, aby nie zużył on dużej ilości tokenów w przypadku błędnego zinterpretowania 
+promptu.
+
+Integracja z zewnętrznymi modelami LLM wiąże się z nieprzewidywalnym czasem odpowiedzi, zależnym od 
+rodzaju modelu, informacji mu przekazywanych i długości jego odpowiedzi. Synchroniczne generowanie tagów drastycznie 
+zmniejszałoby responsywność aplikacji, blokując główny wątek przetwarzający żądanie HTTP. Aby temu zapobiec, proces 
+generowania tagów jest wykonywany przy pomocy zadań w tle (background task). BackgroundTasks jest wbudowanym mechanizmem 
+FastAPI pozwalającym na wykonanie metody po zwróceniu odpowiedzi HTTP do użytkownika. Proces generowania tagów jest inicjowany 
+przy każdym utworzeniu lub edycji zestawu fiszek. Serwer po otrzymaniu żądania zapisuje zmiany w relacyjnej bazie danych, a następnie 
+tuż przed zwróceniem odpowiedzi dodaje zadanie do kolejki w celu wygenerowania i zaindeksowania nowych tagów.
+
+Do implementacji wyszukiwania wykorzystano zapytanie ElasticSearch typu \texttt{multi\_match}, który pozwala na 
+przeszukiwanie wielu pól jednocześnie. W podstawowej konfiguracji multi\_match zwraca zestaw o polu posiadającym największy wynik, 
+ignorując pozostałe. Aby w pełni wykorzystać zgromadzone dane, rozszerzono konfigurację multi\_match o dwa dodatkowe mechanizmy 
+rankingowania:
+\begin{itemize}
+    \item \textbf{System wag} -- Zastosowany został system wag dla wszystkich pól wyszukiwania. Nazwa zestawu posiada najwyższą wagę (x3),
+    wygenerowane tagi średnią (x2), a opis zestawu fiszek najmniejszą (x1).
+    \item \textbf{Tie\_breaker} -- Tie breaker pozwala na zsumowanie wyników wyszukiwania ze wszystkich pól, co oznacza, że zestaw fiszek pasujący 
+    w nazwie i opisie, nie będzie miał tyle samo punktów co zestaw pasujący tylko w nazwie. Został on ustawiony na wartość 0.3 co powoduje, że do 
+    wyniku z najbardziej dopasowanego pola dodawane są wyniki z innych pól pomnożone o wartość tie\_breaker'a.
+\end{itemize}
+Dodatkowo ustawiony parametr \texttt{fuzziness="AUTO"}, chroni wyszukiwarkę przed literówkami popełnianymi przez użytkowników.

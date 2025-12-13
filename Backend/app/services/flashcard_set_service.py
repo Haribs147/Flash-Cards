@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from elasticsearch import Elasticsearch
 from sqlalchemy.orm import Session
 
+from app.db.database import SessionLocal
 from app.api.schemas import CopySet, FlashcardData, FlashcardSetOut, FlashcardSetUpdate, FlashcardSetUpdateAndCreate, SharedUser
 from app.db.models import Material, PermissionEnum, User, VoteTypeEnum
 from app.external.gemini import generate_tags
@@ -140,41 +141,47 @@ class FlashcardSetService:
         flashcard_set_repository.create_flashcard_set(db, new_material.id, set_data)
         return new_material
 
-    async def generate_and_save_tags_bg(self, set_id: int, db: Session, elastic_search: Elasticsearch):
-        set_material = material_repository.get_material_with_flashcards(db, set_id)
-        if not set_material or not set_material.flashcard_set:
-            print(f"BG Task: Set {set_id} not found for tag generation.")
-            return
+    def generate_and_save_tags_bg(self, set_id: int, elastic_search: Elasticsearch):
+        db = SessionLocal()
+        try:
+            set_material = material_repository.get_material_with_flashcards(db, set_id)
+            if not set_material or not set_material.flashcard_set:
+                print(f"BG Task: Set {set_id} not found for tag generation.")
+                return
 
-        flashcard_set = set_material.flashcard_set
-        flashcard_content = []
-        for card in flashcard_set.flashcards:
-            front_soup = BeautifulSoup(card.front_content, "html.parser")
-            flashcard_content.append(front_soup.get_text(separator=" ", strip=True))
-            back_soup = BeautifulSoup(card.back_content, "html.parser")
-            flashcard_content.append(back_soup.get_text(separator=" ", strip=True))
-        
-        combined_content = " ".join(flashcard_content)
+            flashcard_set = set_material.flashcard_set
+            flashcard_content = []
+            for card in flashcard_set.flashcards:
+                front_soup = BeautifulSoup(card.front_content, "html.parser")
+                flashcard_content.append(front_soup.get_text(separator=" ", strip=True))
+                back_soup = BeautifulSoup(card.back_content, "html.parser")
+                flashcard_content.append(back_soup.get_text(separator=" ", strip=True))
+            
+            combined_content = " ".join(flashcard_content)
 
-        tags = generate_tags(
-            name=set_material.name,
-            description=flashcard_set.description,
-            flashcards_content=combined_content,
-        )
+            tags = generate_tags(
+                name=set_material.name,
+                description=flashcard_set.description,
+                flashcards_content=combined_content,
+            )
 
-        if not tags:
-            print(f"No tags generated for set: {set_id}")
+            if not tags:
+                print(f"No tags generated for set: {set_id}")
 
-        owner = user_repository.get_user_by_id(db, set_material.owner_id)
-        
-        document = {
-            "set_id": set_id,
-            "name": set_material.name,
-            "description": flashcard_set.description,
-            "tags": tags,
-            "is_public": flashcard_set.is_public,
-            "creator_email": owner.email if owner else "Unknown",
-            "created_at": set_material.created_at,
-        }
-        
-        elastic_repository.index_set_tags(set_id, document)
+            owner = user_repository.get_user_by_id(db, set_material.owner_id)
+            
+            document = {
+                "set_id": set_id,
+                "name": set_material.name,
+                "description": flashcard_set.description,
+                "tags": tags,
+                "is_public": flashcard_set.is_public,
+                "creator_email": owner.email if owner else "Unknown",
+                "created_at": set_material.created_at,
+            }
+            
+            elastic_repository.index_set_tags(set_id, document)
+        except Exception as e:
+            print(f"BG Task Error: {e}")
+        finally:
+            db.close()

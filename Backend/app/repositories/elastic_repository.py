@@ -108,8 +108,9 @@ def search_public_sets(
                 "must": {
                     "multi_match": {
                         "query": text_query,
-                        "fields": ["name", "description", "tags"],
+                        "fields": ["name^3", "tags^2", "description"],
                         "fuzziness": "AUTO",
+                        "tie_breaker": 0.3,
                     }
                 },
                 "filter": {
