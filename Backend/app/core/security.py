@@ -198,6 +198,11 @@ def validate_and_sanitize_img(image: bytes) -> tuple[bytes, str, str]:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=F"The uploaded file was not an valid image"
         )
+    except Image.DecompressionBombError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Image dimensions are to large (Decompression Bomb protection)"
+        )
 
 async def validate_csrf(request: Request, csrf_protect: CsrfProtect = Depends()):
     await csrf_protect.validate_csrf(request)

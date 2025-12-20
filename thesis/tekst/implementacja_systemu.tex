@@ -195,11 +195,12 @@ wykorzystuje mechanizm \texttt{AfterValidator} do wywołania procesu sanityzacji
 tym typem. Takie podejście zapewnia czystość kodu, poprzez automatyzację i centralizację logiki sanityzacji.
 
 \begin{lstlisting}[language=Python,
-	caption={Asynchroniczna zależność w synchronicznym endpoincie},
-	label={lst:cykl_zycia}]
-    
+	caption={Automatyczna sanityzacja w modelach Pydantic},
+	label={lst:sanityzacja}]
+    # Definicja nowego typu z automatyczna sanityzacja
     SanitizedStr = Annotated[str, AfterValidator(sanitize_html)]
 
+    # Przykladowy model wykorzystujacy nowy typ
     class FlashcardData(BaseModel):
         model_config = ConfigDict(from_attributes=True)
 
@@ -207,6 +208,24 @@ tym typem. Takie podejście zapewnia czystość kodu, poprzez automatyzację i c
         front_content: SanitizedStr
         back_content: SanitizedStr
 \end{lstlisting} 
+Zagrożenia bezpieczeństwa systemu nie ograniczają się wyłącznie do danych tekstowych. Jako że aplikacja pozwala na 
+wstawianie plików graficznych (danych binarnych) do treści fiszek, użytkownicy mogą spróbować osadzić złośliwe oprogramowanie 
+bezpośrednio w zdjęciu (steganografia) lub naruszyć prywatność innych użytkowników poprzez ekstrakcję metadanych obrazu. W 
+celu zapobiegania tym atakom wszystkie przesyłane pliki graficzne podlegają weryfikacji i normalizacji. Każda grafika, zanim 
+zostanie zapisana w magazynie obiektowym MinIO, jest przetwarzania przez bibliotekę \texttt{Pillow}. Proces przetwarzania 
+składa się z trzech kluczowych etapów:
+\begin{itemize}
+    \item \textbf{Weryfikacja formatu i nagłówków} -- Serwer działa z ograniczonym zaufaniem do użytkownika, 
+    analizując magiczne liczby (ang. magic numbers) przesłanego pliku. W ten sposób sprawdzane jest, czy przesłane dane na 
+    pewno stanowią poprawny plik wymaganego typu (JPG, PNG lub GIF).
+    \item \textbf{Ograniczenie wielkości} -- Aby ochronić zasoby serwera przed wyczerpaniem pamięci i zapobiec atakom typu 
+    pixel flood, wszystkie obrazki przekraczające rozdzielczość FULL HD (1920x1080 pikseli) są automatycznie skalowane w dół 
+    z zachowaniem oryginalnych proporcji. 
+    \item \textbf{Sanityzacja pliku} -- Najważniejszym etapem procesu przetwarzania z punktu widzenia bezpieczeństwa jest 
+    rekonstrukcja pliku. Przy pomocy funkcji \texttt{Image.save()} każdy obraz jest dekodowany do pamięci operacyjnej jako mapa bitowa, a następnie zapisywany do nowego 
+    strumienia danych. Pozwala to na zachowanie samej zawartości obrazu, bez metadanych (EXIF) i nadmiarowych danych znajdujących 
+    się w oryginalnym obrazie, w których mógłby zostać ukryty złośliwy kod.
+\end{itemize}
 
 Istotnym wyzwaniem implementacyjnym była obsługa pobierania szczegółów zestawu fiszek (metoda \texttt{get\_full\_set\_details}).
 Ze względu na fakt, że wyświetlanie zestawu fiszek jest operacją najczęściej wykonywaną przez użytkowników, proces ten musiał zostać odpowiednio zoptymalizowany. 
@@ -300,3 +319,87 @@ rankingowania:
     wyniku z najbardziej dopasowanego pola dodawane są wyniki z innych pól pomnożone o wartość tie\_breaker'a.
 \end{itemize}
 Dodatkowo ustawiony parametr \texttt{fuzziness="AUTO"}, chroni wyszukiwarkę przed literówkami popełnianymi przez użytkowników.
+
+\subsection{Interakcje społecznościowe: Komentarze i Oceny}
+Moduł komentarzy został zaimplementowany w celu umożliwienia użytkownikom interakcji między sobą i wymiany informacji/opinii na temat danego 
+zestawu fiszek. W początkowej fazie projektowania wymagań funkcjonalnych rozważano implementację modelu komenatrzy, pozwalającego na 
+zagnieżdżanie komentarzy aż do 10 poziomów. Niestety ze względu na ograniczenia czasowe i większą priorytetyzację innych kluczowych 
+funkcjonalności (np. wcześniej wspomniana strona publiczna), zdecydowano się na uproszczenie logiki biznesowej modułu komentarzy do 
+jednego poziomu zagnieżdżania. Takie podejście dalej zapewni możliwość dyskusji na dane tematy, znacząco upraszczając implementację.
+
+Pomimo zdecydowania się na uproszczony model modułu komentarzy, rozszerzenie funkcjonalności dalej pozostawało planem na przyszły 
+rozwój aplikacji. Z tego powodu zaimplementowano hybrydowe podejście łączące mechanizm listy sąsiedztwa (adjacency list) z 
+mechanizmem zmaterializowanej ścieżki (materialized path) opartym na rozszerzeniu PostgreSQL ltree. % \cite{13}
+Zastosowanie tego rozwiązania przyniosło wiele korzyści:
+
+\begin{itemize}
+    \item \textbf{Odporność na zmianę wymagań} -- W przypadku powrotu do oryginalnych wymagań (zagnieżdżanie komentarzy do 10 poziomów),
+    warstwa danych nie będzie wymagała żadnych modyfikacji ani migracji. Istniejące już zapytania do bazy danych wykorzystujące \texttt{path}
+    będą działały tak samo wydajnie niezależnie od głębokości drzewa komentarzy. Takie podejście pozwala na uniknięcie długu technicznego 
+    spowodowanego implementacją mniej wydajnych zapytań rekurencyjnych (Recursive CTE), które byłyby niezbędne przy zastosowaniu podejścia 
+    samej listy sąsiedztwa.
+    \item \textbf{Optymalizacja usuwania komentarzy} -- Niezależnie od ilości poziomów zagnieżdżenia usunięcie rodzica zawsze musi skutkować 
+    usunięciem wszystkich dzieci. Ltree pozwala na optymalizację tej operacji, poprzez wykonanie jednego zapytania SQL przy użyciu 
+    \texttt{descendant\_of}. Eliminuje to konieczność rekursywnego usuwania całej chierarchicznej struktury drzewa, znacznie optymalizując 
+    wydajność serwera dla dużych ilości danych.
+    \item \textbf{Pobieranie komentarzy} -- Proces pobierania komentarzy zakończony jest operacją \texttt{ORDER\_BY path}, co pozwala  na 
+    oddelegowanie odpowiedzialności sortowania komentarzy do bazy danych. Mechanizm ten jest bardziej niezawodny niż sortowanie
+    po dacie oraz zachowuje oryginalną chierarchię drzewa, co znacznie ułatwia stworzenie i wysłanie odpowiedzi do klienta.
+\end{itemize}
+
+Kluczowym wyzwaniem w hybrydowych modelach jest zachowanie synchronizacji między obiema strukturami przechowującymi dane 
+(\texttt{parent\_comment\_id} i \texttt{path}). Mimo możliwości rozwiązania problemu w warstwie logiki biznesowej poprzez 
+użycie transakcji SQL zdecydowano się oddelegować proces tworzenia i aktualizacji ścieżki bezpośrednio do warstwy danych.
+Relacyjna baza danych posiada mechanizm wyzwalacza (trigger), który pozwala na łatwe utrzymanie integralności danych. 
+Zastosowanie wyzwalacza niesie ze sobą dwie kluczowe korzyści:
+\begin{itemize}
+    \item \textbf{Minimalizacja zapytań do bazy danych (Round trip reduction)} -- Do wyliczenia ścieżki w systemach używających 
+    mapowania ORM oraz kluczy autoinkrementowanych, potrzeba id nowego rekordu, który nadawany jest przez bazę danych. Realizacja 
+    tego procesu po stronie serwera, wymaga dwóch zapytań do bazy danych. Najpierw wykonywany jest \texttt{INSERT} (w celu uzyskania ID), 
+    a następnie \texttt{UPDATE} (w celu zapisania ścieżki). Dzięki zaimplementowaniu wyzwalacza nie trzeba wtórnie wykonywać aktualizacji 
+    z poziomu aplikacji, enkapsulując całą logikę obliczania ścieżki w jednej operacji wstawienia danych.
+    \item \textbf{Zapewnienie integralności danych} -- Wykorzystanie triggera pozwala na globalizacje procesu. Oznacza to, że niezależnie 
+    od tego, czy dane wprowadzone zostały przez API serwera, migracje czy zapytania SQL, zmienna \texttt{path} zawsze będzie zaaktualizowana.
+    Takie scentralizowanie znacząco poprawia czystość i przejrzystość kodu. 
+\end{itemize} 
+
+\begin{lstlisting}[language=SQL, 
+caption={Wyzwalacz automatyzujący budowanie ścieżki}, 
+label={lst:trigger_ltree}]
+CREATE OR REPLACE FUNCTION set_comment_path() RETURNS TRIGGER AS
+DECLARE
+    parent_path ltree;
+BEGIN
+    IF NEW.parent_comment_id IS NULL THEN
+        UPDATE comments SET path = NEW.id::text::ltree WHERE id = NEW.id;
+    ELSE
+        SELECT path INTO parent_path FROM comments WHERE id = NEW.parent_comment_id;
+        UPDATE comments SET path = parent_path || NEW.id::text WHERE id = NEW.id;
+    END IF;
+    RETURN NEW;
+END;
+
+CREATE TRIGGER comment_path_trigger
+AFTER INSERT ON comments
+FOR EACH ROW EXECUTE PROCEDURE set_comment_path();
+\end{lstlisting}
+Przedstawiony powyżej algorytm (listing \ref{lst:trigger_ltree}) został zaimplementowany w języku PL/pgSQL.
+Trigger został zdefiniowany jako \texttt{AFTER INSERT}, ponieważ budowa ścieżki wymaga znajomości klucza głównego 
+danego rekordu. Działanie wyzwalacza przebiega następująco:
+\begin{itemize}
+    \item \textbf{Korzeń drzewa} -- Jeżeli pole \texttt{parent\_comment\_id} jest puste 
+    (komentarz stanowi korzeń drzewa), funkcja tworzy nową ścieżkę rzutując id rekordu na typ \texttt{ltree}. 
+    \item \textbf{Węzeł potomny} -- W przypadku węzła potomnego pobierana jest ścieżka rodzica do zmiennej \texttt{parent\_path}, 
+    a następnie dołączane jest do niej id nowego komentarza. Takie podejście przyrostowo buduje hierarchiczną strukturę komentarzy, 
+    zapewniając integralność danych.
+\end{itemize}
+
+Struktura danych dla systemu ocen została zdefiniowana wcześniej w Projekcie Systemu. Wyzwaniem implementacyjnym było stworzenie uniwersalnej logiki
+obsługującej głosy dla wszystkich typów materiałów. Serwis \texttt{VoteService} realizuje to poprzez centralną metodę \texttt{process\_vote}, która 
+zarządza oceną użytkownika niezależnie od materiału. Głównym mechanizmem implementacji jest proces przełączania głosu. Aby zapewnić dobry i intuicyjny 
+interfejs użytkownika, logika biznesowa implementuje trzy scenariusze:
+\begin{itemize}
+    \item \textbf{Dodanie głosu} -- Jeżeli użytkownik nie zagłosował jeszcze, tworzony jest nowy rekord w tabeli \texttt{Votes}.
+    \item \textbf{Zmiana głosu} -- W przypadku zmiany głosu, system aktualizuje głos, zmieniając jedynie \texttt{vote\_type}.
+    \item \textbf{Usunięcie głosu} -- Ponowne wybranie tej samej oceny skutkuje usunięciem rekordu z bazy danych (odznaczenie głosu).
+\end{itemize}
