@@ -1,8 +1,170 @@
 \chapter{Implementacja Systemu}
 \label{ch:implementacja_systemu}
 
-\section{Warstwa Prezentacji}
+Realizacja systemu, którego architekturę oraz projekt przedstawiono w poprzednim rozdziale, wymagała doboru nie tylko odpowiednich technologii, 
+ale także właściwych standardów wytwarzania oprogramowania. Ninjeszy rozdział opisuje proces implementacji poszczególnych warstw aplikacji, zaczynając 
+od interfejsu użytkownika, poprzez logikę biznesową, kończąc na konteneryzacji i telemetrii. 
 
+Aby umożliwić bezpieczne eksperymentowanie i tworzenie nowych funkcjonalności, wykorzystano system kontroli wersji Git, pozwalający na zachowanie 
+historii zmian. Cały kod źródłowy aplikacji został umieszczony w repozytorium serwisu GitHub. W repozytorium zastosowano strukturę monorepo, co oznacza 
+że kod aplikacji klienckiej i serwera znajduje się w tym samym repozytorium, ale w oddzielnych folderach. Taka organizacja kodu zapewnia centralizację projektu 
+i w przypadku jednej osoby pracującej nad kodem, znacznie przyśpiesza proces implementacji.
+
+Implementacja systemu została przeprowadzona w środowisku programistycznym Visual Studio Code. Narzędzie to wybrano ze względu na jego 
+szerokie wsparcie dla wykorzystywanych technologii oraz ogromną ilość rozszerzeń usprawniających pracę nad kodem. 
+Aby zachować spójność i jakość kodu, skonfigurowano w środowisku automatyczne formatowanie kodu.
+Kluczowym aspektem podczas tworzenia oprogramowania jest zapewnie czytelności i łatwości utrzymania aplikacji, 
+co zostało zrealizowane poprzez trzymanie się zasad czystego kodu \cite{cleancode}.
+
+\section{Warstwa Prezentacji}
+Zgodnie z założeniami projektowymi warstwa prezentacji została zaimplementowana jako aplikacja 
+typu SPA przy użyciu biblioteki React i języka TypeScript. Na wczesnym etapie implementacji, ważne 
+było sprawne przełożenie projektu interfejsu użytkownika w figmie na czytelną i skalowalną strukturę 
+kodu źródłowego (Rys \ref{fig:frontend_structure}). Aplikacja kliencka została podzielona na dwa główne 
+katalogi:
+\begin{itemize}
+    \item \texttt{src/components} -- Katalog zawierający wyłącznie interfejs użytkownika i logikę jego obsługi.
+    Wewnątrz jego znajdują się podkatalogi (np. Auth lub FlashCardSet) zawierające komponenty React, które 
+    stanowią bezpośrednie odzwierciedlenie projektu w Figmie. Komponenty te odpowiadają za rednerowanie interfejsu 
+    i obsługę interakcji z użytkownikiem.
+    \item \texttt{src/features} -- Zawiera logikę biznesową aplikacji. W nim zawierają się definicję wycinków 
+    (ang. slices) biblioteki Redux Toolkit oraz serwisy odpowiadające za komunikację z API serwera.
+\end{itemize} 
+Uzupełnieniem tej struktury jest folder \texttt{src/app} zawierający globalną konfigurację sklepu (ang. store) 
+oraz niestandardowe haki (ang. hooks). Taka organizacja kodu pozwoliła na zachowanie czytelności projektu i 
+ułatwiła jego skalowanie. 
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.25\textwidth} 
+        \dirtree{%
+        .1 /src.
+        .2 app.
+        .2 components.
+        .3 Auth.
+        .3 Common.
+        .3 FlashcardSet.
+        .3 Layouts.
+        .3 Materials.
+        .3 modals.
+        .3 Navbar.
+        .3 NewSet.
+        .3 PublicPage.
+        .3 Sidebar.
+        .3 TipTap.
+        .2 features.
+        .3 auth.
+        .3 flashcardSets.
+        .3 materials.
+        .3 publicPage.
+        .3 shares.
+        .2 App.tsx.
+        .2 main.tsx.
+        }
+    \end{minipage}
+    \caption{Wysokopoziomowa struktura katalogów warstwy prezentacji}
+    \label{fig:frontend_structure}
+\end{figure}
+
+\subsection{Hybrydowe zarządzanie stanem aplikacji}
+
+Zarządzanie stanem w nowoczesnych aplikacjach typu SPA jest kluczowym elementem decydującym o skalowalności, 
+wydajności i łatwości utrzymania systemu. Zgodnie z projektem systemu zaimplementowano hybrydowe zarządzanie stanem. 
+Sposób zarządzania stanem zależy od cyklu życia danych oraz liczby interakcji użytkownika z nimi.
+
+Globalny stan jest obsługiwany za pomocą biblioteki Redux Toolkit. Pełni on funkcję głównego magazynu dla danych 
+wymagających precyzyjnej kontroli i natychmiastowej dostępności we wszystkich komponentach aplikacji. Globalny stan 
+zarządza dwoma typami danych:
+\begin{itemize}
+    \item \textbf{Dane sesji} -- Slices takie jak \texttt{authSlice} czy \texttt{materialsSlice} przechowują 
+    informacje potrzebne do poprawnego działania interfejsu (np. informacja o zalogowaniu użytkownika lub 
+    aktualnie otwartym folderze). Interakcje użytkownika z systemem (np. proces logowania czy dodanie folderu), skutkują 
+    natychmiastową aktualizacją stanu, będącą odpowiedzią zapytania wysłanego do serwera API.
+    \item \textbf{Dane edytowalne} -- Szczegóły zestawu fiszek pobierane z API są zapisywane w \texttt{flashcardSetSlice} 
+    i traktowane przez aplikację jako kopia robocza danych. Dzięki temu wszystkie modyfikacje stanu 
+    (treści fiszek lub metadanych zestawu) odbywają się synchronicznie w aplikacji klienta, ograniczając liczbę nadmiarowych 
+    zapytań do serwera. Takie podejście zapewnia minimalizację opóźnień sieciowych, a synchronizacja zmian z bazą 
+    danych (serwerem) odbywa się dopiero w przypadku zatwierdzenia zmian przez użytkownika.
+\end{itemize}
+
+Podczas wylogowywania użytkownika zostają usuwane ciasteczka, dzięki czemu użytkownik nie ma dostępu do większości zapytań 
+API. Jako że informacja o zalogowaniu użytkownika jest przechowywana w stanie globalnym, aplikacja kliencka nadal 
+wyświetlałaby użytkownikowi widoki, do których nie miałby dostępu, co prowadziłoby do błędów.
+Aby zapewnić prawidłowe wylogowanie użytkownika, stworzono Root Reducer, który 
+w momencie wylogowywania (\texttt{logoutUser}), czyści globalny stan aplikacji do wartości początkowych, co skutecznie 
+odbiera użytkownikowi uprawnienia do wejścia w np. jego materiały. 
+
+Listing  \ref{lst:logout_user} pokazuje konfigurację store Reduxa, poprzez zaimplementowanie rootReducera.
+RootReducer pozwala na przechwycenie dowolnej akcji przed jej dotarciem do standardowych reduktorów. 
+W tym wypadku zostało to wykorzystane do przechwycenia akcji wylogowującej użytkownika (\texttt{logoutUser}),
+dzięki czemu cały stan aplikacji jest resetowany do wartości początkowych. Wyjątkiem jest status modułu 
+uwierzytelniania, który jest ustawiany na wartość \texttt{"failed"}, aby zapobiec zablokowaniu interfejsu 
+w stanie oczekiwania na ustalenie stanu sesji. Główny komponent aplikacji (Listing \ref{lst:app_tsx}) 
+wstrzymuje renderowanie widoków do momentu, aż status sesji zmieni się z domyślnego \texttt{"idle"}, 
+co w przypadku pełnego resetu stanu skutkowałoby wyświetleniem pustego ekranu, a nie ekranu logowania.
+
+\begin{lstlisting}[language=Python,
+	caption={Konfiguracja Redux z mechanizmem resetowania stanu},
+	label={lst:logout_user}]
+    const appReducer = combineReducers({
+        materials: materialsReducer,
+        auth: authReducer,
+        flashcardSet: flashcardSetReducer,
+        shares: sharesReducer,
+    });
+
+    const rootReducer = (
+        state: ReturnType<typeof appReducer> | undefined,
+        action: UnknownAction,
+    ) => {
+        // Wykrycie akcji zakonczenia wylogowania
+        if (action.type === logoutUser.fulfilled.type) {
+            // Pobranie czystego stanu poczatkowego dla 
+            // wszystkich reduktorow
+            const initialState = appReducer(undefined, action);
+            return {
+                ...initialState,
+                // Nadpisanie statusu auth na failed, aby zapobiec 
+                // ponownemu sprawdzaniu sesji
+                auth: {
+                    ...initialState.auth,
+                    status: "failed",
+                },
+            };
+        }
+        return appReducer(state, action);
+    };
+
+    export const store = configureStore({
+        reducer: rootReducer,
+    });
+\end{lstlisting} 
+
+\begin{lstlisting}[language=Python,
+caption={Mechanizm blokady renderowania aplikacji do czasu ustalenia statusu sesji},
+label={lst:app_tsx}]
+function App() {
+    const authStatus = useAppSelector((state) => state.auth.status);
+
+    if (authStatus == "loading" || authStatus == "idle") {
+        return <div className="App"></div>;
+    }
+    ...
+}
+\end{lstlisting} 
+
+Drugą podstawą hybrydowego modelu jest obsługa danych tylko do odczytu, które są niezależne od kontekstu sesji. 
+Dane te nie wymagające dodatkowej logiki biznesowej po stronie klienta, zarządzane są poprzez bibliotekę 
+TanStack Query (React Query). Automatyzuje ona proces pobierania, buforowania i inwalidacji danych. 
+
+React Query został wykorzystany w module publicznym aplikacji, gdzie wyświetlane są różne 
+rankingi zestawów (np. "Najpopularniejsze", "Najczęściej wyświetlane"). Kluczowym elementem optymalizacji
+jest konfiguracja parametru \texttt{staleTime}. Dzięki niemu zminimalizowano liczbę nadmiarowych zapytań sieciowych 
+podczas nawigacji między widokami. Mechanizm ten w pierwszej kolejności pobiera dane z pamięci podręcznej, 
+a dopiero po upłynięciu czasu zdefiniowanego w \texttt{staleTime}, wysyłane zostaje zapytanie do API, w 
+celu uaktualnienia zbuforowanych danych.
+
+\subsection{Komunikacja z serwerem i uwierzytelnianie}
 \section{Warstwa Logiki}
 Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
 frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie opisywano podział logiczny, ten rozdział 

@@ -8,8 +8,8 @@ import {
     type Comment,
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import "./Comments.css";
-import ItemActions from "../../common/ItemActions/ItemActions";
-import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
+import ItemActions from "../../Common/ItemActions/ItemActions";
+import { VoteButtons } from "../../Common/VoteButtons/VoteButtons";
 
 type CommentItemProps = {
     commentId: number;

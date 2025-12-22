@@ -11,7 +11,7 @@ import {
 } from "../../../features/flashcardSets/flashcardSetSlice";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { VoteButtons } from "../../common/VoteButtons/VoteButtons";
+import { VoteButtons } from "../../Common/VoteButtons/VoteButtons";
 import CopySetModal from "../../modals/CopySetModal";
 
 type SetHeaderProps = {

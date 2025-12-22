@@ -4,7 +4,7 @@ import "./MaterialsView.css";
 import FolderList from "./Lists/FolderList";
 import RecentSetsList from "./Lists/RecentSetsList";
 import SharedSetsList from "./Lists/SharedSetsList";
-import SearchInput from "../common/SearchInput/SearchInput";
+import SearchInput from "../Common/SearchInput/SearchInput";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
     createFolder,

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./ActionPanel.css";
-import SearchInput from "../../common/SearchInput/SearchInput";
+import SearchInput from "../../Common/SearchInput/SearchInput";
 
 type ActionPanelProps = {
     searchTerm: string;

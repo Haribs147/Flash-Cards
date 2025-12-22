@@ -9,7 +9,7 @@ import {
 } from "../../../features/materials/materialsSlice";
 import { useAppDispatch } from "../../../app/hooks";
 import { useState, useRef, useEffect } from "react";
-import ItemActions from "../../common/ItemActions/ItemActions";
+import ItemActions from "../../Common/ItemActions/ItemActions";
 
 type FolderListProps = {
     filteredItems: MaterialItem[];
