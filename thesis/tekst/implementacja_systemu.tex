@@ -119,13 +119,11 @@ co w przypadku pełnego resetu stanu skutkowałoby wyświetleniem pustego ekranu
     ) => {
         // Wykrycie akcji zakonczenia wylogowania
         if (action.type === logoutUser.fulfilled.type) {
-            // Pobranie czystego stanu poczatkowego dla 
-            // wszystkich reduktorow
+            // Pobranie poczatkowego stanu 
             const initialState = appReducer(undefined, action);
             return {
                 ...initialState,
-                // Nadpisanie statusu auth na failed, aby zapobiec 
-                // ponownemu sprawdzaniu sesji
+                // Nadpisanie statusu auth na failed
                 auth: {
                     ...initialState.auth,
                     status: "failed",
@@ -165,6 +163,73 @@ a dopiero po upłynięciu czasu zdefiniowanego w \texttt{staleTime}, wysyłane z
 celu uaktualnienia zbuforowanych danych.
 
 \subsection{Komunikacja z serwerem i uwierzytelnianie}
+Asynchroniczna komunikacja klienta z serwerem stanowi podstawę działania aplikacji typu SPA. Do komunikacji 
+z serwerem API użyto bilbioteki Axios. Została ona wybrana ponad wbudowany w JavaScript fetch ze względu na 
+możliwości konfiguracji, wbudowany obsługę formatu JSON oraz zaawansowany mechanizm przechwytywania żądań i odpowiedzi
+(ang. interceptor).
+
+W celu zapewnienia spójności i zminimalizowniu redundancji kodu skonfigurowano globalne ustawienia bilbioteki Axios. 
+Zgodnie z wymaganiami zdefiniowanymi w rozdziale \ref{ch:projekt_systemu}, komunikacja między klientem 
+a serwerem opiera się na ciasteczkach sesyjnych. Dzięki ustawieniu parametru \texttt{withCredentials} biblioteki Axios
+na \texttt{true} przeglądarka automatycznie dołącza ciasteczko z tokenem uwierzytelniającym do każdego zapytania wysyłanego do API.
+
+Kluczowym elementem warstwy komunikacji jest zapewnienie bezpieczeństwa użytkowników. Aplikacja aby zabezpieczać przed 
+atakami typu CSRF po udanym logowaniu lub odświeżeniu sesji, otrzymuje token CSRF w odpowiedzi od serwera. Token ten jest 
+przechowywany w globalnym stanie aplikacji (Redux) i automatycznie dołączany do nagłówka \texttt{X-CSRF-TOKEN} każdego żądania, co 
+pozwala serwerowi na weryfikację poprawności źródła żądania. 
+
+Największym wyzwaniem implementacyjnym w warstwie uwierzytelniania było odświeżanie sesji użytkownika. Ze względu na krótki czas życia 
+tokenu dostępu (\texttt{Access Token}), aplikacja musi go automatycznie odświeżać bez dodatkowej ingerencji użytkownika. W tym celu zaimplementowano 
+interceptor odpowiedzi (ang. Response Interceptor).
+
+Interceptor działa jako pośrednik w komunikacji między klientem a serwerem. Przechwytuje on błędy HTTP o kodzie \texttt{401} (\texttt{Unauthorized}) 
+w celu odnowienia tokenu dostępu i ponownego wysłania zapytania. Algorytm interceptora przedstawiony na listingu \ref{lst:interceptor} 
+działa następująco:
+\begin{enumerate}
+    \item Interceptor monitoruje wszystkie odpowiedzi otrzymane od serwera. W przypadku wystąpienia błędu \texttt{401} wstrzymuje 
+    wyrzucenie błędu do wyższych warstw aplikacji.
+    \item W celu zapobiegnięcia nieskończonym pętlom zapytań aplikacja sprawdza, czy błąd nie wystąpił w zapytaniu do endpointów 
+    obsługujących autoryzację (\texttt{/login}, \texttt{/register}, \texttt{/logout} czy \texttt{/refresh}). Błędy w tych zapytaniach 
+    zwracane są natychmiastowo, bez próby ponownego odświeżenia sesji.
+    \item Jeżeli warunki są spełnione, aplikacja wysyła zapytanie do endpointu \texttt{/refresh}.
+    \item W przypadku sukcesu (aktywnego tokenu odświeżania), serwer zwraca w odpowiedzi nowy token CSRF oraz odświeżony 
+    token dostępu w ciasteczku HTTP, a oryginalne zapytanie (zakończone kodem 401) jest ponawiane.
+    \item Jeżeli odświeżenie tokenu dostępu zakończy się niepowodzeniem (np. token odświeżenia już wygasł), interceptor automatycznie 
+    wylogowuje użytkownika, czyszcząc stan aplikacji.
+\end{enumerate}
+
+\begin{lstlisting}[language=Python,
+caption={Mechanizm interceptora do odświeżania sesji użytkownika},
+label={lst:interceptor}]
+export const setupAxiosInterceptor = (store: AppStore) => {
+    axios.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+            ...
+            if (
+                error.response.status === 401 &&
+                !originalRequest._retry &&
+                ...
+            ) {
+                originalRequest._retry = true;
+                try {
+                    const { csrf_token } = await refreshTokenApi();
+
+                    store.dispatch(setCsrfToken(csrf_token));
+                    originalRequest.headers["X-CSRF-TOKEN"] = csrf_token;
+                    return axios(originalRequest);
+                } catch (refreshError) {
+                    store.dispatch(logoutUser());
+                    return Promise.reject(refreshError);
+                }
+            }
+            return Promise.reject(error);
+        },
+    );
+};
+\end{lstlisting} 
+
 \section{Warstwa Logiki}
 Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
 frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie opisywano podział logiczny, ten rozdział 

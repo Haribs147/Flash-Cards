@@ -1,12 +1,12 @@
 # Fdb version 4
-["biber EE-dyplom"] 1766341845.94203 "EE-dyplom.bcf" "EE-dyplom.bbl" "EE-dyplom" 1766421399.13851 0
-  "EE-dyplom.bcf" 1766421398 109362 ec7529c7b83065e4fda383dd71f5e615 "pdflatex"
+["biber EE-dyplom"] 1766341845.94203 "EE-dyplom.bcf" "EE-dyplom.bbl" "EE-dyplom" 1766497643.65146 0
+  "EE-dyplom.bcf" 1766497643 109362 ec7529c7b83065e4fda383dd71f5e615 "pdflatex"
   "EE-dyplom.bib" 1764021010 4547 613d4efc91edaa53a65361271026a6cf ""
   (generated)
   "EE-dyplom.bbl"
   "EE-dyplom.blg"
   (rewritten before read)
-["pdflatex"] 1766421396.70976 "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" "EE-dyplom.pdf" "EE-dyplom" 1766421399.13921 0
+["pdflatex"] 1766497641.01432 "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" "EE-dyplom.pdf" "EE-dyplom" 1766497643.65216 0
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1766341125 160630 1bb9bdf02e458229b66d476dbe2efc10 ""
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1000.pk" 1762448747 20028 98b2fa5d952d4eab9a57575a309afaa5 ""
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1095.pk" 1762448748 21972 d7fa992a74c6eef8a4d701aac400554b ""
@@ -268,15 +268,15 @@
   "C:/Users/mjago/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/mjago/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
   "EE-dyplom.acr" 1763290505 698 6a69e44a091b95b9705c04f57f2b5efc ""
-  "EE-dyplom.aux" 1766421398 9980 39e28ce3dbd17df19620e33316c4a2dc "pdflatex"
+  "EE-dyplom.aux" 1766497643 10274 dcd5e8d039208076310398855537b0cb "pdflatex"
   "EE-dyplom.bbl" 1766341882 18170 04797d96c12f8dd6b3596bd1596e122e "biber EE-dyplom"
   "EE-dyplom.cls" 1762378710 25685 751782389306e8aea2c0cf1fe1281354 ""
-  "EE-dyplom.lof" 1766421398 937 d01a2a26816c41bc029b2a477f5c3d17 "pdflatex"
-  "EE-dyplom.out" 1766421398 3655 a7ebb93fcb92b1467711b6d4cfd83222 "pdflatex"
-  "EE-dyplom.run.xml" 1766421398 2438 ff01894c6f49e86ac95c80ba216ae688 "pdflatex"
+  "EE-dyplom.lof" 1766497643 937 d01a2a26816c41bc029b2a477f5c3d17 "pdflatex"
+  "EE-dyplom.out" 1766497643 3655 a7ebb93fcb92b1467711b6d4cfd83222 "pdflatex"
+  "EE-dyplom.run.xml" 1766497643 2438 ff01894c6f49e86ac95c80ba216ae688 "pdflatex"
   "EE-dyplom.sls" 1763290506 388 6a6f373649690f5fa6bbe2358f80c0fd ""
   "EE-dyplom.tex" 1766342132 11609 6166870111f27fad2400fb2f03ef00e5 ""
-  "EE-dyplom.toc" 1766421398 1770 35b71af5c1044a3eeef87daf8d01b406 "pdflatex"
+  "EE-dyplom.toc" 1766497643 1770 5ed1330fb300cf338cb8331602502e0d "pdflatex"
   "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" 1766342132 11609 6166870111f27fad2400fb2f03ef00e5 ""
   "gfx/HeadeePL.png" 1762378710 202749 f301b6dfcfb71a1b55c7488297612b46 ""
   "gfx/inzhead.png" 1762378710 88940 a74168cf5e236cda70dc1bb439b335b2 ""
@@ -287,7 +287,7 @@
   "rysunki/figma_flashcard_screen.pdf" 1763896964 100662 c41c3c599bf19ceb223738a09d3c5e76 ""
   "rysunki/figma_materials_screen.pdf" 1762808660 115049 a370057256871ffe9e7dc3020eed27a4 ""
   "tekst/glossary.tex" 1762378711 1014 8954beb18306e74888e4fac83496cd5a ""
-  "tekst/implementacja_systemu.tex" 1766421396 41592 125fb3877071c694d5da08bd25d296ed ""
+  "tekst/implementacja_systemu.tex" 1766497640 45718 624c0a592f6971421db5852a7679248a ""
   "tekst/projekt_systemu.tex" 1766251466 29891 c53bd403d6cead9c78f0194d5282102c ""
   (generated)
   "EE-dyplom.acn"
