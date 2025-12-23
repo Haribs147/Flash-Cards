@@ -94,7 +94,7 @@ Aby zapewnić prawidłowe wylogowanie użytkownika, stworzono Root Reducer, któ
 w momencie wylogowywania (\texttt{logoutUser}), czyści globalny stan aplikacji do wartości początkowych, co skutecznie 
 odbiera użytkownikowi uprawnienia do wejścia w np. jego materiały. 
 
-Listing  \ref{lst:logout_user} pokazuje konfigurację store Reduxa, poprzez zaimplementowanie rootReducera.
+Listing \ref{lst:logout_user} pokazuje konfigurację store Reduxa, poprzez zaimplementowanie rootReducera.
 RootReducer pozwala na przechwycenie dowolnej akcji przed jej dotarciem do standardowych reduktorów. 
 W tym wypadku zostało to wykorzystane do przechwycenia akcji wylogowującej użytkownika (\texttt{logoutUser}),
 dzięki czemu cały stan aplikacji jest resetowany do wartości początkowych. Wyjątkiem jest status modułu 
@@ -229,6 +229,76 @@ export const setupAxiosInterceptor = (store: AppStore) => {
     );
 };
 \end{lstlisting} 
+
+\subsection{Edytor fiszek}
+Centralnym elementem modułu tworzenia i edycji zestawów fiszek jest edytor tekstu typu WYSIWYG 
+(What You See Is What You Get). Zgodnie z projektem systemu, edytor musi umożliwiać nie tylko 
+formatowanie tekstu fiszki, ale także wstawianie multimediów i tworzenie złożonych układów.
+Omawiany wcześniej framework TipTap udostępnia edytor headless, co oznacza, że udostępnia on 
+jedynie silnik edycji tekstu a cały interfejs użytkownika musi zostać zaimplementowany przez 
+programistę. Takie podejście pozwoliło na zaimplementowanie intuicyjnego i łatwego w obsłudze 
+edytora tekstu, zgodnego z projektem w Figmie.
+
+Implementacja edytora opiera się na inicjalizacji instancji silnika TipTap za pomocą wbudowanego haka 
+\texttt{useEditor}. Dodatkowo edytor został skonfigurowany przekazując mu tablicę rozszerzeń, 
+które determinują funkcjonalności przetwarzania tekstu. Oprócz standardowego zestawu rozszerzeń 
+\texttt{StarterKit} wykorzystano także moduły \texttt{Underline}, \texttt{Highlight} i \texttt{TextAlign}, 
+które znacznie zwiększają możliwości edycji tekstu przez użytkownika.
+
+Obsługa edytora przez użytkownika odbywa się za pomocą komponentu \texttt{MenuBar.tsx}. Jako że TipTap 
+nie udostępnia interfejsu użytkownika, MenuBar obsługuję interakcję użytkownika z silnikiem TipTap. 
+Każdy przycisk znajdujący się na pasku narzędzi wywołuje sekwencję metod na obiekcie edytora za pomocą 
+łańcucha poleceń: \texttt{editor.chain().focus().toggleBold().run()}. Dzięki użyciu metody \texttt{focus}, 
+edytor utrzymuje pole tekstowe jako aktywne, nawet po kliknięciu przycisku formatowania (np. pogrubiania), 
+co znacznie poprawia pracę nad tekstem.
+
+Największym wyzwaniem implementacyjnym w tym module było stworzenie funkcjonalności dodawania obrazów 
+i tworzenia ich niestandardowych układów. TipTap udostępnia rozszerzenie \texttt{Image}, które pozwala na 
+wstawienie obrazu do edytora tekstowego. Pozwala ono jednak tylko na wyświetlanie obrazków na podstawie 
+podanego adresu URL, nie zapewniając interfejsu do wyboru plików ani procesu przesłania plików na serwer.
+W celu rozwiązania tego problemu stworzono niestandardowe rozszerzenie \texttt{CustomImage}, wykorzystujące 
+mechanizm React Node View. Mechanizm ten pozwala na wstrzyknięcie interaktywnego komponentu React 
+(\texttt{InteractiveImage}) w strukturę widoku dokumentu (DOM), zastępując domyślną, statyczną reprezentację 
+węzła obrazu.
+
+Komponent \texttt{InteractiveImage} początkowo wyświetla przycisk pozwalający na wstawienie pliku. Po wybraniu 
+obrazu przez użytkownika, plik jest asynchronicznie przesyłany na serwer, który zwraca publiczny adres URL zasobu. 
+Dopiero po otrzymaniu odpowiedzi od serwera atrybut src jest aktualizowany o adres URL otrzymany od serwera, 
+co powoduje natychmiastowe wyświetlenie obrazu w miejscu przycisku.
+
+Aby umożliwić użytkownikom tworzenie fiszek o niestandardowym formacie, stworzono niestandardowe rozszerzenie 
+\texttt{ImageGrid}. \texttt{ImageGrid} pozwala na tworzenie rzędu obrazków z możliwością konfiguracji liczby kolumn.
+Kod rozszerzenia został przedstawiony na listingu \ref{lst:image_grid}.
+
+\begin{lstlisting}[language=python, 
+caption={Fragment autorskiego rozszerzenia ImageGrid}, 
+label={lst:image_grid}]
+export const ImageGrid = Node.create({
+    name: "imageGrid",
+    group: "block",
+    content: "image+",
+    draggable: true,
+
+    ...
+
+    renderHTML({ HTMLAttributes }) {
+        return [
+            "div",
+            mergeAttributes(HTMLAttributes, {
+                "data-type": "image-grid",
+                "data-cols": HTMLAttributes.cols,
+                style: `--cols: ${HTMLAttributes.cols}`,
+            }),
+            0,
+        ];
+    },
+});
+\end{lstlisting}
+
+Rozszerzenie zezwala tylko na zawartość \texttt{image+} co wymusza, aby wewnątrz siatki znajdowały się tylko i wyłącznie obrazy.
+Kluczowym elementem implementacji jest metoda \texttt{renderHTML}, która dynamicznie tworzy div ze wstrzykniętą zmienną CSS \texttt{--cols}.
+Dzięki temu zaimplementowany CSS: \texttt{grid-template-columns: repeat(var(--cols), 1fr)} automatycznie dostosowuje układ siatki 
+bez konieczności wykonywania dodatkowych obliczeń po stronie JavaScriptu.
 
 \section{Warstwa Logiki}
 Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
