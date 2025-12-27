@@ -36,8 +36,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Flashcard_backend", lifespan=lifespan)
 
-# This setup telemetry has to be here as the FastAPI instrumentor for telemtry doesn't work in the lifespan otherwise
-setup_telemetry(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"], 
@@ -63,3 +61,6 @@ app.include_router(sets.router)
 app.include_router(shares.router)
 app.include_router(comments.router)
 app.include_router(media.router)
+
+# This setup telemetry has to be here as the FastAPI instrumentor for telemtry doesn't work in the lifespan otherwise
+setup_telemetry(app)

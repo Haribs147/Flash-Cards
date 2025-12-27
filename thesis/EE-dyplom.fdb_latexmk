@@ -1,12 +1,12 @@
 # Fdb version 4
-["biber EE-dyplom"] 1766341845.94203 "EE-dyplom.bcf" "EE-dyplom.bbl" "EE-dyplom" 1766515109.27681 0
-  "EE-dyplom.bcf" 1766515108 109362 ec7529c7b83065e4fda383dd71f5e615 "pdflatex"
+["biber EE-dyplom"] 0 "EE-dyplom.bcf" "EE-dyplom.bbl" "EE-dyplom" 1766845912.34909 -1
+  "EE-dyplom.bcf" 1766845911 109429 4e262733b0047329ed13fe464daec6f9 "pdflatex"
   "EE-dyplom.bib" 1764021010 4547 613d4efc91edaa53a65361271026a6cf ""
   (generated)
   "EE-dyplom.bbl"
   "EE-dyplom.blg"
   (rewritten before read)
-["pdflatex"] 1766515106.802 "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" "EE-dyplom.pdf" "EE-dyplom" 1766515109.2775 0
+["pdflatex"] 1766845909.64302 "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" "EE-dyplom.pdf" "EE-dyplom" 1766845912.34981 0
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1766341125 160630 1bb9bdf02e458229b66d476dbe2efc10 ""
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1000.pk" 1762448747 20028 98b2fa5d952d4eab9a57575a309afaa5 ""
   "C:/Users/mjago/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1095.pk" 1762448748 21972 d7fa992a74c6eef8a4d701aac400554b ""
@@ -268,27 +268,28 @@
   "C:/Users/mjago/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/mjago/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
   "EE-dyplom.acr" 1763290505 698 6a69e44a091b95b9705c04f57f2b5efc ""
-  "EE-dyplom.aux" 1766515108 10662 9e270f9b3ee73b3019e00d35dd578080 "pdflatex"
-  "EE-dyplom.bbl" 1766341882 18170 04797d96c12f8dd6b3596bd1596e122e "biber EE-dyplom"
+  "EE-dyplom.aux" 1766845911 11389 2afba900f07b93e6412a5af65f431ead "pdflatex"
+  "EE-dyplom.bbl" 1766842309 18170 04797d96c12f8dd6b3596bd1596e122e "biber EE-dyplom"
   "EE-dyplom.cls" 1762378710 25685 751782389306e8aea2c0cf1fe1281354 ""
-  "EE-dyplom.lof" 1766515108 937 d01a2a26816c41bc029b2a477f5c3d17 "pdflatex"
-  "EE-dyplom.out" 1766515108 3785 c446745ad07a552ea90b4fd6626fbfde "pdflatex"
-  "EE-dyplom.run.xml" 1766515108 2438 ff01894c6f49e86ac95c80ba216ae688 "pdflatex"
+  "EE-dyplom.lof" 1766845912 1063 b2d08f3aa3ad965a3eaef74a05161203 "pdflatex"
+  "EE-dyplom.out" 1766845911 4286 f1041535679a48f5e630091575fd5483 "pdflatex"
+  "EE-dyplom.run.xml" 1766845912 2438 ff01894c6f49e86ac95c80ba216ae688 "pdflatex"
   "EE-dyplom.sls" 1763290506 388 6a6f373649690f5fa6bbe2358f80c0fd ""
   "EE-dyplom.tex" 1766342132 11609 6166870111f27fad2400fb2f03ef00e5 ""
-  "EE-dyplom.toc" 1766515108 1854 f17c08cc967e006d8469c0ffe53d20d8 "pdflatex"
+  "EE-dyplom.toc" 1766845912 2120 43583ae851963382ea3b0934a6ed5402 "pdflatex"
   "c:/Users/mjago/studia/Inzynierka/Flash-Cards/thesis/EE-dyplom.tex" 1766342132 11609 6166870111f27fad2400fb2f03ef00e5 ""
   "gfx/HeadeePL.png" 1762378710 202749 f301b6dfcfb71a1b55c7488297612b46 ""
   "gfx/inzhead.png" 1762378710 88940 a74168cf5e236cda70dc1bb439b335b2 ""
   "rysunki/Use_case_diagram_thesis.pdf" 1762612328 36831 f4513e4f8361b9d5bb46a00bc95f4983 ""
-  "rysunki/architecture_diagram_wieksze_czcionki.pdf" 1762805913 82614 61f90d5aaa43f57231231266c1910ef4 ""
+  "rysunki/architecture_diagram_wieksze_czcionki_v2.pdf" 1766845785 83600 af2aae54345f60a7a3b771f132d58db1 ""
   "rysunki/backend.pdf" 1763293846 27651 09a38ac15534883b2282df47c4ed6d67 ""
   "rysunki/database_erd_diagram.png" 1762887732 70913 ed5a60c6d35656db84db289fa3d530cd ""
+  "rysunki/docker_desktop.png" 1766842934 120442 cd3aaab9ccf7c1eeef35c5ad88bc7689 ""
   "rysunki/figma_flashcard_screen.pdf" 1763896964 100662 c41c3c599bf19ceb223738a09d3c5e76 ""
   "rysunki/figma_materials_screen.pdf" 1762808660 115049 a370057256871ffe9e7dc3020eed27a4 ""
   "tekst/glossary.tex" 1762378711 1014 8954beb18306e74888e4fac83496cd5a ""
-  "tekst/implementacja_systemu.tex" 1766515103 50122 e8fbfc36daf5a781c6dcef5cae72f196 ""
-  "tekst/projekt_systemu.tex" 1766251466 29891 c53bd403d6cead9c78f0194d5282102c ""
+  "tekst/implementacja_systemu.tex" 1766845345 52675 f979bde5c30178c0b67080936d190ffc ""
+  "tekst/projekt_systemu.tex" 1766845909 29894 9335140e4625db5568c5000989e47b14 ""
   (generated)
   "EE-dyplom.acn"
   "EE-dyplom.aux"

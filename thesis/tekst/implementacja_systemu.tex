@@ -700,3 +700,42 @@ interfejs użytkownika, logika biznesowa implementuje trzy scenariusze:
     \item \textbf{Zmiana głosu} -- W przypadku zmiany głosu, system aktualizuje głos, zmieniając jedynie \texttt{vote\_type}.
     \item \textbf{Usunięcie głosu} -- Ponowne wybranie tej samej oceny skutkuje usunięciem rekordu z bazy danych (odznaczenie głosu).
 \end{itemize}
+
+\section{Konteneryzacja i telemetria}
+
+Ostatnim, lecz kluczowym etapem było przygotowanie środowiska wykonawczego i monitorowania aplikacji. 
+Z uwagi na złożoność architektury, składającej się z dużej liczby komunikujących się ze sobą usług 
+(baza danych, silnik wyszukiwania, magazyn plików, itp.) postanowiono całkowicie skonteneryzować rozwiązanie i 
+wdrożyć zaawansowaną telemetrię.
+
+\subsection{Konteneryzacja środowiska}
+Skonteneryzowanie zapewnia zachowanie spójności środowiska uruchomieniowego oraz znacznie ułatwia późniejszą 
+skalowalność horyzontalną. Do zarządzania kontenerami wykorzystano platformę Docker \cite{docker_docs} i 
+narzędzie Docker Compose do ich definiowania oraz uruchamiania. Plik konfiguracyjny (\texttt{docker-compose.yml}) 
+definiuje pełny stos aplikacji, zgodny z zaprojektowaną architekturą przedstawioną na rysunku \ref{rys:architecture_diagram}.
+
+Poprawność konfiguracji i uruchomienia wszystkich serwisów zweryfikowano przy użyciu aplikacji Docker Desktop, co 
+przedstawia rysunek \ref{rys:docker_desktop}.
+
+\begin{figure}
+    \centering \includegraphics[width=0.85\linewidth]{docker_desktop.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Uruchomione kontenery systemu w Docker Desktop}
+	\label{rys:docker_desktop}
+\end{figure}
+
+Widoczne na rysunku \ref{rys:docker_desktop} kontenery odpowiadają poszczególnym warstwom systemu:
+\begin{itemize}
+    \item \textbf{flashcards-frontend} -- Aplikacja kliencka dostępna na porcie 5173.
+    \item \textbf{flashcards-backend} -- Serwer API aplikacji działający na porcie 8000.
+    \item \textbf{my-postgres-db i elasticsearch} -- Baza danych i silnik wyszukiwania. Komunikują się one z serwerem 
+    wewnątrz wyizolowanej sieci Docker, wystawiając swoje porty jedynie dla celów administracyjnych.
+    \item \textbf{minio-container} -- Magazyn obiektów, udostępniający dwa porty: 9000 (obsługujący API serwera) oraz 
+    9001 (interfejs graficzny administratora). 
+    \item \textbf{apm-server i kibana} -- Narzędzia do telemetrii. APM Server odpowiada za gromadzenie śladów i metryk 
+    aplikacji, a Kibana udostępnia interfejs graficzny do ich wizualizacji.
+\end{itemize}
+
+Wykorzystanie Docker Compose znacznie ułatwiło testowanie i wdrażanie aplikacji. Dzięki niemu komunikacja 
+sieciowa między kontenerami odbywa się automatycznie po nazwach serwisów, co eliminuje konieczność ręcznej konfiguracji adresów IP.
+
+\subsection{Telemetria}
