@@ -739,3 +739,95 @@ Wykorzystanie Docker Compose znacznie ułatwiło testowanie i wdrażanie aplikac
 sieciowa między kontenerami odbywa się automatycznie po nazwach serwisów, co eliminuje konieczność ręcznej konfiguracji adresów IP.
 
 \subsection{Telemetria}
+Podstawą skutecznego działania złożonych systemów jest proste diagnozowanie błędów oraz problemów wydajnościowych.
+Logowanie samych zdarzeń często okazuje się niewystarczające, 
+dlatego zdecydowano się na wprowadzenie mechanizmu dokładnego monitorowania aplikacji.
+Aby to zapewnić, zaimplementowano mechanizm telemetrii oparty na standardzie OpenTelemetry. Pozwala on na generowanie, zbieranie 
+i eksportowanie śladów (ang. traces), metryk oraz logów niezależnie od narzędzia wykorzystywanego do ich analityki, co pozytywnie wpływa 
+na elastyczność programowanej aplikacji.
+
+Implementacja telemetrii dla serwera API opiera się na wykorzystaniu mechanizmu auto-instrumentacji, który pozwala na 
+automatyczne przechwytywanie zdarzeń z głównych bibliotek bez konieczności dodatkowej modyfikacji kodu logiki biznesowej.
+W systemie skonfigurowano trzy kluczowe instrumentatory:
+\begin{itemize}
+    \item \textbf{FastAPIInstrumentor} -- Jest odpowiedzialny za śledzenie przychodzących zapytań HTTP, mierzenie czasu ich 
+    wykonania, przechwytywanie kodów odpowiedzi i błędów na serwerze. 
+    \item \textbf{SQLAlchemyInstrumentor} -- Nadzoruje zapytania do relacyjnej bazy danych (PostgreSQL), co pozwala na dokładną 
+    analizę czasu wykonywania poszczególnych zapytań SQL.
+    \item \textbf{ElasticsearchInstrumentor} -- Monitoruje zapytania do wyszukiwarki pełnotekstowej (ElasticSearch), co jest kluczowe 
+    dla monitorowania modułu publicznego wyszukiwania materiałów. 
+\end{itemize}
+
+Telemetria aplikacji jest zarządzana przez centralny obiekt \texttt{TracerProvider}, który odpowiada za konfigurację 
+i rejestrację procesorów. Podłączony do niego procesor wsadowy (\texttt{BatchSpanProcessor}) buforuje i przygotowywuje 
+dane telemetryczne (ślady i metryki) do wysłania. Za przesył danych do serwera APM odpowiada instacja klasy 
+\texttt{OTLPSpanExporter}, która przesyła dane przy użyciu protokołu OTLP.
+Cały proces konfiguracji telemetrii został przedstawiony na listingu \ref{lst:opentelemetry_config}.
+
+\begin{lstlisting}[language=python, 
+caption={Konfiguracja OpenTelemetry}, 
+label={lst:opentelemetry_config}]
+def setup_telemetry(app):
+    resource = Resource(attributes={
+        "service.name": "Flashcard_backend"
+    })
+
+    provider = TracerProvider(resource=resource)
+
+    exporter = OTLPSpanExporter(endpoint="http://apm-server:8200/v1/traces")
+
+    processor = BatchSpanProcessor(exporter)
+    provider.add_span_processor(processor)
+
+    trace.set_tracer_provider(provider)
+
+    FastAPIInstrumentor.instrument_app(app)
+    SQLAlchemyInstrumentor().instrument(engine=engine)
+    ElasticsearchInstrumentor().instrument()
+\end{lstlisting}
+
+Zaimplementowanie tak szczegółowego monitorowania serwera pozwoliło na 
+łatwe zweryfikowanie wydajności aplikacji. Rysunek \ref{rys:telemetry_post} 
+przedstawia ślad zapytania odpowiedzialnego za utworzenie nowego zestawu 
+fiszek (\texttt{POST /sets}). Wykres ten 
+przedstawia sekwencję operacji na relacyjnej bazie danych PostgreSQL, które łącznie zajmują 
+około 236 ms, co odpowiada całkowitemu czasowi obsługi zapytania. 
+
+Co istotne, możemy zaobserwować, iż po wysłaniu 
+odpowiedzi do klienta rozpoczęło się kolejne zapytanie do bazy danych, a następnie operacja w ElasticSearch.
+Potwierdza to poprawność implementacji asynchronicznego przetwarzania tagów, gdzie proces ten 
+wykonywany jest przy pomocy zadań w tle. Polega on na:
+\begin{enumerate}
+    \item Pobraniu zawartości zestawu fiszek (Pierwszy SELECT od razu po odesłaniu odpowiedzi do klienta).
+    \item Wysłaniu zapytania do zewnętrznego API Google Gemini w celu wygenerowania tagów.
+    \item Pobraniu informacji o właścicielu zestawu (Drugi SELECT po czasie oczekiwania na API).
+    \item Zapisaniu danych w ElasticSearch.
+\end{enumerate}
+Dzięki przeniesieniu tego procesu do zadań w tle czas oczekiwania użytkownika na odpowiedź został skrócony 
+o około 2.5 sekundy. Zgodnie z oczekiwaniami najbardziej czasochłonną operacją 
+w procesie generowania tagów było zapytanie do modelu Google Gemini, które zajęło aż 2.4 sekundy (96 procent całej operacji).
+ 
+\begin{figure}
+    \centering \includegraphics[width=1\linewidth]{telemetry_post_set.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Uruchomione kontenery systemu w Docker Desktop}
+	\label{rys:telemetry_post}
+\end{figure}
+
+% \begin{figure}
+%     \centering \includegraphics[width=1\linewidth]{telemetry_main_page.png} % 0.618 to złoty podział, bardzo dobra szerokość
+% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
+% 	\label{rys:docker_desktop}
+% \end{figure}
+
+% \begin{figure}
+%     \centering \includegraphics[width=1\linewidth]{telemetry_get_set2.png} % 0.618 to złoty podział, bardzo dobra szerokość
+% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
+% 	\label{rys:docker_desktop}
+% \end{figure}
+
+% \begin{figure}
+%     \centering \includegraphics[width=1\linewidth]{telemetry_get_set_better.png} % 0.618 to złoty podział, bardzo dobra szerokość
+% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
+% 	\label{rys:docker_desktop}
+% \end{figure}
+
