@@ -70,13 +70,14 @@ def update_set(
 @router.get("/sets/{set_id}", response_model=FlashcardSetOut)
 def get_set(
     set_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user),
     set_service: FlashcardSetService = Depends(FlashcardSetService),
     material_service: MaterialService = Depends(MaterialService)
 ):
     try:
-        return set_service.get_full_set_details(db, set_id, current_user, material_service)
+        return set_service.get_full_set_details(db, set_id, current_user, material_service, background_tasks)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.detail)
     except PermissionDeniedError as e:

@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from elasticsearch import Elasticsearch
+from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
@@ -9,6 +10,8 @@ from app.external.gemini import generate_tags
 from app.repositories import comment_repository, elastic_repository, flashcard_set_repository, material_repository, share_repository, user_repository, vote_repository
 from app.services.exceptions import NotFoundError, PermissionDeniedError
 from app.services.material_service import MaterialService
+from opentelemetry import trace  # <--- 1. Import
+tracer = trace.get_tracer(__name__)
 
 class FlashcardSetService:
     def get_full_set_details(
@@ -16,7 +19,8 @@ class FlashcardSetService:
         db: Session,
         set_id: int,
         current_user: User | None,
-        material_service: MaterialService
+        material_service: MaterialService,
+        background_tasks: BackgroundTasks,
     ) -> FlashcardSetOut:
         try:
             set_material = material_service.check_permission(
@@ -54,6 +58,12 @@ class FlashcardSetService:
             user_id_for_logs = current_user.id
 
         comments_data = comment_repository.get_comments_for_set(db, set_id, user_id_for_logs)
+        
+        # background_tasks.add_task(
+        #     elastic_repository.log_view_event,
+        #     set_id=set_id,
+        #     user_id=user_id_for_logs,
+        # )
         elastic_repository.log_view_event(set_id=set_id, user_id=user_id_for_logs)
 
         return FlashcardSetOut(
@@ -159,11 +169,13 @@ class FlashcardSetService:
             
             combined_content = " ".join(flashcard_content)
 
-            tags = generate_tags(
-                name=set_material.name,
-                description=flashcard_set.description,
-                flashcards_content=combined_content,
-            )
+            with tracer.start_as_current_span("gemini_generate_tags") as span:
+                span.set_attribute("content_length", len(combined_content))
+                tags = generate_tags(
+                    name=set_material.name,
+                    description=flashcard_set.description,
+                    flashcards_content=combined_content,
+                )
 
             if not tags:
                 print(f"No tags generated for set: {set_id}")
@@ -179,8 +191,9 @@ class FlashcardSetService:
                 "creator_email": owner.email if owner else "Unknown",
                 "created_at": set_material.created_at,
             }
-            
+
             elastic_repository.index_set_tags(set_id, document)
+
         except Exception as e:
             print(f"BG Task Error: {e}")
         finally:

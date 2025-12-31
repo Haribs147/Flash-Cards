@@ -739,7 +739,7 @@ Wykorzystanie Docker Compose znacznie ułatwiło testowanie i wdrażanie aplikac
 sieciowa między kontenerami odbywa się automatycznie po nazwach serwisów, co eliminuje konieczność ręcznej konfiguracji adresów IP.
 
 \subsection{Telemetria}
-Podstawą skutecznego działania złożonych systemów jest proste diagnozowanie błędów oraz problemów wydajnościowych.
+Podstawą skutecznego działania złożonych systemów jest możliwość prostego diagnozowanie błędów oraz problemów wydajnościowych.
 Logowanie samych zdarzeń często okazuje się niewystarczające, 
 dlatego zdecydowano się na wprowadzenie mechanizmu dokładnego monitorowania aplikacji.
 Aby to zapewnić, zaimplementowano mechanizm telemetrii oparty na standardzie OpenTelemetry. Pozwala on na generowanie, zbieranie 
@@ -755,12 +755,12 @@ W systemie skonfigurowano trzy kluczowe instrumentatory:
     \item \textbf{SQLAlchemyInstrumentor} -- Nadzoruje zapytania do relacyjnej bazy danych (PostgreSQL), co pozwala na dokładną 
     analizę czasu wykonywania poszczególnych zapytań SQL.
     \item \textbf{ElasticsearchInstrumentor} -- Monitoruje zapytania do wyszukiwarki pełnotekstowej (ElasticSearch), co jest kluczowe 
-    dla monitorowania modułu publicznego wyszukiwania materiałów. 
+    do monitorowania modułu publicznego wyszukiwania materiałów. 
 \end{itemize}
 
 Telemetria aplikacji jest zarządzana przez centralny obiekt \texttt{TracerProvider}, który odpowiada za konfigurację 
-i rejestrację procesorów. Podłączony do niego procesor wsadowy (\texttt{BatchSpanProcessor}) buforuje i przygotowywuje 
-dane telemetryczne (ślady i metryki) do wysłania. Za przesył danych do serwera APM odpowiada instacja klasy 
+i rejestrację procesorów. Podłączony do niego procesor wsadowy (\texttt{BatchSpanProcessor}) buforuje i przygotowuje 
+dane telemetryczne (ślady i metryki) do wysłania. Za przesył danych do serwera APM odpowiada instancja klasy 
 \texttt{OTLPSpanExporter}, która przesyła dane przy użyciu protokołu OTLP.
 Cały proces konfiguracji telemetrii został przedstawiony na listingu \ref{lst:opentelemetry_config}.
 
@@ -787,32 +787,92 @@ def setup_telemetry(app):
 \end{lstlisting}
 
 Zaimplementowanie tak szczegółowego monitorowania serwera pozwoliło na 
-łatwe zweryfikowanie wydajności aplikacji. Rysunek \ref{rys:telemetry_post} 
+łatwe zweryfikowanie wydajności aplikacji. Rysunek \ref{rys:telemetry_post_set} 
 przedstawia ślad zapytania odpowiedzialnego za utworzenie nowego zestawu 
 fiszek (\texttt{POST /sets}). Wykres ten 
 przedstawia sekwencję operacji na relacyjnej bazie danych PostgreSQL, które łącznie zajmują 
-około 236 ms, co odpowiada całkowitemu czasowi obsługi zapytania. 
+około 71 ms, co odpowiada całkowitemu czasowi obsługi zapytania. 
 
 Co istotne, możemy zaobserwować, iż po wysłaniu 
-odpowiedzi do klienta rozpoczęło się kolejne zapytanie do bazy danych, a następnie operacja w ElasticSearch.
+odpowiedzi do klienta rozpoczął się proces generowania tagów dla zestawu fiszek.
 Potwierdza to poprawność implementacji asynchronicznego przetwarzania tagów, gdzie proces ten 
 wykonywany jest przy pomocy zadań w tle. Polega on na:
 \begin{enumerate}
     \item Pobraniu zawartości zestawu fiszek (Pierwszy SELECT od razu po odesłaniu odpowiedzi do klienta).
     \item Wysłaniu zapytania do zewnętrznego API Google Gemini w celu wygenerowania tagów.
-    \item Pobraniu informacji o właścicielu zestawu (Drugi SELECT po czasie oczekiwania na API).
+    \item Pobraniu informacji o właścicielu zestawu.
     \item Zapisaniu danych w ElasticSearch.
 \end{enumerate}
 Dzięki przeniesieniu tego procesu do zadań w tle czas oczekiwania użytkownika na odpowiedź został skrócony 
-o około 2.5 sekundy. Zgodnie z oczekiwaniami najbardziej czasochłonną operacją 
-w procesie generowania tagów było zapytanie do modelu Google Gemini, które zajęło aż 2.4 sekundy (96 procent całej operacji).
+o około 2.51 sekundy. Zgodnie z oczekiwaniami, najbardziej czasochłonną operacją 
+w procesie generowania tagów było zapytanie do modelu Google Gemini, które zajęło aż 99.56 procent całej operacji.
  
 \begin{figure}
-    \centering \includegraphics[width=1\linewidth]{telemetry_post_set.png} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Uruchomione kontenery systemu w Docker Desktop}
-	\label{rys:telemetry_post}
+    \centering \includegraphics[width=1\linewidth]{telemetry_post_set_with_gemini.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Ślad procesu tworzenia zestawu fiszek}
+	\label{rys:telemetry_post_set}
 \end{figure}
 
+OpenTelemetry oprócz automatycznej instrumentacji pozwala na tworzenie własnych zakresów pomiarowych (ang. \texttt{custom spans}). 
+Dzięki nim możemy w łatwy sposób uzyskać informacje o czasie wykonywania zapytań do zewnętrznych API, co zostało przedstawione 
+na rysunku \ref{rys:telemetry_post_set} (ślad \texttt{gemini\_generate\_tags}). Niestandardowe ślady przydatne są 
+także w przypadku serwisów, które nie mają zaimplementowanej automatycznej instrumentacji lub operacji obciążających procesor (CPU-bound).
+Zostały one także zastosowane w module obsługi multimediów \texttt{MediaService}, odpowiedzialnym za przesyłanie i przetwarzanie 
+obrazów użytkownika. 
+
+Proces przesłania składa się z dwóch mierzalnych operacji:
+\begin{enumerate}
+    \item Przetworzenie obrazu przy pomocy biblioteki PIL (operacja CPU-bound).
+    \item Wysłanie przetworzonego pliku do magazynu danych Minio (operacja I/O-bound).
+\end{enumerate}
+
+Do zaimplementowania niestandardowych śladów widocznych na rysunku \ref{rys:telemetry_post_set} i \ref{rys:telemetry_upload_file} wykorzystano 
+obiekt \texttt{tracer}. Dodatkowo do śladu \texttt{pil\_image\_processing} dodano atrybut \texttt{image.size\_bytes}, który pozwala na łatwą 
+analizę korelacji wielkości pliku z czasem jego przetwarzania. 
+% Implementację manulanych spanów wraz z dodaniem atrybytu \texttt{image.size\_bytes} przedstawia listing \ref{lst:manual_instrumentation}.
+
+% \begin{lstlisting}[language=python, 
+% caption={Implementacja niestandardowych śladów w serwisie multimediów}, 
+% label={lst:manual_instrumentation}]
+% tracer = trace.get_tracer(__name__)
+
+% class MediaService:
+%     async def upload_image(self, file: UploadFile) -> dict:
+%         image_bytes = await file.read()
+        
+%         try:
+%             with tracer.start_as_current_span(
+%                 "pil_img_processing"
+%             ) as span:
+%                 span.set_attribute(
+%                     "image.size_bytes", 
+%                     len(image_bytes)
+%                 )
+%                 (sanitized_image, 
+%                 img_format, 
+%                 mime_type) = validate_and_sanitize_img(image_bytes)
+%         except Exception as e:
+%             raise ValidationError(str(e.detail))
+
+%         with tracer.start_as_current_span("upload_to_minio"):
+%             image_url = minio_repository.upload_image(
+%                 sanitized_image, 
+%                 img_format, mime_type
+%             )
+        
+%         return {"url": image_url}
+% \end{lstlisting}
+
+Całkowity czas obsługi zapytania \texttt{POST/upload-image} wynosi zaledwie 12 ms.
+Wykres wyraźnie ukazuje dysproporcję między czasem operacji CPU-bound (span \texttt{pil\_image\_processing} -- około 1.1 ms) oraz I/O-bound
+(span \texttt{upload\_to\_minio} -- około 5.8 ms). Dzięki temu można stwierdzić, że większa optymalizacja kodu Python, nie przyniesie dużych korzyści, a potencjalne 
+udoskolanienia powinny być kierowane w stronę sieciowej infrastruktury.
+
+\begin{figure}
+    \centering \includegraphics[width=1\linewidth]{telemetry_upload_file.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Ślad procesu obsługi multimediów}
+	\label{rys:telemetry_upload_file}
+\end{figure}
 % \begin{figure}
 %     \centering \includegraphics[width=1\linewidth]{telemetry_main_page.png} % 0.618 to złoty podział, bardzo dobra szerokość
 % 	\caption{Uruchomione kontenery systemu w Docker Desktop}
