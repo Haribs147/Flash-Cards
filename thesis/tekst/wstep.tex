@@ -1,9 +1,164 @@
 \chapter{Wstęp}
 \label{ch:wstep}
 
-\section{Wprowadzenie do problematyki}
-\section{Analiza porównawcza}
-\section{Cel i zakres pracy}
+Nauka jest nieodłącznym procesem życia każdego człowieka. Szybki rozwój nowych technologii w ostatnich dekadach znacząco zmienił podejście 
+społeczeństwa do edukacji. Nastąpił gwałtowny przeskok z papierowych, tradycyjnych nośników wiedzy na łatwo dostępne cyfrowe rozwiązania. 
+Proces ten, określany mianem cyfrowej transformacji edukacji, wymusił na społeczeństwie poszukiwanie nowych, 
+bardziej efektywnych metod zarządzania wiedzą i narzędzi do jej gromadzenia.
+
+Współczesny uczeń musi być w stanie przyswoić dużą ilość wiedzy w ograniczonym czasie. Tradycyjne metody nauki, opierające się na tworzeniu 
+monotonnych, ręcznie zapisanych notatek, mogą okazać się nieskuteczne w zależności od rodzaju przyswajanego materiału. W przypadku nauki 
+słówek, definicji czy dat, coraz większą popularność zyskują metody dydaktyczne polegające na aktywnym powtarzaniu nabytej wiedzy. Jednym z 
+najczęściej używanych i najskuteczniejszych sposobów jest nauka z samodzielnie przygotowanych fiszek. Manualny proces wykonywania fiszek ma 
+jednak też swoje wady. Jest on dosyć czasochłonny, a nauka z wyciętych kartek jest niepraktyczna i niewygodna.
+
+Odpowiedzą na te problemy, jest cyfryzacja zestawów fiszek oraz dostarczenie narzędzi usprawniających ich zarządanie. Głównym celem niniejszej 
+pracy jest zaprojektowanie i zaimplementowanie nowoczesnej aplikacji internetowej, która eliminuje ograniczenia fizycznych zestawów fiszek.
+Stworzony system oferuje zaawansowany edytor do tworzenia fiszek oraz możliwości kategoryzacji i współdzielenia zgromadzonej wiedzy.
+
+Realizacja tak zdefiniowanego celu objęła pełny cykl wytwarzania oprogramowania (podejście End-to-End), od analizy wymagań i projektu systemu, 
+poprzez implementację i przygotowanie środowiska uruchomieniowego oraz telemetrii. Rezultatem jest kompletny system oparty na modelu 
+klient-serwer. Warstwa prezentacji została zaimplementowana jako aplikacja typu Single Page Application przy użyciu biblioteki React, 
+natomiast serwer w języku Python przy wykorzystaniu frameworka FastAPI. Całość została skonteneryzowana w celu zapewnienia spójnosci środowiska 
+oraz ułatwienia przyszłego skalowania i wdrażania aplikacji
+
+\section{Psychologiczne aspekty zapamiętywania}
+
+Aby wyjaśnić, dlaczego stosowanie fiszek w edukacji jest tak wydajne, należy odwołać się do podstawowych badań z zakresu psychologii poznawczej. 
+Kluczowe jest zrozumienie różnicy między biernym, a aktywnym przyswajaniem wiedzy. Tradycyjne bierne metody dydaktyczne, polegające na 
+wielokrotnym czytaniu notatek lub podręczników, często prowadzą do zjawiska iluzji kompetencji (ang. illusion of competence). 
+Zjawisko to polega na fałszywym przekonaniu o umiejętności samodzielnego odtworzenia materiału z głowy, po jedynie kilkukrotnym 
+jego przeczytaniu \cite{brown2014make}. W rzeczywistości jednak cała wiedza często pozostaje jedynie w pamięci krótkotrwałej, czyniąc ją ulotną.
+
+Fiszki pozwalają na zmianę strategii nauki na proces aktywny, w którym dochodzi do długotrwałej retencji wiedzy, eliminując problem 
+pamięci krótkotrwałej. Podejście to polega na dwóch kluczowych mechanizmach kogniwistycznych:
+\begin{itemize}
+    \item \textbf{Aktywne przywołanie} -- Metoda nauki polegająca na próbie wydobycia informacji z pamięci poprzez testowanie swojej 
+    wiedzy na każdym możliwym etapie nauki bez używania podpowiedzi. Fiszki nadają się do tego perfekcyjnie, ponieważ zawsze prezentują 
+    tylko jedną stronę (awers), co zmusza użytkownika do samodzielnego sformułowania odpowiedzi przed jej weryfikacją (zobaczeniem rewersu).
+    Badania pokazują, że ten wysiłek kogniwistyczny zapewnia znacznie trwalszą retencję wiedzy, niż proste wielokrotne studiowanie danego 
+    materiału, co udowodniono w eksperymentach Roedigera i Karpicke \cite{roediger2006test}.
+    \item \textbf{Metapoznanie i samoocena} -- Fiszki wymuszają na uczącym się ciągłą weryfikację stanu swojej wiedzy. W momencie 
+    odsłonięcia rewersu karty, użytkownik dokonuje weryfikacji poprawności swojej odpowiedzi. Pozwala to na zidentyfikowanie 
+    tematów, które nie zostały jeszcze w pełni opanowane i skierowanie na nich większej uwagi. Badania Kornella i Bjorka 
+    \cite{kornell2008optimizing} wykazują, że zdolność do trafnej oceny własnej wiedzy jest kluczowa dla optymalizacji 
+    czasu nauki, lecz obarczona ryzykiem błędu w samoocenie. Struktura fiszek minimalizuje ten błąd poprzez atomizację materiału, 
+    tym samym ułatwiając trafną ocenę wiedzy na poziomie pojedynczych pojęć.
+\end{itemize}
+
+\section{Analiza istniejących rozwiązań}
+Fiszki ogromnie zyskały na popularności wraz z coraz większą dostępnością internetu i rozwojem technologicznym.
+Na rynku istnieje wiele aplikacji oferujących szeroki zakres narzędzi służących do zarządzania i 
+wspomagania procesu zapamiętywania. Wiele z nich opiera się na cyfrowej implementacji fiszek. 
+W celu zdefiniowania wymagań projektowych dokonano analizy trzech głównych rozwiązań dostępnych na rynku:
+Anki, Quizlet oraz Brainscape.
+
+\subsection{Anki}
+Anki to darmowe oprogramowanie typu open-source, które istnieje na rynku już od wielu lat. Projekt oferuje darmową aplikację 
+desktopową oraz mobilną na system Android, lecz niestety płatną na IOS. Jego główną zaletą jest 
+implementacja zaawansowanego algorytmu powtórek w odstępach czasowych (Spaced Repetition System - SRS).
+\begin{itemize}
+    \item \textbf{Zalety:} Duża elastyczność w konfiguracji algorytmu SRS, obsługa wtyczek tworzonych przez społeczność i możliwość 
+    uczenia się na wielu platformach offline.
+    \item \textbf{Wady:} Wszystkie platformy posiadają bardzo nieintuicyjny i przestarzały interfejs graficzny. 
+    Krzywa uczenia się obsługi programu jest wysoka, a edytor fiszek mimo dużej liczby funkcjonalności wymaga znajomości 
+    HTML/CSS do zaawansowanego formatowania. Ponadto synchronizacja danych między urządzeniami nie jest natywna i wymaga 
+    dodatkowej konfiguracji w serwisie AnkiWeb, a system organizacji materiałów jest mało czytelny.
+\end{itemize}
+
+\subsection{Quizlet}
+Quizlet to komercyjne rozwiązanie, które zdobyło popularność, dzięki intuicyjnemu interfejsowi i dostępności z poziomu 
+przeglądarki oraz aplikacji mobilnej. Firma kładzie większy nacisk na implementację różnorodnych form nauki (np. poprzez 
+gry) niż na surowe algorytmy powtórek.
+\begin{itemize}
+    \item \textbf{Zalety:} Nowoczesny i estetyczny interfejs użytkownika, ogromna baza publicznych zestawów fiszek stworzonych 
+    przez społeczność Quizleta oraz wysoka dostępność na urządzeniach mobilnych i desktopowych bez konieczności instalacji oprogramowania.
+    \item \textbf{Wady:} Model biznesowy typu freemium, polegający na przyciąganiu klientów poprzez oferowanie podstawowych funkcjonalności bezpłatnie, 
+    jednocześnie wymagając płatnej subskrypcji za użytkowanie rozszerzonych funkcji systemu. Przykładem funkcjonalności premium jest możliwość wstawiania multimediów 
+    do fiszek, czy nauka w trybie długoterminowym. Dodatkowo edytor treści fiszek jest uproszczony i nie pozwala na zaawansowane formatowanie tekstu lub wstawianie wielu zdjęć.
+\end{itemize}
+
+\subsection{Brainscape}
+Brainscape jest dostępne jako aplikacja mobilna oraz webowa. Korzysta ona z zaawansowanej metody metapoznania i samooceny. W przeciwieństwie do 
+standardowych alogrytmów, użytkownik zamiast wyboru odrzucenia/zostawienia fiszki, musi samodzielnie ocenić stopień znajomości odpowiedzi 
+w skali od 1 do 5, co bezpośrednio wpływa na czas do następnej powtórki.
+\begin{itemize}
+    \item \textbf{Zalety:} Wymusza na użytkowniku ciągłą samoocenę, co znacznie przyśpiesza naukę. Aplikacja jest przejrzysta i prosta w obsłudze, 
+    nastawiona na szybkie tworzenie prostych fiszek, a edytor treści pozwala na wstawianie plików dźwiękowych i graficznych. 
+    \item \textbf{Wady:} Podobnie jak Quizlet, system opiera się na płatnych subskrypcjach, gdzie darmowa wersja posiada ograniczone funkcjonalności 
+    (np. brak statystyk i możliwości wstawiania plików multimedialnych). Edytor treści nie oferuje funkcji tworzenia niestandardowych układów grafik i 
+    bardziej zaawansowanego formatowania tekstu.
+\end{itemize}
+
+
+% Współczesna inżynieria oprogramowania oraz dynamiczny rozwój społeczeństwa informacyjnego stawiają przed jednostką wyzwanie 
+% ciągłego podnoszenia kwalifikacji. Proces uczenia się, niegdyś ograniczony do murów szkolnych i akademickich, stał się obecnie 
+% procesem trwającym całe życie (\textit{lifelong learning}). W obliczu rosnącej objętości danych i specjalistycznej wiedzy, 
+% tradycyjne metody notowania i przyswajania informacji, oparte na linearnym czytaniu tekstu, często okazują się niewystarczające. 
+% Wymusza to poszukiwanie narzędzi, które nie tylko gromadzą wiedzę, ale także aktywnie wspierają proces jej utrwalania.
+
+% Transformacja cyfrowa edukacji przeniosła ciężar organizacji materiałów dydaktycznych z fizycznych notatników na aplikacje 
+% internetowe i mobilne. Zmiana ta otworzyła nowe możliwości w zakresie dostępności wiedzy, współdzielenia zasobów oraz 
+% wykorzystania multimediów w procesie poznawczym. Współczesne systemy informatyczne pozwalają na odejście od statycznych 
+% modeli danych na rzecz interaktywnych rozwiązań, które dostosowują się do potrzeb użytkownika, umożliwiając naukę w 
+% dowolnym miejscu i czasie.
+
+% Jedną z najskuteczniejszych metod systematyzowania wiedzy, szczególnie w obszarach wymagających zapamiętania dużej liczby definicji, terminologii czy wzorców, jest metoda fiszek (\textit{flashcards}). Opiera się ona na mechanizmie aktywnego przywoływania informacji (\textit{active recall}), co zmusza mózg do większego wysiłku poznawczego niż bierne czytanie, prowadząc do trwalszego śladu pamięciowego. Jednakże potencjał tej metody w środowisku cyfrowym jest ściśle uzależniony od jakości narzędzia, które ją obsługuje. Aplikacja wspierająca proces nauki nie może stanowić bariery technologicznej; musi być intuicyjna, wydajna i dostępna, aby użytkownik mógł skupić się na merytoryce, a nie na obsłudze interfejsu.
+
+% Niniejsza praca inżynierska stanowi odpowiedź na te wyzwania, prezentując proces projektowania i implementacji nowoczesnej aplikacji internetowej do zarządzania zestawami fiszek, która łączy sprawdzone metodyki dydaktyczne z najnowszymi standardami wytwarzania oprogramowania webowego.
+
+% % --- CZĘŚĆ 2: ANALIZA PROBLEMU (Tutaj wchodzimy w szczegóły "dlaczego to robisz") ---
+
+% \section{Motywacja i analiza obszaru problemowego}
+
+% Decyzja o podjęciu tematu budowy systemu do zarządzania fiszkami wynika z obserwacji rynku istniejących rozwiązań oraz analizy potrzeb współczesnych użytkowników. Mimo dostępności wielu platform edukacyjnych (takich jak Anki czy Quizlet), wciąż istnieje zauważalna luka pomiędzy zaawansowaniem algorytmicznym a użytecznością interfejsu (User Experience - UX) oraz otwartością architektury.
+
+% Wiele popularnych narzędzi, choć skutecznych dydaktycznie, charakteryzuje się wysokim progiem wejścia. Wymagają one od użytkownika skomplikowanej konfiguracji, instalacji dedykowanego oprogramowania klient-serwer lub borykają się z długu technologicznym, co skutkuje przestarzałym i nieintuicyjnym interfejsem. Z kolei nowoczesne rozwiązania komercyjne często zamykają kluczowe funkcjonalności – takie jak praca offline, zaawansowane formatowanie tekstu czy współdzielenie materiałów – za systemami płatności (paywall).
+
+% Kluczowym problemem zidentyfikowanym w toku analizy wstępnej jest czasochłonność procesu tworzenia materiałów. Użytkownicy często rezygnują z systematycznej nauki, ponieważ przygotowanie estetycznych i bogatych w treści fiszek zajmuje więcej czasu niż sama powtórka materiału.
+
+% W związku z powyższym, główną motywacją realizacji niniejszej pracy stało się stworzenie rozwiązania, które eliminuje te bariery poprzez:
+% \begin{enumerate}
+%     \item \textbf{Obniżenie progu wejścia} – poprzez realizację aplikacji w architekturze Single Page Application (SPA), dostępnej bezpośrednio z przeglądarki bez konieczności instalacji.
+%     \item \textbf{Usprawnienie procesu twórczego} – dzięki implementacji zaawansowanego edytora WYSIWYG (What You See Is What You Get) oraz integracji z modelami językowymi sztucznej inteligencji (LLM), które wspomagają kategoryzację i opis materiałów.
+%     \item \textbf{Społecznościowy wymiar nauki} – umożliwienie łatwego współdzielenia zestawów, oceniania ich i komentowania, co sprzyja wymianie wiedzy w grupach studenckich czy zawodowych.
+% \end{enumerate}
+
+% % --- CZĘŚĆ 3: CEL I ZAKRES (To jest "mięso" inżynierskie z Twojego PDFa) ---
+
+% \section{Cel i zakres pracy}
+
+% Głównym celem pracy jest zaprojektowanie i zaimplementowanie skalowalnej aplikacji internetowej typu \textit{headless}, służącej do tworzenia, zarządzania i nauki z wykorzystaniem fiszek. System został zaprojektowany z naciskiem na wydajność, bezpieczeństwo danych oraz intuicyjność obsługi.
+
+% \subsection{Cele szczegółowe i technologiczne}
+% Realizacja celu głównego wymagała osiągnięcia szeregu celów cząstkowych o charakterze inżynierskim:
+% \begin{itemize}
+%     [cite_start]\item \textbf{Opracowanie architektury systemu} opartej na separacji warstwy prezentacji od warstwy logiki biznesowej (Frontend-Backend separation)[cite: 140, 141].
+%     [cite_start]\item \textbf{Implementacja wydajnego API} przy użyciu frameworka FastAPI (Python), obsługującego asynchroniczne przetwarzanie żądań oraz walidację danych[cite: 214, 216].
+%     [cite_start]\item \textbf{Stworzenie responsywnego interfejsu użytkownika} w technologii React z wykorzystaniem języka TypeScript, zapewniającego płynność działania zbliżoną do aplikacji natywnych (SPA)[cite: 190, 353].
+%     [cite_start]\item \textbf{Zastosowanie persystencji poliglotycznej} (Polyglot Persistence), polegającej na dobraniu odpowiedniego magazynu danych do specyfiki przechowywanych informacji: relacyjnej bazy PostgreSQL dla danych strukturalnych, MinIO dla plików binarnych oraz ElasticSearch dla wyszukiwania pełnotekstowego[cite: 246, 248].
+%     [cite_start]\item \textbf{Zapewnienie bezpieczeństwa} poprzez implementację mechanizmów autoryzacji opartych o tokeny JWT przechowywane w ciasteczkach HttpOnly oraz ochronę przed atakami CSRF i XSS[cite: 112, 485].
+%     [cite_start]\item \textbf{Konteneryzacja środowiska} z wykorzystaniem platformy Docker, co ułatwia wdrożenie i skalowanie systemu[cite: 165, 930].
+% \end{itemize}
+
+% \subsection{Zakres funkcjonalny}
+% Aplikacja oferuje użytkownikom możliwość rejestracji i zarządzania kontem, tworzenia hierarchicznej struktury folderów i zestawów fiszek, a także korzystania z trybu nauki (odwracanie, tasowanie kart). [cite_start]Istotnym elementem zakresu pracy jest moduł społecznościowy, pozwalający na upublicznianie materiałów, dodawanie komentarzy oraz ocenianie zestawów[cite: 39, 45]. [cite_start]Dodatkowo system został zintegrowany z zewnętrznym API (Google Gemini) w celu automatycznego generowania tagów dla zestawów fiszek, co usprawnia proces ich wyszukiwania[cite: 760].
+
+% \section{Układ pracy}
+
+% Niniejsza praca składa się z dwóch głównych rozdziałów merytorycznych oraz wstępu i zakończenia.
+% \begin{itemize}
+%     [cite_start]\item \textbf{Rozdział 1: Projekt Systemu} – przedstawia analizę wymagań funkcjonalnych i niefunkcjonalnych, opisuje architekturę systemu w modelu klient-serwer oraz model danych uwzględniający relacyjną bazę danych i dodatkowe magazyny danych[cite: 27, 28].
+%     [cite_start]\item \textbf{Rozdział 2: Implementacja Systemu} – zawiera szczegółowy opis procesu wytwarzania oprogramowania, struktury kodu warstwy prezentacji i logiki, a także omawia kluczowe rozwiązania techniczne, takie jak hybrydowe zarządzanie stanem, telemetria (OpenTelemetry) oraz integracja z usługami zewnętrznymi[cite: 340, 341].
+% \end{itemize}
+% Podsumowanie pracy zawiera wnioski końcowe oraz kierunki dalszego rozwoju aplikacji.
+% \section{Analiza porównawcza}
+% \section{Cel i zakres pracy}
+
+
+
+
+
 
 % \chapter{Wstęp}
 % \label{ch:wstep}
