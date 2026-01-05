@@ -55,7 +55,7 @@ Anki, Quizlet oraz Brainscape.
 
 \subsection{Anki}
 Anki to darmowe oprogramowanie typu open-source, które istnieje na rynku już od wielu lat. Projekt oferuje darmową aplikację 
-desktopową oraz mobilną na system Android, lecz niestety płatną na IOS. Jego główną zaletą jest 
+desktopową oraz mobilną na system Android, lecz niestety płatną wersję na IOS. Jego główną zaletą jest 
 implementacja zaawansowanego algorytmu powtórek w odstępach czasowych (Spaced Repetition System - SRS).
 \begin{itemize}
     \item \textbf{Zalety:} Duża elastyczność w konfiguracji algorytmu SRS, obsługa wtyczek tworzonych przez społeczność i możliwość 
@@ -89,6 +89,74 @@ w skali od 1 do 5, co bezpośrednio wpływa na czas do następnej powtórki.
     (np. brak statystyk i możliwości wstawiania plików multimedialnych). Edytor treści nie oferuje funkcji tworzenia niestandardowych układów grafik i 
     bardziej zaawansowanego formatowania tekstu.
 \end{itemize}
+
+\subsection{Podsumowanie analizy}
+Przeprowadzona analiza pozwoliła na zidentyfikowanie luki na rynku aplikacji do fiszek. Istnieje realne zapotrzebowanie 
+na system, który będzie wspomagał użytkownika nie tylko w nauce, ale także w samym zarządzaniu zestawami fiszek, łącząc zalety 
+powyższych aplikacji i eliminując ich główne wady. Tabela \ref{tab:porownanie_rozwiazan} ukazuje zestawienie porównawcze 
+analizowanych systemów z aplikacją będącą przedmiotem niniejszej pracy. % POPRAW TO ZDANIE PLS
+
+\begin{table}[htbp]
+    \centering
+    \caption{Porównanie analizowanych rozwiązań z projektowanym systemem}
+    \label{tab:porownanie_rozwiazan}
+    \footnotesize % Zmniejszenie czcionki, aby tabela była czytelna
+    \begin{tabularx}{\textwidth}{@{} p{2.2cm} X X X X @{}}
+        \toprule
+        \textbf{Cecha} & \textbf{Anki} & \textbf{Quizlet} & \textbf{Brainscape} & \textbf{Projektowana Aplikacja} \\
+        \midrule
+        
+        \textbf{Model dystrybucji} & 
+        Open Source (Desktop/Android), Płatny (iOS) & 
+        Komercyjny (Freemium) & 
+        Komercyjny (Freemium) & 
+        \textbf{Open Source} \\ 
+        \addlinespace % Dodatkowy odstęp dla czytelności
+        
+        \textbf{Dostępność} & 
+        Desktop, Mobile (Offline first) & 
+        Web, Mobile & 
+        Web, Mobile & 
+        \textbf{Web} \\ 
+        \addlinespace
+        
+        \textbf{Interfejs (GUI)} & 
+        Przestarzały, nieintuicyjny & 
+        Nowoczesny & 
+        Nowoczesny & 
+        \textbf{Nowoczesny} \\ 
+        \addlinespace
+        
+        \textbf{Organizacja danych} & 
+        System talii (Decks) & 
+        Listy i foldery (Płaska struktura) & 
+        Klasy i talie & 
+        \textbf{Pełny eksplorator plików (Zagnieżdżone foldery)} \\ 
+        \addlinespace
+        
+        \textbf{Edytor treści} & 
+        HTML/CSS (Wymaga wiedzy tech.) & 
+        Uproszczony & 
+        Podstawowy & 
+        \textbf{Zaawansowany WYSIWYG (TipTap)} \\ 
+        \addlinespace
+        
+        \textbf{Wsparcie AI} & 
+        Brak (ew. wtyczki 3rd party) & 
+        Płatne (Q-Chat) & 
+        Brak & 
+        \textbf{Automatyczne tagowanie (Gemini API)} \\ 
+        
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Projektowania aplikacja ma za zadanie wypełnić zidentyfikowaną na rynku niszę. Implementowane rozwiązanie webowe charakteryzuje się 
+nowoczesnym i intuicyjnym interfejsem graficznym, zapewniającym duży komfort pracy. Kluczowym elementem jest zaawansowany edytor tekstu, 
+który pozwala na tworzenie niestandardowych układów obrazów oraz bogate formatowanie tekstu bez konieczności znajomości kodu HTML czy CSS.
+Oprócz tego system kładzie duży nacisk na aspekty społecznościowe, takie jak komentarze czy system głosowania, przekształacjąc samotny 
+proces nauki w doświadczenie oparte na współpracy i wymianie wiedzy. Całość dopełnia łatwy w obsłudze eksplorator plików z obsługą 
+tworzenia zagnieżdżonych folderów, co ułatwia użytkownikom centralizację wiedzy i zarządzanie wszystkimi materiałami. 
 
 
 % Współczesna inżynieria oprogramowania oraz dynamiczny rozwój społeczeństwa informacyjnego stawiają przed jednostką wyzwanie 
