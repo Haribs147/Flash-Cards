@@ -2,7 +2,7 @@
 \label{ch:implementacja_systemu}
 
 Realizacja systemu, którego architekturę oraz projekt przedstawiono w poprzednim rozdziale, wymagała doboru nie tylko odpowiednich technologii, 
-ale także właściwych standardów wytwarzania oprogramowania. Ninjeszy rozdział opisuje proces implementacji poszczególnych warstw aplikacji, zaczynając 
+ale także właściwych standardów wytwarzania oprogramowania. Niniejszy rozdział opisuje proces implementacji poszczególnych warstw aplikacji, zaczynając 
 od interfejsu użytkownika, poprzez logikę biznesową, kończąc na konteneryzacji i telemetrii. 
 
 Aby umożliwić bezpieczne eksperymentowanie i tworzenie nowych funkcjonalności, wykorzystano system kontroli wersji Git, pozwalający na zachowanie 
@@ -11,27 +11,27 @@ historii zmian. Cały kod źródłowy aplikacji został umieszczony w repozytori
 i w przypadku jednej osoby pracującej nad kodem, znacznie przyśpiesza proces implementacji.
 
 Implementacja systemu została przeprowadzona w środowisku programistycznym Visual Studio Code. Narzędzie to wybrano ze względu na jego 
-szerokie wsparcie dla wykorzystywanych technologii oraz ogromną ilość rozszerzeń usprawniających pracę nad kodem. 
+szerokie wsparcie dla wykorzystywanych technologii oraz ogromną liczbę rozszerzeń usprawniających pracę nad kodem. 
 Aby zachować spójność i jakość kodu, skonfigurowano w środowisku automatyczne formatowanie kodu.
-Kluczowym aspektem podczas tworzenia oprogramowania jest zapewnie czytelności i łatwości utrzymania aplikacji, 
+Kluczowym aspektem podczas tworzenia oprogramowania jest zapewnienie czytelności i łatwości utrzymania aplikacji, 
 co zostało zrealizowane poprzez trzymanie się zasad czystego kodu \cite{cleancode}.
 
 \section{Warstwa Prezentacji}
 Zgodnie z założeniami projektowymi warstwa prezentacji została zaimplementowana jako aplikacja 
 typu SPA przy użyciu biblioteki React i języka TypeScript. Na wczesnym etapie implementacji, ważne 
-było sprawne przełożenie projektu interfejsu użytkownika w figmie na czytelną i skalowalną strukturę 
-kodu źródłowego (Rys \ref{fig:frontend_structure}). Aplikacja kliencka została podzielona na dwa główne 
+było sprawne przełożenie projektu interfejsu użytkownika w Figmie na czytelną i skalowalną strukturę 
+kodu źródłowego (Rys. \ref{fig:frontend_structure}). Aplikacja kliencka została podzielona na dwa główne 
 katalogi:
 \begin{itemize}
     \item \texttt{src/components} -- Katalog zawierający wyłącznie interfejs użytkownika i logikę jego obsługi.
-    Wewnątrz jego znajdują się podkatalogi (np. Auth lub FlashCardSet) zawierające komponenty React, które 
-    stanowią bezpośrednie odzwierciedlenie projektu w Figmie. Komponenty te odpowiadają za rednerowanie interfejsu 
+    W jego obrębie znajdują się podkatalogi (np. Auth lub FlashCardSet) zawierające komponenty React, które 
+    stanowią bezpośrednie odzwierciedlenie projektu w Figmie. Komponenty te odpowiadają za renderowanie interfejsu 
     i obsługę interakcji z użytkownikiem.
-    \item \texttt{src/features} -- Zawiera logikę biznesową aplikacji. W nim zawierają się definicję wycinków 
+    \item \texttt{src/features} -- Katalog skupiający logikę biznesową aplikacji. Znajdują się w nim definicje wycinków stanu
     (ang. slices) biblioteki Redux Toolkit oraz serwisy odpowiadające za komunikację z API serwera.
 \end{itemize} 
-Uzupełnieniem tej struktury jest folder \texttt{src/app} zawierający globalną konfigurację sklepu (ang. store) 
-oraz niestandardowe haki (ang. hooks). Taka organizacja kodu pozwoliła na zachowanie czytelności projektu i 
+Uzupełnieniem tej struktury jest folder \texttt{src/app} zawierający globalną konfigurację magazynu stanu (ang. store) 
+oraz niestandardowe hooki. Taka organizacja kodu pozwoliła na zachowanie czytelności projektu i 
 ułatwiła jego skalowanie. 
 
 \begin{figure}[h]
@@ -72,14 +72,14 @@ Zarządzanie stanem w nowoczesnych aplikacjach typu SPA jest kluczowym elementem
 wydajności i łatwości utrzymania systemu. Zgodnie z projektem systemu zaimplementowano hybrydowe zarządzanie stanem. 
 Sposób zarządzania stanem zależy od cyklu życia danych oraz liczby interakcji użytkownika z nimi.
 
-Globalny stan jest obsługiwany za pomocą biblioteki Redux Toolkit. Pełni on funkcję głównego magazynu dla danych 
+Globalny stan obsługiwany jest za pomocą biblioteki Redux Toolkit. Pełni on funkcję głównego magazynu dla danych 
 wymagających precyzyjnej kontroli i natychmiastowej dostępności we wszystkich komponentach aplikacji. Globalny stan 
 zarządza dwoma typami danych:
-\begin{itemize}
-    \item \textbf{Dane sesji} -- Slices takie jak \texttt{authSlice} czy \texttt{materialsSlice} przechowują 
-    informacje potrzebne do poprawnego działania interfejsu (np. informacja o zalogowaniu użytkownika lub 
+\begin{itemize} \sloppy
+    \item \textbf{Dane sesji} -- Wycinki stanu (ang. slices) takie jak \texttt{authSlice} czy \texttt{materialsSlice} przechowują 
+    informacje potrzebne do poprawnego działania interfejsu (np. informacja o statusie zalogowania użytkownika lub 
     aktualnie otwartym folderze). Interakcje użytkownika z systemem (np. proces logowania czy dodanie folderu), skutkują 
-    natychmiastową aktualizacją stanu, będącą odpowiedzią zapytania wysłanego do serwera API.
+    natychmiastową aktualizacją stanu o dane otrzymane w odpowiedzi na zapytanie wysłane do serwera API.
     \item \textbf{Dane edytowalne} -- Szczegóły zestawu fiszek pobierane z API są zapisywane w \texttt{flashcardSetSlice} 
     i traktowane przez aplikację jako kopia robocza danych. Dzięki temu wszystkie modyfikacje stanu 
     (treści fiszek lub metadanych zestawu) odbywają się synchronicznie w aplikacji klienta, ograniczając liczbę nadmiarowych 
@@ -87,21 +87,22 @@ zarządza dwoma typami danych:
     danych (serwerem) odbywa się dopiero w przypadku zatwierdzenia zmian przez użytkownika.
 \end{itemize}
 
-Podczas wylogowywania użytkownika zostają usuwane ciasteczka, dzięki czemu użytkownik nie ma dostępu do większości zapytań 
+Podczas wylogowywania użytkownika zostają usuwane jego ciasteczka sesyjne, dzięki czemu użytkownik nie ma dostępu do większości zapytań 
 API. Jako że informacja o zalogowaniu użytkownika jest przechowywana w stanie globalnym, aplikacja kliencka nadal 
 wyświetlałaby użytkownikowi widoki, do których nie miałby dostępu, co prowadziłoby do błędów.
 Aby zapewnić prawidłowe wylogowanie użytkownika, stworzono Root Reducer, który 
-w momencie wylogowywania (\texttt{logoutUser}), czyści globalny stan aplikacji do wartości początkowych, co skutecznie 
-odbiera użytkownikowi uprawnienia do wejścia w np. jego materiały. 
+w momencie wylogowania (\texttt{logoutUser}), czyści globalny stan aplikacji do wartości początkowych, co skutecznie 
+blokuje dostęp do chronionych zasobów użytkownika (np. jego materiałów). 
 
-Listing \ref{lst:logout_user} pokazuje konfigurację store Reduxa, poprzez zaimplementowanie rootReducera.
+Listing \ref{lst:logout_user} pokazuje konfigurację magazynu stanu Reduxa, poprzez zaimplementowanie rootReducera.
 RootReducer pozwala na przechwycenie dowolnej akcji przed jej dotarciem do standardowych reduktorów. 
 W tym wypadku zostało to wykorzystane do przechwycenia akcji wylogowującej użytkownika (\texttt{logoutUser}),
 dzięki czemu cały stan aplikacji jest resetowany do wartości początkowych. Wyjątkiem jest status modułu 
 uwierzytelniania, który jest ustawiany na wartość \texttt{"failed"}, aby zapobiec zablokowaniu interfejsu 
-w stanie oczekiwania na ustalenie stanu sesji. Główny komponent aplikacji (Listing \ref{lst:app_tsx}) 
-wstrzymuje renderowanie widoków do momentu, aż status sesji zmieni się z domyślnego \texttt{"idle"}, 
-co w przypadku pełnego resetu stanu skutkowałoby wyświetleniem pustego ekranu, a nie ekranu logowania.
+w stanie oczekiwania na weryfikację tożsamości użytkownika. Jest to konieczne, ponieważ główny komponent 
+aplikacji (Listing \ref{lst:app_tsx}) wstrzymuje renderowanie widoków do momentu, aż status sesji 
+zmieni się z domyślnego \texttt{"idle"}, co w przypadku pełnego resetu stanu skutkowałoby 
+wyświetleniem pustego ekranu, a nie ekranu logowania.
 
 \begin{lstlisting}[language=Python,
 	caption={Konfiguracja Redux z mechanizmem resetowania stanu},
@@ -139,7 +140,7 @@ co w przypadku pełnego resetu stanu skutkowałoby wyświetleniem pustego ekranu
 \end{lstlisting} 
 
 \begin{lstlisting}[language=Python,
-caption={Mechanizm blokady renderowania aplikacji do czasu ustalenia statusu sesji},
+caption={Mechanizm blokady renderowania aplikacji do czasu ustalenia tożsamości użytkownika},
 label={lst:app_tsx}]
 function App() {
     const authStatus = useAppSelector((state) => state.auth.status);
@@ -152,23 +153,23 @@ function App() {
 \end{lstlisting} 
 
 Drugą podstawą hybrydowego modelu jest obsługa danych tylko do odczytu, które są niezależne od kontekstu sesji. 
-Dane te nie wymagające dodatkowej logiki biznesowej po stronie klienta, zarządzane są poprzez bibliotekę 
+Dane te niewymagające dodatkowej logiki biznesowej po stronie klienta, zarządzane są przez bibliotekę 
 TanStack Query (React Query). Automatyzuje ona proces pobierania, buforowania i inwalidacji danych. 
 
 React Query został wykorzystany w module publicznym aplikacji, gdzie wyświetlane są różne 
-rankingi zestawów (np. "Najpopularniejsze", "Najczęściej wyświetlane"). Kluczowym elementem optymalizacji
+rankingi zestawów (np. "Najpopularniejsze", "Najczęściej wyświetlane"). Kluczowym elementem optymalizacji systemu
 jest konfiguracja parametru \texttt{staleTime}. Dzięki niemu zminimalizowano liczbę nadmiarowych zapytań sieciowych 
 podczas nawigacji między widokami. Mechanizm ten w pierwszej kolejności pobiera dane z pamięci podręcznej, 
-a dopiero po upłynięciu czasu zdefiniowanego w \texttt{staleTime}, wysyłane zostaje zapytanie do API, w 
+a dopiero po upłynięciu czasu zdefiniowanego w \texttt{staleTime}, wysyła zapytanie do API, w 
 celu uaktualnienia zbuforowanych danych.
 
 \subsection{Komunikacja z serwerem i uwierzytelnianie}
 Asynchroniczna komunikacja klienta z serwerem stanowi podstawę działania aplikacji typu SPA. Do komunikacji 
-z serwerem API użyto bilbioteki Axios. Została ona wybrana ponad wbudowany w JavaScript fetch ze względu na 
-możliwości konfiguracji, wbudowany obsługę formatu JSON oraz zaawansowany mechanizm przechwytywania żądań i odpowiedzi
+z serwerem API użyto biblioteki Axios. Została ona wybrana zamiast wbudowanego w JavaScript mechanizmu fetch ze względu na 
+możliwości konfiguracji, wbudowaną obsługę formatu JSON oraz zaawansowany mechanizm przechwytywania żądań i odpowiedzi
 (ang. interceptor).
 
-W celu zapewnienia spójności i zminimalizowniu redundancji kodu skonfigurowano globalne ustawienia bilbioteki Axios. 
+W celu zapewnienia spójności i zminimalizowania redundancji kodu skonfigurowano globalne ustawienia biblioteki Axios. 
 Zgodnie z wymaganiami zdefiniowanymi w rozdziale \ref{ch:projekt_systemu}, komunikacja między klientem 
 a serwerem opiera się na ciasteczkach sesyjnych. Dzięki ustawieniu parametru \texttt{withCredentials} biblioteki Axios
 na \texttt{true} przeglądarka automatycznie dołącza ciasteczko z tokenem uwierzytelniającym do każdego zapytania wysyłanego do API.
@@ -189,7 +190,7 @@ działa następująco:
     \item Interceptor monitoruje wszystkie odpowiedzi otrzymane od serwera. W przypadku wystąpienia błędu \texttt{401} wstrzymuje 
     wyrzucenie błędu do wyższych warstw aplikacji.
     \item W celu zapobiegnięcia nieskończonym pętlom zapytań aplikacja sprawdza, czy błąd nie wystąpił w zapytaniu do endpointów 
-    obsługujących autoryzację (\texttt{/login}, \texttt{/register}, \texttt{/logout} czy \texttt{/refresh}). Błędy w tych zapytaniach 
+    obsługujących uwierzytelnianie (\texttt{/login}, \texttt{/register}, \texttt{/logout} czy \texttt{/refresh}). Błędy w tych zapytaniach 
     zwracane są natychmiastowo, bez próby ponownego odświeżenia sesji.
     \item Jeżeli warunki są spełnione, aplikacja wysyła zapytanie do endpointu \texttt{/refresh}.
     \item W przypadku sukcesu (aktywnego tokenu odświeżania), serwer zwraca w odpowiedzi nowy token CSRF oraz odświeżony 
@@ -235,21 +236,21 @@ Centralnym elementem modułu tworzenia i edycji zestawów fiszek jest edytor tek
 (What You See Is What You Get). Zgodnie z projektem systemu, edytor musi umożliwiać nie tylko 
 formatowanie tekstu fiszki, ale także wstawianie multimediów i tworzenie złożonych układów.
 Omawiany wcześniej framework TipTap udostępnia edytor headless, co oznacza, że udostępnia on 
-jedynie silnik edycji tekstu a cały interfejs użytkownika musi zostać zaimplementowany przez 
+jedynie silnik edycji tekstu, a cały interfejs użytkownika musi zostać zaimplementowany przez 
 programistę. Takie podejście pozwoliło na zaimplementowanie intuicyjnego i łatwego w obsłudze 
 edytora tekstu, zgodnego z projektem w Figmie.
 
 Implementacja edytora opiera się na inicjalizacji instancji silnika TipTap za pomocą wbudowanego haka 
-\texttt{useEditor}. Dodatkowo edytor został skonfigurowany przekazując mu tablicę rozszerzeń, 
+\texttt{useEditor}. Dodatkowo skonfigurowano edytor, przekazując mu tablicę rozszerzeń, 
 które determinują funkcjonalności przetwarzania tekstu. Oprócz standardowego zestawu rozszerzeń 
 \texttt{StarterKit} wykorzystano także moduły \texttt{Underline}, \texttt{Highlight} i \texttt{TextAlign}, 
 które znacznie zwiększają możliwości edycji tekstu przez użytkownika.
 
 Obsługa edytora przez użytkownika odbywa się za pomocą komponentu \texttt{MenuBar.tsx}. Jako że TipTap 
-nie udostępnia interfejsu użytkownika, MenuBar obsługuję interakcję użytkownika z silnikiem TipTap. 
+nie udostępnia interfejsu użytkownika, MenuBar obsługuje interakcję użytkownika z silnikiem TipTap. 
 Każdy przycisk znajdujący się na pasku narzędzi wywołuje sekwencję metod na obiekcie edytora za pomocą 
 łańcucha poleceń: \texttt{editor.chain().focus().toggleBold().run()}. Dzięki użyciu metody \texttt{focus}, 
-edytor utrzymuje pole tekstowe jako aktywne, nawet po kliknięciu przycisku formatowania (np. pogrubiania), 
+edytor utrzymuje pole tekstowe jako aktywne, nawet po kliknięciu przycisku formatowania (np. pogrubienia), 
 co znacznie poprawia pracę nad tekstem.
 
 Największym wyzwaniem implementacyjnym w tym module było stworzenie funkcjonalności dodawania obrazów 
@@ -263,7 +264,7 @@ węzła obrazu.
 
 Komponent \texttt{InteractiveImage} początkowo wyświetla przycisk pozwalający na wstawienie pliku. Po wybraniu 
 obrazu przez użytkownika, plik jest asynchronicznie przesyłany na serwer, który zwraca publiczny adres URL zasobu. 
-Dopiero po otrzymaniu odpowiedzi od serwera atrybut src jest aktualizowany o adres URL otrzymany od serwera, 
+Dopiero po otrzymaniu odpowiedzi od serwera atrybut src jest ustawiany na adres URL otrzymany od serwera, 
 co powoduje natychmiastowe wyświetlenie obrazu w miejscu przycisku.
 
 Aby umożliwić użytkownikom tworzenie fiszek o niestandardowym formacie, stworzono niestandardowe rozszerzenie 
@@ -295,15 +296,15 @@ export const ImageGrid = Node.create({
 });
 \end{lstlisting}
 
-Rozszerzenie zezwala tylko na zawartość \texttt{image+} co wymusza, aby wewnątrz siatki znajdowały się tylko i wyłącznie obrazy.
+Rozszerzenie zezwala tylko na zawartość \texttt{image+}, co wymusza, aby wewnątrz siatki znajdowały się tylko i wyłącznie obrazy.
 Kluczowym elementem implementacji jest metoda \texttt{renderHTML}, która dynamicznie tworzy div ze wstrzykniętą zmienną CSS \texttt{--cols}.
 Dzięki temu zaimplementowany CSS: \texttt{grid-template-columns: repeat(var(--cols), 1fr)} automatycznie dostosowuje układ siatki 
 bez konieczności wykonywania dodatkowych obliczeń po stronie JavaScriptu.
 
 \section{Warstwa Logiki}
 Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
-frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie opisywano podział logiczny, ten rozdział 
-będzie opisywał organizację kodu, konfigurację serwera i mechanizmy scalające poszczególne komponenty systemu.
+frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie sformułowano podział logiczny, w niniejszym rozdziale
+opisano organizację kodu, konfigurację serwera i mechanizmy scalające poszczególne komponenty systemu.
 
 Kod źródłowy serwera jest zorganizowany w pakiety, odzwierciedlające podział na warstwy przyjęty podczas projektowania:
 \begin{itemize}
@@ -316,16 +317,16 @@ Kod źródłowy serwera jest zorganizowany w pakiety, odzwierciedlające podzia�
     \item {\texttt{core}} -- Zawiera podstawowe konfiguracje systemu i często wykorzystywane funkcje pomocnicze.
     \item {\texttt{db}} -- Odpowiada za definicję modeli ORM oraz konfigurację połączenia z relacyjną bazą danych.
     \item {\texttt{external}} -- Zawiera pliki odpowiedzialne za inicjalizację i obsługę zewnętrznych systemów 
-    (MinIO, ElasticSearch, Gemini).
+    (MinIO, Elasticsearch, Gemini).
 \end{itemize}
 Taka separacja pozwala na łatwe testowanie i utrzymanie kodu, ponieważ zmiany 
-w logice biznesowej aplikacji, nie wymagają zmian w pakietach routes i repositories.
+w logice biznesowej aplikacji nie wymagają zmian w pakietach routes i repositories.
 Każdy moduł systemu, zobrazowany na diagramie modułów funkcjonalności systemu 
-(Rys \ref{rys:use_case_diagram}), posiada oddzielny router, serwis i repozytorium, 
+(Rys. \ref{rys:use_case_diagram}), posiada oddzielny router, serwis i repozytorium, 
 co znacznie ułatwia poruszanie się po bazie kodu. 
 
 Aplikacja do przechowywania wrażliwych danych konfiguracyjnych wykorzystuje bibliotekę pydantic-settings. 
-Pozwala ona na walidowanie i wczytywanie wrażliwych danych (klucze API, sól, itp. ) z pliku .env do
+Pozwala ona na walidowanie i wczytywanie wrażliwych danych (klucze API, sól itp.) z pliku .env do
 klasy Settings. Dzięki temu aplikacja nie uruchomi się, jeżeli zabraknie któregoś z parametrów konfiguracyjnych 
 w pliku .env.
 
@@ -339,17 +340,17 @@ zasobu, przyjęto odmienne strategie zarządzania jego cyklem życia:
     \item {\textbf{Relacyjna baza danych}} -- Do zarządzania połączeniem do relacyjnej bazy danych użyto mechanizmu sesji na żądanie 
     (session per request). Oznacza to, że każde zapytanie do serwera otrzymuje swoje własne połączenie do bazy danych, które wygasa po zwróceniu 
     wyniku do klienta.
-    \item {\textbf{Wyszukiwarka pełnotekstowa}} -- Wyszukiwarki pełnotekstowe takie jak Elasticsearch posiadają wewnętrznego klienta 
-    , który zarządza jego pulą połączeń HTTP. Do zarządzania jego cyklem życia stosuje się wzorzec Singleton. Oznacza to, że podczas inicjalizacji 
-    aplikacji tworzona jest jedna wspólna instancja klienta ElasticSearch, która jest współdzielona przez wszystkie wątki i żądania. Dzięki temu aplikacja unika 
+    \item {\textbf{Wyszukiwarka pełnotekstowa}} -- Wyszukiwarki pełnotekstowe takie jak Elasticsearch posiadają wewnętrznego klienta, 
+    który zarządza jego pulą połączeń HTTP. Do zarządzania jego cyklem życia stosuje się wzorzec Singleton. Oznacza to, że podczas inicjalizacji 
+    aplikacji tworzona jest jedna wspólna instancja klienta Elasticsearch, która jest współdzielona przez wszystkie wątki i żądania. Dzięki temu aplikacja unika 
     kosztownego narzutu tworzenia nowego klienta dla każdego żądania.
 \end{itemize}
-Poniższy listing pokazuje implementację obu wyżej omówionych strategi. Funkcja \texttt{get\_db} wykorzystuje block try...finally
-do bezpiecznego zamknięcia połączenia niezależnie od wyniku operacji. Z kolej funkcja \texttt{get\_es\_client} zwraca referencję do 
+Poniższy listing pokazuje implementację obu wyżej omówionych strategii. Funkcja \texttt{get\_db} wykorzystuje block try...finally
+do bezpiecznego zamknięcia połączenia niezależnie od wyniku operacji. Z kolei funkcja \texttt{get\_es\_client} zwraca referencję do 
 wcześniej zainicjalizowanego globalnego obiektu.
 
 \begin{lstlisting}[language=Python,
-	caption={Startegie zarządzania cyklem życia obiektu},
+	caption={Strategie zarządzania cyklem życia obiektu},
 	label={lst:cykl_zycia}]
     # Session per request
     def get_db():
@@ -376,7 +377,7 @@ się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiąz
 zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów. Proces logowania i utrzymywania sesji 
 opiera się na dwóch tokenach:
 \begin{itemize}
-    \item \textbf{Access token} -- Krótkoterminowy token dostępu (ważny przez 5 minut) pozwalający na autoryzację użytkownika.
+    \item \textbf{Access token} -- Krótkoterminowy token dostępu (ważny przez 5 minut) pozwalający na uwierzytelnienie użytkownika.
     \item \textbf{Refresh token} -- Długoterminowy token odświeżania (ważny przez 30 minut) służący do odnawiania sesji użytkownika, bez 
     konieczności ponownego logowania.
 \end{itemize}
@@ -414,7 +415,7 @@ W serwerze zostały zaimplementowane dwa sposoby uwierzytelniania użytkownika o
 
 Największym wyzwaniem w implementacji tego rozwiązania było połączenie asynchronicznej biblioteki walidującej CSRF (fastapi\_csrf\_protect) 
 z synchronicznymi endpointami. Zdefiniowanie punktów końcowych jako asynchroniczne znacznie spowolniłoby działanie aplikacji, ponieważ serwer 
-używa synchronicznego sterownika bazy danych i ElasticSearch'a, co doprowadziłoby do zablokowania  głównej pętli zdarzeń (Event Loop). Problem 
+używa synchronicznego sterownika bazy danych i Elasticsearch'a, co doprowadziłoby do zablokowania  głównej pętli zdarzeń (Event Loop). Problem 
 ten rozwiązano wykorzystując wzorzec wstrzykiwania zależności. Walidację tokenu CSRF wydzielono do asynchronicznej funkcji, która uruchamiana 
 jest asynchroniczne przed właściwą logiką endpointu. FastAPI jest w stanie optymalnie zarządzać kontekstem wykonania: walidacja tokena uruchamia 
 się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wątków.
@@ -516,7 +517,7 @@ składa się z trzech kluczowych etapów:
     analizując magiczne liczby (ang. magic numbers) przesłanego pliku. W ten sposób sprawdzane jest, czy przesłane dane na 
     pewno stanowią poprawny plik wymaganego typu (JPG, PNG lub GIF).
     \item \textbf{Ograniczenie wielkości} -- Aby ochronić zasoby serwera przed wyczerpaniem pamięci i zapobiec atakom typu 
-    pixel flood, wszystkie obrazki przekraczające rozdzielczość FULL HD (1920x1080 pikseli) są automatycznie skalowane w dół 
+    pixel flood, wszystkie grafiki przekraczające rozdzielczość FULL HD (1920x1080 pikseli) są automatycznie skalowane w dół 
     z zachowaniem oryginalnych proporcji. 
     \item \textbf{Sanityzacja pliku} -- Najważniejszym etapem procesu przetwarzania z punktu widzenia bezpieczeństwa jest 
     rekonstrukcja pliku. Przy pomocy funkcji \texttt{Image.save()} każdy obraz jest dekodowany do pamięci operacyjnej jako mapa bitowa, a następnie zapisywany do nowego 
@@ -529,7 +530,7 @@ Ze względu na fakt, że wyświetlanie zestawu fiszek jest operacją najczęści
 Metoda ta pełni rolę agregatora danych, ponieważ pobiera listę fiszek, komentarze, udostępnienia i agreguje głosy. W pierwszej kolejności serwer 
 weryfikuje typ materiału. W przypadku napotkania skrótu (\texttt{item\_type="link"}) system pobiera wyżej wspomniane dane z materiału źródłowego, przy 
 jednoczesnym zachowaniu uprawnień użytkownika. Cały proces kończy się logowaniem wyświetlenia zestawu fiszek do indeksu 
-\texttt{view\_events} w ElasticSearch, co pozwala na późniejsze generowanie rankingu fiszek na stronie publicznej bez obciążania relacyjnej bazy danych.
+\texttt{view\_events} w Elasticsearch, co pozwala na późniejsze generowanie rankingu fiszek na stronie publicznej bez obciążania relacyjnej bazy danych.
 
 System umożliwia także funkcjonalność kopiowania zestawów fiszek. Operacja ta pozwala użytkownikowi stworzyć głęboką kopię dowolnego zestawu fiszek, do którego 
 posiada dostęp. Logika biznesowa tego procesu polega na utworzeniu nowego materiału o typie \texttt{item\_type="set"}, a następnie zduplikowaniu wszystkich 
@@ -604,7 +605,7 @@ FastAPI pozwalającym na wykonanie metody po zwróceniu odpowiedzi HTTP do użyt
 przy każdym utworzeniu lub edycji zestawu fiszek. Serwer po otrzymaniu żądania zapisuje zmiany w relacyjnej bazie danych, a następnie 
 tuż przed zwróceniem odpowiedzi dodaje zadanie do kolejki w celu wygenerowania i zaindeksowania nowych tagów.
 
-Do implementacji wyszukiwania wykorzystano zapytanie ElasticSearch typu \texttt{multi\_match}, który pozwala na 
+Do implementacji wyszukiwania wykorzystano zapytanie Elasticsearch typu \texttt{multi\_match}, który pozwala na 
 przeszukiwanie wielu pól jednocześnie. W podstawowej konfiguracji multi\_match zwraca zestaw o polu posiadającym największy wynik, 
 ignorując pozostałe. Aby w pełni wykorzystać zgromadzone dane, rozszerzono konfigurację multi\_match o dwa dodatkowe mechanizmy 
 rankingowania:
@@ -705,7 +706,7 @@ interfejs użytkownika, logika biznesowa implementuje trzy scenariusze:
 
 Ostatnim, lecz kluczowym etapem było przygotowanie środowiska wykonawczego i monitorowania aplikacji. 
 Z uwagi na złożoność architektury, składającej się z dużej liczby komunikujących się ze sobą usług 
-(baza danych, silnik wyszukiwania, magazyn plików, itp.) postanowiono całkowicie skonteneryzować rozwiązanie i 
+(baza danych, silnik wyszukiwania, magazyn plików itp.) postanowiono całkowicie skonteneryzować rozwiązanie i 
 wdrożyć zaawansowaną telemetrię.
 
 \subsection{Konteneryzacja środowiska}
@@ -754,7 +755,7 @@ W systemie skonfigurowano trzy kluczowe instrumentatory:
     wykonania, przechwytywanie kodów odpowiedzi i błędów na serwerze. 
     \item \textbf{SQLAlchemyInstrumentor} -- Nadzoruje zapytania do relacyjnej bazy danych (PostgreSQL), co pozwala na dokładną 
     analizę czasu wykonywania poszczególnych zapytań SQL.
-    \item \textbf{ElasticsearchInstrumentor} -- Monitoruje zapytania do wyszukiwarki pełnotekstowej (ElasticSearch), co jest kluczowe 
+    \item \textbf{ElasticsearchInstrumentor} -- Monitoruje zapytania do wyszukiwarki pełnotekstowej (Elasticsearch), co jest kluczowe 
     do monitorowania modułu publicznego wyszukiwania materiałów. 
 \end{itemize}
 
@@ -801,7 +802,7 @@ wykonywany jest przy pomocy zadań w tle. Polega on na:
     \item Pobraniu zawartości zestawu fiszek (Pierwszy SELECT od razu po odesłaniu odpowiedzi do klienta).
     \item Wysłaniu zapytania do zewnętrznego API Google Gemini w celu wygenerowania tagów.
     \item Pobraniu informacji o właścicielu zestawu.
-    \item Zapisaniu danych w ElasticSearch.
+    \item Zapisaniu danych w Elasticsearch.
 \end{enumerate}
 Dzięki przeniesieniu tego procesu do zadań w tle czas oczekiwania użytkownika na odpowiedź został skrócony 
 o około 2.51 sekundy. Zgodnie z oczekiwaniami, najbardziej czasochłonną operacją 

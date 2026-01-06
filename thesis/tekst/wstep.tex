@@ -1,33 +1,33 @@
 \chapter{Wstęp}
 \label{ch:wstep}
 
-Nauka jest nieodłącznym procesem życia każdego człowieka. Szybki rozwój nowych technologii w ostatnich dekadach znacząco zmienił podejście 
-społeczeństwa do edukacji. Nastąpił gwałtowny przeskok z papierowych, tradycyjnych nośników wiedzy na łatwo dostępne cyfrowe rozwiązania. 
-Proces ten, określany mianem cyfrowej transformacji edukacji, wymusił na społeczeństwie poszukiwanie nowych, 
+Proces nabywania wiedzy jest nieodłącznym elementem rozwoju każdego człowieka. Szybki postęp technologiczny w ostatnich dekadach znacząco zmienił 
+powszechne podejście do edukacji. Nastąpił gwałtowny przeskok z papierowych, tradycyjnych nośników wiedzy na łatwo dostępne cyfrowe rozwiązania. 
+Proces ten, określany mianem cyfrowej transformacji edukacji, wymusił poszukiwanie nowych, 
 bardziej efektywnych metod zarządzania wiedzą i narzędzi do jej gromadzenia.
 
 Współczesny uczeń musi być w stanie przyswoić dużą ilość wiedzy w ograniczonym czasie. Tradycyjne metody nauki, opierające się na tworzeniu 
 monotonnych, ręcznie zapisanych notatek, mogą okazać się nieskuteczne w zależności od rodzaju przyswajanego materiału. W przypadku nauki 
 słówek, definicji czy dat, coraz większą popularność zyskują metody dydaktyczne polegające na aktywnym powtarzaniu nabytej wiedzy. Jednym z 
 najczęściej używanych i najskuteczniejszych sposobów jest nauka z samodzielnie przygotowanych fiszek. Manualny proces wykonywania fiszek ma 
-jednak też swoje wady. Jest on dosyć czasochłonny, a nauka z wyciętych kartek jest niepraktyczna i niewygodna.
+jednak też swoje wady. Jest on wysoce czasochłonny, a nauka z wyciętych kartek jest niepraktyczna i niewygodna.
 
-Odpowiedzą na te problemy, jest cyfryzacja zestawów fiszek oraz dostarczenie narzędzi usprawniających ich zarządanie. Głównym celem niniejszej 
+Odpowiedzią na te problemy jest cyfryzacja zestawów fiszek oraz dostarczenie narzędzi usprawniających ich zarządzanie. Głównym celem niniejszej 
 pracy jest zaprojektowanie i zaimplementowanie nowoczesnej aplikacji internetowej, która eliminuje ograniczenia fizycznych zestawów fiszek.
 Stworzony system oferuje zaawansowany edytor do tworzenia fiszek oraz możliwości kategoryzacji i współdzielenia zgromadzonej wiedzy.
 
 Realizacja tak zdefiniowanego celu objęła pełny cykl wytwarzania oprogramowania (podejście End-to-End), od analizy wymagań i projektu systemu, 
 poprzez implementację i przygotowanie środowiska uruchomieniowego oraz telemetrii. Rezultatem jest kompletny system oparty na modelu 
 klient-serwer. Warstwa prezentacji została zaimplementowana jako aplikacja typu Single Page Application przy użyciu biblioteki React, 
-natomiast serwer w języku Python przy wykorzystaniu frameworka FastAPI. Całość została skonteneryzowana w celu zapewnienia spójnosci środowiska 
-oraz ułatwienia przyszłego skalowania i wdrażania aplikacji
+natomiast serwer w języku Python przy wykorzystaniu frameworka FastAPI. Całość została skonteneryzowana w celu zapewnienia spójności środowiska 
+oraz ułatwienia przyszłego skalowania i wdrażania aplikacji.
 
 \section{Psychologiczne aspekty zapamiętywania}
 
 Aby wyjaśnić, dlaczego stosowanie fiszek w edukacji jest tak wydajne, należy odwołać się do podstawowych badań z zakresu psychologii poznawczej. 
-Kluczowe jest zrozumienie różnicy między biernym, a aktywnym przyswajaniem wiedzy. Tradycyjne bierne metody dydaktyczne, polegające na 
+Kluczowe jest zrozumienie różnicy między biernym a aktywnym przyswajaniem wiedzy. Tradycyjne bierne metody dydaktyczne, polegające na 
 wielokrotnym czytaniu notatek lub podręczników, często prowadzą do zjawiska iluzji kompetencji (ang. illusion of competence). 
-Zjawisko to polega na fałszywym przekonaniu o umiejętności samodzielnego odtworzenia materiału z głowy, po jedynie kilkukrotnym 
+Zjawisko to polega na fałszywym przekonaniu o umiejętności samodzielnego odtworzenia materiału z pamięci, po jedynie kilkukrotnym 
 jego przeczytaniu \cite{brown2014make}. W rzeczywistości jednak cała wiedza często pozostaje jedynie w pamięci krótkotrwałej, czyniąc ją ulotną.
 
 Fiszki pozwalają na zmianę strategii nauki na proces aktywny, w którym dochodzi do długotrwałej retencji wiedzy, eliminując problem 
@@ -36,18 +36,18 @@ pamięci krótkotrwałej. Podejście to polega na dwóch kluczowych mechanizmach
     \item \textbf{Aktywne przywołanie} -- Metoda nauki polegająca na próbie wydobycia informacji z pamięci poprzez testowanie swojej 
     wiedzy na każdym możliwym etapie nauki bez używania podpowiedzi. Fiszki nadają się do tego perfekcyjnie, ponieważ zawsze prezentują 
     tylko jedną stronę (awers), co zmusza użytkownika do samodzielnego sformułowania odpowiedzi przed jej weryfikacją (zobaczeniem rewersu).
-    Badania pokazują, że ten wysiłek kogniwistyczny zapewnia znacznie trwalszą retencję wiedzy, niż proste wielokrotne studiowanie danego 
+    Badania pokazują, że ten wysiłek kognitywny zapewnia znacznie trwalszą retencję wiedzy niż proste wielokrotne studiowanie danego 
     materiału, co udowodniono w eksperymentach Roedigera i Karpicke \cite{roediger2006test}.
     \item \textbf{Metapoznanie i samoocena} -- Fiszki wymuszają na uczącym się ciągłą weryfikację stanu swojej wiedzy. W momencie 
     odsłonięcia rewersu karty, użytkownik dokonuje weryfikacji poprawności swojej odpowiedzi. Pozwala to na zidentyfikowanie 
-    tematów, które nie zostały jeszcze w pełni opanowane i skierowanie na nich większej uwagi. Badania Kornella i Bjorka 
-    \cite{kornell2008optimizing} wykazują, że zdolność do trafnej oceny własnej wiedzy jest kluczowa dla optymalizacji 
-    czasu nauki, lecz obarczona ryzykiem błędu w samoocenie. Struktura fiszek minimalizuje ten błąd poprzez atomizację materiału, 
-    tym samym ułatwiając trafną ocenę wiedzy na poziomie pojedynczych pojęć.
+    tematów, które nie zostały jeszcze w pełni opanowane i skierowanie na nie większej uwagi. Badania Kornella i Bjorka 
+    wykazują, że zdolność do trafnej oceny własnej wiedzy jest kluczowa dla optymalizacji czasu nauki, lecz obarczona 
+    ryzykiem błędu w samoocenie \cite{kornell2008optimizing}. Struktura fiszek minimalizuje ten błąd poprzez atomizację 
+    materiału, tym samym ułatwiając trafną ocenę wiedzy na poziomie pojedynczych pojęć.
 \end{itemize}
 
 \section{Analiza istniejących rozwiązań}
-Fiszki ogromnie zyskały na popularności wraz z coraz większą dostępnością internetu i rozwojem technologicznym.
+Fiszki znacząco zyskały na popularności wraz z coraz większą dostępnością internetu i rozwojem technologicznym.
 Na rynku istnieje wiele aplikacji oferujących szeroki zakres narzędzi służących do zarządzania i 
 wspomagania procesu zapamiętywania. Wiele z nich opiera się na cyfrowej implementacji fiszek. 
 W celu zdefiniowania wymagań projektowych dokonano analizy trzech głównych rozwiązań dostępnych na rynku:
@@ -55,7 +55,7 @@ Anki, Quizlet oraz Brainscape.
 
 \subsection{Anki}
 Anki to darmowe oprogramowanie typu open-source, które istnieje na rynku już od wielu lat. Projekt oferuje darmową aplikację 
-desktopową oraz mobilną na system Android, lecz niestety płatną wersję na IOS. Jego główną zaletą jest 
+desktopową oraz mobilną na system Android, lecz niestety płatną wersję na iOS. Jego główną zaletą jest 
 implementacja zaawansowanego algorytmu powtórek w odstępach czasowych (Spaced Repetition System - SRS).
 \begin{itemize}
     \item \textbf{Zalety:} Duża elastyczność w konfiguracji algorytmu SRS, obsługa wtyczek tworzonych przez społeczność i możliwość 
@@ -67,7 +67,7 @@ implementacja zaawansowanego algorytmu powtórek w odstępach czasowych (Spaced 
 \end{itemize}
 
 \subsection{Quizlet}
-Quizlet to komercyjne rozwiązanie, które zdobyło popularność, dzięki intuicyjnemu interfejsowi i dostępności z poziomu 
+Quizlet to komercyjne rozwiązanie, które zdobyło popularność dzięki intuicyjnemu interfejsowi i dostępności z poziomu 
 przeglądarki oraz aplikacji mobilnej. Firma kładzie większy nacisk na implementację różnorodnych form nauki (np. poprzez 
 gry) niż na surowe algorytmy powtórek.
 \begin{itemize}
@@ -79,8 +79,8 @@ gry) niż na surowe algorytmy powtórek.
 \end{itemize}
 
 \subsection{Brainscape}
-Brainscape jest dostępne jako aplikacja mobilna oraz webowa. Korzysta ona z zaawansowanej metody metapoznania i samooceny. W przeciwieństwie do 
-standardowych alogrytmów, użytkownik zamiast wyboru odrzucenia/zostawienia fiszki, musi samodzielnie ocenić stopień znajomości odpowiedzi 
+Brainscape jest dostępne jako aplikacja mobilna oraz webowa. Korzysta on z zaawansowanej metody metapoznania i samooceny do przyśpieszenia procesu nauki. 
+W przeciwieństwie do standardowych algorytmów użytkownik zamiast wyboru odrzucenia/zostawienia fiszki, musi samodzielnie ocenić stopień znajomości odpowiedzi 
 w skali od 1 do 5, co bezpośrednio wpływa na czas do następnej powtórki.
 \begin{itemize}
     \item \textbf{Zalety:} Wymusza na użytkowniku ciągłą samoocenę, co znacznie przyśpiesza naukę. Aplikacja jest przejrzysta i prosta w obsłudze, 
@@ -94,7 +94,7 @@ w skali od 1 do 5, co bezpośrednio wpływa na czas do następnej powtórki.
 Przeprowadzona analiza pozwoliła na zidentyfikowanie luki na rynku aplikacji do fiszek. Istnieje realne zapotrzebowanie 
 na system, który będzie wspomagał użytkownika nie tylko w nauce, ale także w samym zarządzaniu zestawami fiszek, łącząc zalety 
 powyższych aplikacji i eliminując ich główne wady. Tabela \ref{tab:porownanie_rozwiazan} ukazuje zestawienie porównawcze 
-analizowanych systemów z aplikacją będącą przedmiotem niniejszej pracy. % POPRAW TO ZDANIE PLS
+analizowanych systemów z aplikacją będącą przedmiotem niniejszej pracy.
 
 \begin{table}[htbp]
     \centering
@@ -142,7 +142,7 @@ analizowanych systemów z aplikacją będącą przedmiotem niniejszej pracy. % P
         \addlinespace
         
         \textbf{Wsparcie AI} & 
-        Brak (ew. wtyczki 3rd party) & 
+        Brak (ew. zewnętrzne wtyczki) & 
         Płatne (Q-Chat) & 
         Brak & 
         \textbf{Automatyczne tagowanie (Gemini API)} \\ 
@@ -151,163 +151,9 @@ analizowanych systemów z aplikacją będącą przedmiotem niniejszej pracy. % P
     \end{tabularx}
 \end{table}
 
-Projektowania aplikacja ma za zadanie wypełnić zidentyfikowaną na rynku niszę. Implementowane rozwiązanie webowe charakteryzuje się 
+Projektowana aplikacja ma za zadanie wypełnić zidentyfikowaną na rynku niszę. Implementowane rozwiązanie webowe charakteryzuje się 
 nowoczesnym i intuicyjnym interfejsem graficznym, zapewniającym duży komfort pracy. Kluczowym elementem jest zaawansowany edytor tekstu, 
 który pozwala na tworzenie niestandardowych układów obrazów oraz bogate formatowanie tekstu bez konieczności znajomości kodu HTML czy CSS.
-Oprócz tego system kładzie duży nacisk na aspekty społecznościowe, takie jak komentarze czy system głosowania, przekształacjąc samotny 
+Oprócz tego system kładzie duży nacisk na aspekty społecznościowe, takie jak komentarze czy system głosowania, przekształcając samotny 
 proces nauki w doświadczenie oparte na współpracy i wymianie wiedzy. Całość dopełnia łatwy w obsłudze eksplorator plików z obsługą 
 tworzenia zagnieżdżonych folderów, co ułatwia użytkownikom centralizację wiedzy i zarządzanie wszystkimi materiałami. 
-
-
-% Współczesna inżynieria oprogramowania oraz dynamiczny rozwój społeczeństwa informacyjnego stawiają przed jednostką wyzwanie 
-% ciągłego podnoszenia kwalifikacji. Proces uczenia się, niegdyś ograniczony do murów szkolnych i akademickich, stał się obecnie 
-% procesem trwającym całe życie (\textit{lifelong learning}). W obliczu rosnącej objętości danych i specjalistycznej wiedzy, 
-% tradycyjne metody notowania i przyswajania informacji, oparte na linearnym czytaniu tekstu, często okazują się niewystarczające. 
-% Wymusza to poszukiwanie narzędzi, które nie tylko gromadzą wiedzę, ale także aktywnie wspierają proces jej utrwalania.
-
-% Transformacja cyfrowa edukacji przeniosła ciężar organizacji materiałów dydaktycznych z fizycznych notatników na aplikacje 
-% internetowe i mobilne. Zmiana ta otworzyła nowe możliwości w zakresie dostępności wiedzy, współdzielenia zasobów oraz 
-% wykorzystania multimediów w procesie poznawczym. Współczesne systemy informatyczne pozwalają na odejście od statycznych 
-% modeli danych na rzecz interaktywnych rozwiązań, które dostosowują się do potrzeb użytkownika, umożliwiając naukę w 
-% dowolnym miejscu i czasie.
-
-% Jedną z najskuteczniejszych metod systematyzowania wiedzy, szczególnie w obszarach wymagających zapamiętania dużej liczby definicji, terminologii czy wzorców, jest metoda fiszek (\textit{flashcards}). Opiera się ona na mechanizmie aktywnego przywoływania informacji (\textit{active recall}), co zmusza mózg do większego wysiłku poznawczego niż bierne czytanie, prowadząc do trwalszego śladu pamięciowego. Jednakże potencjał tej metody w środowisku cyfrowym jest ściśle uzależniony od jakości narzędzia, które ją obsługuje. Aplikacja wspierająca proces nauki nie może stanowić bariery technologicznej; musi być intuicyjna, wydajna i dostępna, aby użytkownik mógł skupić się na merytoryce, a nie na obsłudze interfejsu.
-
-% Niniejsza praca inżynierska stanowi odpowiedź na te wyzwania, prezentując proces projektowania i implementacji nowoczesnej aplikacji internetowej do zarządzania zestawami fiszek, która łączy sprawdzone metodyki dydaktyczne z najnowszymi standardami wytwarzania oprogramowania webowego.
-
-% % --- CZĘŚĆ 2: ANALIZA PROBLEMU (Tutaj wchodzimy w szczegóły "dlaczego to robisz") ---
-
-% \section{Motywacja i analiza obszaru problemowego}
-
-% Decyzja o podjęciu tematu budowy systemu do zarządzania fiszkami wynika z obserwacji rynku istniejących rozwiązań oraz analizy potrzeb współczesnych użytkowników. Mimo dostępności wielu platform edukacyjnych (takich jak Anki czy Quizlet), wciąż istnieje zauważalna luka pomiędzy zaawansowaniem algorytmicznym a użytecznością interfejsu (User Experience - UX) oraz otwartością architektury.
-
-% Wiele popularnych narzędzi, choć skutecznych dydaktycznie, charakteryzuje się wysokim progiem wejścia. Wymagają one od użytkownika skomplikowanej konfiguracji, instalacji dedykowanego oprogramowania klient-serwer lub borykają się z długu technologicznym, co skutkuje przestarzałym i nieintuicyjnym interfejsem. Z kolei nowoczesne rozwiązania komercyjne często zamykają kluczowe funkcjonalności – takie jak praca offline, zaawansowane formatowanie tekstu czy współdzielenie materiałów – za systemami płatności (paywall).
-
-% Kluczowym problemem zidentyfikowanym w toku analizy wstępnej jest czasochłonność procesu tworzenia materiałów. Użytkownicy często rezygnują z systematycznej nauki, ponieważ przygotowanie estetycznych i bogatych w treści fiszek zajmuje więcej czasu niż sama powtórka materiału.
-
-% W związku z powyższym, główną motywacją realizacji niniejszej pracy stało się stworzenie rozwiązania, które eliminuje te bariery poprzez:
-% \begin{enumerate}
-%     \item \textbf{Obniżenie progu wejścia} – poprzez realizację aplikacji w architekturze Single Page Application (SPA), dostępnej bezpośrednio z przeglądarki bez konieczności instalacji.
-%     \item \textbf{Usprawnienie procesu twórczego} – dzięki implementacji zaawansowanego edytora WYSIWYG (What You See Is What You Get) oraz integracji z modelami językowymi sztucznej inteligencji (LLM), które wspomagają kategoryzację i opis materiałów.
-%     \item \textbf{Społecznościowy wymiar nauki} – umożliwienie łatwego współdzielenia zestawów, oceniania ich i komentowania, co sprzyja wymianie wiedzy w grupach studenckich czy zawodowych.
-% \end{enumerate}
-
-% % --- CZĘŚĆ 3: CEL I ZAKRES (To jest "mięso" inżynierskie z Twojego PDFa) ---
-
-% \section{Cel i zakres pracy}
-
-% Głównym celem pracy jest zaprojektowanie i zaimplementowanie skalowalnej aplikacji internetowej typu \textit{headless}, służącej do tworzenia, zarządzania i nauki z wykorzystaniem fiszek. System został zaprojektowany z naciskiem na wydajność, bezpieczeństwo danych oraz intuicyjność obsługi.
-
-% \subsection{Cele szczegółowe i technologiczne}
-% Realizacja celu głównego wymagała osiągnięcia szeregu celów cząstkowych o charakterze inżynierskim:
-% \begin{itemize}
-%     [cite_start]\item \textbf{Opracowanie architektury systemu} opartej na separacji warstwy prezentacji od warstwy logiki biznesowej (Frontend-Backend separation)[cite: 140, 141].
-%     [cite_start]\item \textbf{Implementacja wydajnego API} przy użyciu frameworka FastAPI (Python), obsługującego asynchroniczne przetwarzanie żądań oraz walidację danych[cite: 214, 216].
-%     [cite_start]\item \textbf{Stworzenie responsywnego interfejsu użytkownika} w technologii React z wykorzystaniem języka TypeScript, zapewniającego płynność działania zbliżoną do aplikacji natywnych (SPA)[cite: 190, 353].
-%     [cite_start]\item \textbf{Zastosowanie persystencji poliglotycznej} (Polyglot Persistence), polegającej na dobraniu odpowiedniego magazynu danych do specyfiki przechowywanych informacji: relacyjnej bazy PostgreSQL dla danych strukturalnych, MinIO dla plików binarnych oraz ElasticSearch dla wyszukiwania pełnotekstowego[cite: 246, 248].
-%     [cite_start]\item \textbf{Zapewnienie bezpieczeństwa} poprzez implementację mechanizmów autoryzacji opartych o tokeny JWT przechowywane w ciasteczkach HttpOnly oraz ochronę przed atakami CSRF i XSS[cite: 112, 485].
-%     [cite_start]\item \textbf{Konteneryzacja środowiska} z wykorzystaniem platformy Docker, co ułatwia wdrożenie i skalowanie systemu[cite: 165, 930].
-% \end{itemize}
-
-% \subsection{Zakres funkcjonalny}
-% Aplikacja oferuje użytkownikom możliwość rejestracji i zarządzania kontem, tworzenia hierarchicznej struktury folderów i zestawów fiszek, a także korzystania z trybu nauki (odwracanie, tasowanie kart). [cite_start]Istotnym elementem zakresu pracy jest moduł społecznościowy, pozwalający na upublicznianie materiałów, dodawanie komentarzy oraz ocenianie zestawów[cite: 39, 45]. [cite_start]Dodatkowo system został zintegrowany z zewnętrznym API (Google Gemini) w celu automatycznego generowania tagów dla zestawów fiszek, co usprawnia proces ich wyszukiwania[cite: 760].
-
-% \section{Układ pracy}
-
-% Niniejsza praca składa się z dwóch głównych rozdziałów merytorycznych oraz wstępu i zakończenia.
-% \begin{itemize}
-%     [cite_start]\item \textbf{Rozdział 1: Projekt Systemu} – przedstawia analizę wymagań funkcjonalnych i niefunkcjonalnych, opisuje architekturę systemu w modelu klient-serwer oraz model danych uwzględniający relacyjną bazę danych i dodatkowe magazyny danych[cite: 27, 28].
-%     [cite_start]\item \textbf{Rozdział 2: Implementacja Systemu} – zawiera szczegółowy opis procesu wytwarzania oprogramowania, struktury kodu warstwy prezentacji i logiki, a także omawia kluczowe rozwiązania techniczne, takie jak hybrydowe zarządzanie stanem, telemetria (OpenTelemetry) oraz integracja z usługami zewnętrznymi[cite: 340, 341].
-% \end{itemize}
-% Podsumowanie pracy zawiera wnioski końcowe oraz kierunki dalszego rozwoju aplikacji.
-% \section{Analiza porównawcza}
-% \section{Cel i zakres pracy}
-
-
-
-
-
-
-% \chapter{Wstęp}
-% \label{ch:wstep}
-
-% Zanim przejdziesz dalej musisz odpowiedzieć sobie na bardzo ważną kwestię. Czy chcesz podczas pisania pracy dyplomowej ręcznie kontrolować, sprawdzać i~wciąż na nowo ustawiać takie rzeczy jak:
-
-% \begin{itemize}
-% 	\item wielkość i~rodzaj czcionki,
-% 	\item długość wcięcia akapitu,
-% 	\item styl tytułów rozdziałów i~podrozdziałów,
-% 	\item numeracja stron, rysunków, tabel, listingów, rozdziałów i~innych elementów,
-% 	\item spis treści i~jego numery stron,
-% 	\item zgodność indeksacji bibliografii z~tekstem,
-% 	\item wiele innych drobiazgów, o~których możesz nawet jeszcze nie wiedzieć?
-% \end{itemize}
-
-% \textit{A może chcesz się od tego uwolnić i~po prostu napisać pracę dyplomową?}
-
-% Jeśli preferujesz pierwsze podejście, to z~pewnością lepiej będzie, jeśli napiszesz pracę ,,jak wszyscy w~łerdzie'' lub podobnym edytorze tekstu. Jeśli jednak chcesz \textit{skupić się na treści}, to zachęcam do skorzystania z~systemu składu tekstu \LaTeX{} i~szablonu pracy dyplomowej, który właśnie oglądasz. W~obu przypadkach efekt końcowy będzie adekwatny do możliwości wybranego narzędzia.
-
-% Co wybierasz?
-
-% \begin{figure}[!htbp]
-% 	\centering \includegraphics[width=0.618\linewidth]{notneo.png} % 0.618 to złoty podział, bardzo dobra szerokość
-% 	\caption{,,Not Neo'', ChatGPT, 2025}
-% 	\label{rys:notneo}
-% \end{figure}
-
-% Cieszę się, że nadal czytasz ten tekst. A~to znaczy, że wybrane przez Ciebie rozwiązanie to \LaTeX. Jednak nie ma nic za darmo. Jeśli jest to dla Ciebie nowe narzędzie, to musisz je choć trochę poznać.
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \section{Rysunki}
-% Wydawać by się mogło, że edycja wzorów albo tabel jest największą bolączką początkujących użytkowników \LaTeX{a}. To zaskakujące ale okazuje się, że najwięcej trudności sprawiają rysunki.
-
-% Rysunki w~\LaTeX{u} wstawiane są za pomocą polecenia \texttt{includegraphics}. Najczęściej używa się go wewnątrz tak zwanego ,,otoczenia'' \texttt{figure}. To otoczenie pozwala na dodanie podpisu (\texttt{caption}).
-
-% Ponadto w~tymże otoczeniu można zdefiniować unikatowy znacznik (\texttt{label}), dzięki któremu można się później w~tekście do tego rysunku odwołać za pomocą \texttt{ref}. Nowo dodany znacznik, jak kilka innych rzeczy w~\LaTeX{u}, może wymagać dwukrotnego uruchomienia kompilacji, gdyż za pierwszym razem \LaTeX{} rejestruje ich obecność a~za drugim już ,,wie'', dokąd mają prowadzić odwołania.
-
-% Przykładem jest rysunek~\ref{rys:notneo}, który być może powinien znaleźć się na stronie~\pageref{ch:wstep}, zaraz poniżej słów ,,co wybierasz''. Byłoby fajnie. Jednak tam się nie zmieścił. Dlatego \LaTeX{} przeniósł go na następną stronę. \textbf{To typowe i~normalne zachowanie, z~którym nie należy walczyć.} Dla wielu początkujących użytkowników jest to największa mentalna bariera, którą muszą pokonać. Wynika ona ze złych doświadczeń z~edytorami tekstu, gdzie każdy rysunek trzeba ręcznie ustawić i~zadbać, żeby na pewno wpasował się w~treść na odpowiedniej stronie. A~on i~tak później się przesunie\ldots
-
-% \textbf{Dlatego trzeba oduczyć się konieczności ciągłego kontrolowania tak zwanego formatowania.} Celem jest przecież \textit{napisanie} pracy dyplomowej.
-
-% Zdarza się, że w~trakcie pisania pracy dyplomowej rysunki nieoczekiwanie ,,fruwają'' gdzieś w~tekście. Czasem \LaTeX{} tworzy z~nich wielką ,,galerię obrazków'' na końcu rozdziału. Nie należy się temu dziwić. Skoro autor tekstu miał intencję zdominować pracę rysunkami, to taki właśnie dokument powstanie. Aby sobie z~tymi problemami radzić, przede wszystkim należy możliwie długo wstrzymać się z~ingerencją w~położenie grafik. Najlepiej zostawić to na sam koniec pisania pracy, gdyż wówczas już ma sens zastosowanie działań takich, jak opisane niżej.
-
-% Być może oczekiwany efekt przeniesie przesunięcie otoczenia \texttt{figure} trochę wyżej lub niżej w~źródle \LaTeX{}? Czasem aby odniosło to pożądany skutek należy przenieść je nawet o~kilka akapitów. Trzeba tylko pamiętać o~pustej linii przed i~po nim w~pliku źródłowym.
-
-% Można spróbować zmiany sugestii umieszczenia grafiki, czyli h -- \textit{here}, t -- \textit{top}, b -- \textit{bottom}, oraz ewentualnie skorzystanie z~wykrzyknika, który stanowi ,,gorącą prośbę do \LaTeX{a}, żeby się bardziej postarał''.
-
-% Skoro rysunki są za duże to może należy je zmniejszyć? Nie każdy rysunek musi zajmować 2/3 szerokości strony. Warto to rozważyć, o~ile zostanie zachowana czytelność ich zawartości. Stopień pisma (wielkość czcionki) wewnątrz rysunku nie może być mniejszy niż wielkość czcionki podpisu pod rysunkiem. Jest to bardzo ważne w~odniesieniu do wykresów i~schematów. Dla treningu możesz spróbować zmniejszyć szerokość rysunku~\ref{rys:notneo} z~0.618 do 0.3 (\texttt{\textbackslash linewidth}) i~zobaczyć, jak wynikowy PDF będzie wyglądał po rekompilacji.
-
-% Być może to nie rysunek jest za duży a~treści jest za mało? Do każdego rysunku trzeba odwołać się w~tekście pracy za pomocą \texttt{ref}, tak jak powyżej i~tu ponownie jest odwołanie do rysunku~\ref{rys:notneo}. Zauważ, że \LaTeX{} dba o~spójność numeracji. Każdy rysunek musi być przywołany oraz opisany. Ilość opisującej go treści powinna być porównywalna z~jego powierzchnią. Jeśli nie można wytworzyć takiego opisu a~przecież ,,obraz jest wart tysiąca słów'', to być może ten rysunek niczego do pracy nie wnosi i~po prostu należy go usunąć?
-
-% Pozycjonując elementy graficzne a~rysunki w~szczególności, należy zapomnieć o~\underline{złych} poradach w~stylu ,,rysunek powinien pojawić się przed odwołaniem do niego'' albo ,,rysunek powinien być na tej samej stronie, co odwołanie do niego''. Zamiast tego należy wdrożyć swobodniejsze podejście: rysunek powinien być \textbf{możliwie blisko odwołania do niego ale nie bliżej}. Wystarczy, jeśli po ewentualnym wydrukowaniu tekstu czytelnik nie będzie zmuszany do przewracania kartek w~celu znalezienia rysunku, o~którym czyta.
-
-% W~\LaTeX{u} praktycznie nie ma ryzyka, że wszystko ,,się rozjedzie'', gdy przesuniemy rysunek. Ewentualne zmiany są też w~pełni odwracalne i~znacznie łatwiejsze, niż w~typowych edytorach tekstu.
-
-% Natomiast zdecydowanie \textbf{nie wolno} używać sztuczek, które niszczą sens zautomatyzowanego składu tekstu, czyli takich jak na przykład:
-% \begin{itemize}
-% 	\item FloatBarrier
-% 	\item pagebreak
-% 	\item newpage
-% 	\item clearpage
-% \end{itemize}
-
-% Powyższe zasady oraz porady można zastosować wobec pozostałych elementów graficznych takich jak tabele i~listingi.
-
-% Rysunki rastrowe powinny mieć minimalną rozdzielczość 300 dpi (punktów na cal). Dlatego rysunek zajmujący szerokość strony powinien mieć minimum 1900 pikseli szerokości. Dobry wydruk rastrowy to przynajmniej 600 dpi. Można uzyskać ,,nieskończoną'' rozdzielczość stosując grafikę wektorową. Możliwe jest wyeksportowanie grafik wektorowych do formatu PDF i~użycie ich w~\texttt{includegraphics}.
-
-% Inne ,,technikalia'' (\TeX{nikalia}?) wykorzystania \LaTeX{a} są krótko omówione i~zaprezentowane w~dodatku~\ref{app:latex} niniejszego szablonu.
-
-% \section{To wspaniale, ale co z~tym wstępem?}
-
-% Wstęp pracy dyplomowej powinien zawierać wprowadzenie do zagadnienia na tyle ogólne, żeby również osoba nie mająca wiedzy w~przedstawianym temacie była w~stanie zrozumieć, czego ta praca dotyczy. Opisać należy to, co ,,jest'', a~więc używając czasu teraźniejszego.
-
-% Warto we wstępie pokazać zagadnienie za pomocą grafiki (rysunek, schemat, tabela, wykres), aby ułatwić czytelnikowi szybkie rozpoznanie, czego dotyczy dana praca.
-
-% Warto posłużyć się odnośnikami bibliograficznymi do źródeł o~niskim progu wymagań -- na przykład czasopism popularnonaukowych lub branżowych.
-
-% \textbf{Niezbędnym elementem wstępu jest przedstawienie celu pracy.} Najprościej zacząć zdanie od słów ,,celem pracy jest''. Ponadto można przedstawić cele szczegółowe, założenia pracy, zaplanowane etapy realizacji badań i~innych działań, które będą podjęte w~ramach realizacji pracy dyplomowej dla osiągnięcia jej głównego celu.
-
-% Określając powyższe aspekty pracy warto pamiętać, że w~ramach pracy inżynierskiej można podejmować działania
-% projektowe, technologiczne, organizacyjne i~badawcze. Praca inżynierska powinna przedstawiać weryfikację poprawności uzyskanego rezultatu. Natomiast praca magisterska \textbf{musi} dodatkowo zawierać ,,element badawczy'' a~więc pod wieloma względami powinna stać na wyższym poziomie niż praca inżynierska.
-
-% Jeśli omówienie celu pracy i~elementów pokrewnych jest dość długie to może stanowić podrozdział ,,Wstępu''. Aczkolwiek ,,Wstęp'' jako całość raczej nie powinien być tak długi, by wymagał większej liczby podrozdziałów. Teoretyczne podstawy pracy powinny zostać dokładniej przedstawione w~kolejnym rozdziale.

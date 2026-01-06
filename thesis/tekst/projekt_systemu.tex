@@ -13,19 +13,20 @@ W ramach stworzenia wymagań funkcjonalnych zdefiniowany został szczegółowy z
 zidentyfikowane zostały wszystkie niezbędne funkcje systemu. 
 
 Początkowa lista sprecyzowanych wymagań funkcjonalnych szybko rozrosła się do rozmiarów ciężkich w zarządzaniu. 
-Z tego powodu podjęto decyzje o pogrupowaniu powiązanych ze sobą funkcji w siedem głównych modułów. Taki podział 
+Z tego powodu podjęto decyzję o pogrupowaniu powiązanych ze sobą funkcji w siedem głównych modułów. Taki podział 
 pozwolił na sensowną separację głównych funkcjonalności systemu, co ułatwiło późniejsze modelowanie architektury.
 
-Poniższy diagram (Rys \ref{rys:use_case_diagram}) ilustruje powyżej wspomniany podział na siedem wysokopoziomowych modułów:
+Poniższy diagram (Rys. \ref{rys:use_case_diagram}) ilustruje powyżej wspomniany podział na siedem wysokopoziomowych modułów:
 
 \begin{itemize}
     \item \textbf{Przeglądanie i nauka fiszek}: Komponent umożliwiający odwracanie, tasowanie i przeglądanie fiszek.
-    \item \textbf{Przeglądanie i wyszukiwanie publicznych materiałów}: Moduł dostępny dla niezalogowanych użytkowników pozwalający na przeszukiwanie publicznych zasobów.
-    \item \textbf{Tworzenie i edycja fiszek}: Zaawansowany moduł do tworzenia fiszek w tym edytor WYSIWYG umożliwiający formatowanie tekstu i wstawianie obrazków.
+    \item \textbf{Przeglądanie i wyszukiwanie publicznych materiałów}: Moduł dostępny dla wszystkich użytkowników pozwalający na przeszukiwanie publicznych zasobów.
+    \item \textbf{Tworzenie i edycja fiszek}: Zaawansowany moduł do tworzenia fiszek, w tym edytor WYSIWYG umożliwiający formatowanie tekstu i wstawianie obrazków.
     \item \textbf{Uwierzytelnianie i zarządzanie kontem}: Obejmuje procesy rejestracji, logowania i wylogowywania oraz zarządzanie sesją użytkownika.
     \item \textbf{Zarządzanie materiałami}: Pozwala na tworzenie, przenoszenie i edytowanie nazw materiałów.
-    \item \textbf{Dodawanie komentarzy i ocen}: Moduł umożliwiający interakcję między użytkownikami poprzez komentowanie i ocenianie fiszek, i komentarzy.
-    \item \textbf{Udostępnianie oraz kopiowanie materiałów}: Komponent umożliwiający udostępnianie własnych zestawów innym użytkownikom i zarządzanie ich uprawnieniami.
+    \item \textbf{Dodawanie komentarzy i ocen}: Moduł umożliwiający interakcję między użytkownikami poprzez komentowanie i ocenianie fiszek oraz komentarzy.
+    \item \textbf{Udostępnianie, współdzielenie oraz kopiowanie materiałów}: Komponent umożliwiający udostępnianie własnych zestawów innym użytkownikom, 
+    zarządzanie ich uprawnieniami oraz kopiowanie zestawów innych użytkowników.
 \end{itemize}
 
 \begin{figure}[!htbp]
@@ -35,12 +36,12 @@ Poniższy diagram (Rys \ref{rys:use_case_diagram}) ilustruje powyżej wspomniany
 \end{figure}
 
 \subsection*{Uwierzytelnianie i zarządzanie kontem}
-Moduł Uwierzytelniania i zarządzania kontem definiuje wszystkie operacje związane z uwierzytelnianiem użytkowników i kontrolą dostępu.
+Moduł uwierzytelniania i zarządzania kontem definiuje wszystkie operacje związane z uwierzytelnianiem użytkowników i kontrolą dostępu.
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
     \item Użytkownik może zarejestrować się za pomocą adresu e-mail i hasła.
-    \item Użytkownik może zalogować się za pomocą adresu e-mail i hasla.
+    \item Użytkownik może zalogować się za pomocą adresu e-mail i hasła.
     \item Użytkownik może wylogować się z aplikacji, czyszcząc przy tym sesję.
     \item System zapisuje sesję zalogowanego użytkownika po udanym logowaniu.
 \end{itemize}
@@ -52,14 +53,14 @@ Elementem przechowywanym w eksploratorze plików jest materiał reprezentujący 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
     \item Użytkownik może tworzyć, zmieniać nazwę i usuwać materiały.
-    \item Użytkownik może zagnieżdżać foldery tworząc hierarchiczną strukturę.
+    \item Użytkownik może zagnieżdżać foldery, tworząc hierarchiczną strukturę.
     \item Użytkownik może przenosić materiały między folderami.
     \item Użytkownik może wyszukiwać materiały w obrębie danego folderu po ich nazwie.
 \end{itemize}
 
 \subsection*{Tworzenie i edycja zestawów fiszek}
 Komponent ten odpowiada za tworzenie i modyfikację zestawu fiszek. Każdy zestaw 
-oprócz pojedyńczych fiszek zawiera także metadane określające jego atrybuty (nazwa, opis i dostępność). 
+oprócz pojedynczych fiszek zawiera także metadane określające jego atrybuty (nazwa, opis i dostępność). 
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
@@ -97,7 +98,7 @@ Użytkownicy mogą udostępniać swoje prywatne zestawy fiszek innym i zarządza
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może udostępnić swój prywatny zestaw fiszek innemu zarejestrowanemu użytkownikowi. 
+    \item Użytkownik może udostępnić swój zestaw fiszek innemu zarejestrowanemu użytkownikowi. 
     \item Użytkownik może zarządzać uprawnieniami użytkowników do udostępnionego materiału (przeglądający/edytujący).
     \item Użytkownik może zaakceptować lub odrzucić zaproszenie do udostępnionego materiału.
     \item Użytkownik może stworzyć kopię dowolnego zestawu, do którego ma dostęp.
@@ -110,16 +111,18 @@ między użytkownikami i ocenę komentarzy/zestawów fiszek.
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
     \item Użytkownik może dodawać, edytować i usuwać własne komentarze pod zestawami fiszek. 
-    \item System zezwala na zagnieżdżanie komenatrzy do najwyżej jednego poziomu.
+    \item System zezwala na zagnieżdżanie komentarzy do najwyżej jednego poziomu.
     \item Użytkownik może oceniać fiszki i komentarze za pomocą zostawiania łapki w górę/dół.
 \end{itemize}
 
 \section{Wymagania niefunkcjonalne}
 \label{sec:wymagania_niefunkcjonalne}
 
-Dzięki wymaganiom funkcjonalnym zostało już zdefiniowane, co aplikacja ma robić.
-Równie istotne jest określenie, jak ma to robić. Wymagania niefunkcjonalne definiują standardy i cechy, 
-jakie system musi spełniać, aby działać skutecznie i wydajnie \cite{sommerville2015}. Sprecyzowanie poniższych wymagań niefunkcjonalnych było
+Wymagania funkcjonalne definiują zakres działania systemu.
+Równie istotne są wymagania niefunkcjonalne, określające parametry jakościowe i ograniczenia techniczne. 
+Wymagania niefunkcjonalne definiują standardy i cechy, 
+jakie system musi spełniać, aby działać skutecznie i wydajnie \cite{sommerville2015}. 
+Sprecyzowanie poniższych wymagań niefunkcjonalnych było
 podstawą późniejszego modelowania architektury systemu.
 
 \subsection*{Bezpieczeństwo}
@@ -127,23 +130,23 @@ System musi zapewniać ochronę danych użytkowników oraz integralność całej
 
 \begin{itemize}
     \item \textbf{Zarządzanie sesją:} System musi implementować bezpieczny sposób zarządzania sesją minimalizujący ryzyko jej przechwycenia.
-    \item \textbf{Autoryzacja:} System musi kontrolować dostęp użytkowników do zasobów. Użytkownik niebędący włascicielem materiału lub niemający do niego uprawnień nie powinien uzyskać do niego dostępu.
+    \item \textbf{Autoryzacja:} System musi kontrolować dostęp użytkowników do zasobów. Użytkownik niebędący właścicielem materiału lub niemający do niego uprawnień nie powinien uzyskać do niego dostępu.
     \item \textbf{Sanityzacja:} System musi sanityzować wszystkie dane wejściowe, aby uniemożliwić wstrzyknięcie złośliwego oprogramowania.
     \item \textbf{Przechowywanie haseł:} Dane poufne użytkowników takie jak np. hasła muszą być zahaszowane przy użyciu silnego algorytmu kryptograficznego przed zapisaniem do bazy danych.
-    \item \textbf{Walidacja plików:} System musi walidować wszystkie pliki przesyłane przez użytkowników pod kątem rozmiaru, typu i możliwie zagnieżdzonego złośliwego kodu.
+    \item \textbf{Walidacja plików:} System musi walidować wszystkie pliki przesyłane przez użytkowników pod kątem rozmiaru, typu i możliwie zagnieżdżonego złośliwego kodu.
 \end{itemize}
 
 \subsection*{Wydajność}
 System musi zapewniać szybki czas odpowiedzi oraz płynne działanie.
 
 \begin{itemize}
-    \item \textbf{Czas odpowiedzi wyszukiwania:} Czas odpowiedzi wyszukiwania publicznych materiałów powinien średnio zajmować mniej niż dwie sekundy.
+    \item \textbf{Czas odpowiedzi wyszukiwania:} Czas odpowiedzi wyszukiwania publicznych materiałów powinien średnio wynosić mniej niż dwie sekundy.
     \item \textbf{Operacje asynchroniczne:} Czasochłonne operacje wejścia/wyjścia (I/O) nie mogą blokować interfejsu użytkownika ani serwera.
     \item \textbf{Buforowanie danych:} Aplikacja po stronie klienta musi buforować część danych pobieranych z serwera w celu zredukowania liczby zapytań i niepotrzebnego obciążania systemu.
-    \item \textbf{Wydajność zapytań:} System musi efektywnie pobierać złożone hierarchiczne struktury dancyh, aby nie powodować nadmiernego obciążania bazy danych.
+    \item \textbf{Wydajność zapytań:} System musi efektywnie pobierać złożone hierarchiczne struktury danych, aby nie powodować nadmiernego obciążania bazy danych.
 \end{itemize}
 
-\subsection*{Niezawodność i Odporność}
+\subsection*{Niezawodność i odporność}
 System musi być stabilny i odporny na błędy.
 
 \begin{itemize}
@@ -152,39 +155,39 @@ System musi być stabilny i odporny na błędy.
 \end{itemize}
 
 \subsection*{Użyteczność}
-Interfejs użytkownika musi być intuicyjny i łatwy w użyciu
+Interfejs użytkownika musi być intuicyjny i łatwy w użyciu.
 \begin{itemize}
-    \item \textbf{Edytor fiszek:} System musi zapewniać intuicyjny i łatwy w użyciu edytor tekstu (WYSIWYG) do tworzenia fiszek umożliwiajacy formatowanie tekstu i dodawanie obrazków.
+    \item \textbf{Edytor fiszek:} System musi zapewniać intuicyjny i łatwy w użyciu edytor tekstu (WYSIWYG) do tworzenia fiszek umożliwiający zaawansowane formatowanie tekstu i dodawanie obrazków.
     \item \textbf{Ochrona przed błędami użytkownika:} System musi chronić użytkowników przed przypadkową utratą danych poprzez wymóg potwierdzenia przed każdą próbą usunięcia zasobu.
-    \item \textbf{Przepływ pracy:} Aplikacja wspiera płynny przepływ pracy użytkownika poprzez automatyczne przekierowania np. po udanym zalogowaniu.
+    \item \textbf{Przepływ pracy:} Aplikacja musi wspierać płynny przepływ pracy użytkownika poprzez automatyczne przekierowania np. po udanym zalogowaniu.
 \end{itemize}
 
 \subsection*{Skalowalność i łatwość utrzymania}
 System musi być przygotowany na wzrost liczby aktywnych użytkowników lub gromadzonych danych. 
 
 \begin{itemize}
-    \item \textbf{Skalowalność horyzontalna:} Serwer musi być bezstanowy (stateless), aby umożliwić uruchomienie jego wielu instancji i rozdzielenie ruchu sieciowego (load balancing).
-    \item \textbf{Separacja komponentów:} Kluczowe komponenty (np. logika aplikacji, system wyszukiwania.) powinny być od siebie oddzielone, aby umożliwić ich niezależne skalowanie w przyszłości.
+    \item \textbf{Skalowalność horyzontalna:} Serwer musi być bezstanowy (ang. stateless), aby umożliwić uruchomienie jego wielu instancji i rozdzielenie ruchu sieciowego (ang. load balancing).
+    \item \textbf{Separacja komponentów:} Kluczowe komponenty (np. logika aplikacji, serwis wyszukiwania) powinny być od siebie oddzielone, aby umożliwić ich niezależne skalowanie w przyszłości.
     \item \textbf{Wersjonowanie schematu bazy danych:} Zmiany w schemacie bazy danych muszą być zarządzane za pomocą migracji, pozwalających na śledzenie historii zmian.
 \end{itemize}
 
 \section{Architektura systemu}
 
-System został zaprojektowany według standardowego wzorca architektonicznego klient-serwer w modelu headless \cite{fowler2002}. 
-Oznacza to całkowitą separację aplikacji klienckiej ('głowy') od serwera ('ciała'), który jedynie udostępnia swoje API. 
-Podstawą tej separacji jest logiczny podział systemu na trzy warstwy tworzące architekturę trójwarstwową (3-Tier Architecture) \cite{sommerville2015}:
+System został zaprojektowany według standardowego wzorca architektonicznego klient-serwer w modelu headless. 
+Oznacza to całkowitą separację aplikacji klienckiej ('głowy') od serwera ('ciała'), który jedynie udostępnia swoje API \cite{fowler2002}. 
+Podstawą tej separacji jest logiczny podział systemu na trzy warstwy tworzące architekturę trójwarstwową \cite{sommerville2015}:
 \begin{itemize}
     \item \textbf{Warstwa Prezentacji} -- Jest to warstwa interfejsu użytkownika. Zajmuje się wyświetlaniem i zbieraniem danych wprowadzonych przez użytkownika.
-    \item \textbf{Warstwa Logiki} -- Jest odpowiedzialna za przetwarzanie wszystkich żądań od użytkownika. Jest pośrednikiem między warstwą prezentacji a danych, kordynując przepływ danych między nimi.
+    \item \textbf{Warstwa Logiki} -- Jest odpowiedzialna za przetwarzanie wszystkich żądań od użytkownika. Jest pośrednikiem między warstwą prezentacji a danych, koordynując przepływ danych między nimi.
     \item \textbf{Warstwa Danych} -- Warstwa odpowiedzialna za zarządzanie i przechowywanie danych. 
 \end{itemize}
-Taka separacja odpowiedzialności (separation of concerns) ułatwia zarządzanie kodem i przyszłe skalowanie aplikacji \cite{cleancode}.
+Taka separacja odpowiedzialności ułatwia zarządzanie kodem i przyszłe skalowanie aplikacji \cite{cleancode}.
 
 Aplikacja kliencka została zrealizowana jako Single Page Application (SPA).
 Całe przetwarzanie i zarządzanie danymi odbywa się na serwerze (w warstwach logiki i danych), 
 a zadaniem klienta (warstwy prezentacji) jest renderowanie i obsługa interfejsu użytkownika oraz wysyłanie żądań do serwera.
-Komunikacja między klientem a serwerem odbywa się asynchroniczne przy wykorzystaniu protokołu HTTP \cite{tanenbaum_networks}. Cały przesył danych jest realizowany 
-przy pomocy obiektów transferów danych (Data Transfer Objects) \cite{fowler2002}, które przed wysyłką są serializowane do formatu JSON.
+Komunikacja między klientem a serwerem odbywa się asynchronicznie przy wykorzystaniu protokołu HTTP \cite{tanenbaum_networks}. Cały przesył danych jest realizowany 
+przy pomocy obiektów transferu danych (Data Transfer Objects) \cite{fowler2002}, które przed wysyłką są serializowane do formatu JSON.
 
 Warto zauważyć, że poszczególne komponenty aplikacji (klient, serwer itp.) zostały skonteneryzowane 
 przy użyciu platformy Docker \cite{docker_docs}, co pozwala na większe rozdzielenie odpowiedzialności i ułatwia skalowanie aplikacji
@@ -207,18 +210,18 @@ co znacząco przyśpieszyło dalszą fazę projektowania i implementacji.
 
 \begin{figure}
     \centering \includegraphics[width=0.85\linewidth]{figma_materials_screen.pdf} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Ekran materiałów zamodelowany w figmie}
+	\caption{Ekran materiałów zamodelowany w Figmie}
 	\label{rys:figma_materials_screen}
 \end{figure}
 
 Interfejs użytkownika został zaimplementowany jako aplikacja typu Single Page Application (SPA). SPA to aplikacja 
 składająca się technicznie tylko z jednej strony (jednego pliku HTML), a cała nawigacja i zmiany widoków odbywają się 
 dynamicznie poprzez modyfikację drzewa DOM (Document Object Model) po stronie przeglądarki użytkownika \cite{react_docs}. 
-Główną rolą zaprojektowanej aplikacji klienckiej jest wizualizacja danych otrzymanych od serwera oraz obsłużenie jej interkacji z użytkownikiem.    
+Główną rolą zaprojektowanej aplikacji klienckiej jest wizualizacja danych otrzymanych od serwera oraz obsłużenie jej interakcji z użytkownikiem.    
 
 \begin{figure}
     \centering \includegraphics[width=0.85\linewidth]{figma_flashcard_screen.pdf} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Ekran przeglądania zestawu fiszek zamodelowany w figmie}
+	\caption{Ekran przeglądania zestawu fiszek zamodelowany w Figmie}
 	\label{rys:figma_flashcard_screen}
 \end{figure}
 
@@ -227,15 +230,11 @@ Taki stos technologiczny pozwolił na pisanie czystszego, bardziej skalowalnego 
 nawigacji po stronie klienta posłużyła biblioteka React Router, dzięki której nie ma konieczności przeładowywania 
 całej strony przy zmianie widoku, co pozwala na realizację architektury SPA. 
 
-% Bardzo ważnym elementem w projektowaniu interfejsu użytkownika jest koncept zarządzania stanem. W tym przypadku zdecydowano się 
-% na podejście hybrydowe. Globalny stan aplikacji, taki jak np. status uwierzytelnienia lub prywatne materiały użytkownika, jest 
-% obsługiwany za pomocą Redux Toolkit co zwiększa wydajność w przypadku długoterminowych danych, które utrzymują się aż do odświeżenia strony. 
-% Aby spełnić wymagania niefunkcjonalne, konieczne było zastosowanie biblioteki React Query, która zezwala na tymczasowe buforowanie danych.
-Bardzo ważnym elementem w projektowaniu interfejsu użytkownika jest koncept zarządzania stanem. W tym przypadku zdecydowano się 
+Bardzo ważnym elementem w projektowaniu architektury interfejsu użytkownika jest koncept zarządzania stanem. W tym przypadku zdecydowano się 
 na podejście hybrydowe:
 \begin{itemize}
     \item \textbf{Globalny stan} taki jak np. status uwierzytelnienia czy prywatne materiały użytkownika, jest 
-obsługiwany za pomocą Redux Toolkit.
+obsługiwany za pomocą biblioteki Redux Toolkit.
     \item \textbf{Dane tymczasowe} takie jak np. najbardziej popularne czy najczęściej wyświetlane zestawy fiszek na stronie publicznej
 są tymczasowo buforowane dzięki bibliotece React Query.
 \end{itemize}
@@ -243,15 +242,15 @@ Takie podejście hybrydowe zapewniło scentralizowanie stanu dla długoterminowy
 tymczasowymi poprzez czasowe buforowanie. 
 
 Najważniejszym elementem interfejsu użytkownika realizującym jedno z kluczowych wymagań funkcjonalnych dotyczących tworzenia fiszek jest edytor WYSIWYG. Istnieje
-wiele gotowych  rozwiązań w internecie, ale niewiele z nich oferowało elastyczność wymaganą do zaimplementowania wszystkich niezbędnych funkcjonalności. 
-Do implementacji takiego edytora wybrano framework TipTap. TipTap to edytor typu 'headless' czyli nie dostarcza żadnego gotowego interfejsu a jedynie samą logikę obsługi edytora.
+wiele gotowych implementacji takich edytorów w internecie, ale niewiele z nich oferowało elastyczność wymaganą do zaimplementowania wszystkich niezbędnych funkcjonalności. 
+Do implementacji takiego edytora wybrano framework TipTap. TipTap to edytor typu 'headless', czyli nie dostarcza żadnego gotowego interfejsu, a jedynie samą logikę obsługi edytora.
 Dzięki temu możliwe było stworzenie niestandardowych rozszerzeń realizujących bardziej skomplikowane operacje. Przykładem takiego niestandardowego rozszerzenia może być np. komponent 'ImageGrid', pozwalający na 
 wstawianie wielu obrazków w jednym rzędzie.
 
 \subsection{Warstwa logiki}
 Warstwa logiki pełni rolę serwera aplikacji udostępniającego interfejs REST API \cite{fielding_rest}. Jest ona odpowiedzialna za całą logikę biznesową, 
-przetwarzanie i bezpieczeństwo danych. Do implementacji serwera wykorzystano framework FastAPI \cite{fastapi_docs}. FastAPI 
-to nowoczesny framework webowy dla języka python pozwalający na tworzenie wydajnych API w możliwie najkrótszym 
+przetwarzanie i bezpieczeństwo danych. Do implementacji serwera wykorzystano framework FastAPI \cite{fastapi_docs}. Jest 
+to nowoczesny framework webowy dla języka Python pozwalający na tworzenie wydajnych API w możliwie najkrótszym 
 czasie. FastAPI jest zbudowany na podstawie standardu ASGI (Asynchronous Server Gateway Interface), co pozwala na 
 współbieżne przetwarzanie zapytań klienta i jednoczesną obsługę wielu operacji wejścia/wyjścia (I/O). Dzięki integracji 
 z biblioteką Pydantic FastAPI automatycznie waliduje wszystkie dane przychodzące z żądań HTTP, a także serializuje dane zwracane do klienta.
@@ -260,9 +259,9 @@ Backend został zaimplementowany w oparciu o model wielowarstwowy. Takie podejś
 odpowiedzialności, co czyni kod czystszym i łatwiejszym w zarządzaniu. Wyróżnione zostały 3 główne warstwy:
 \begin{itemize}
     \item \textbf{Tras (Routes)} -- Odpowiada za definiowanie punktów końcowych API (endpointów), zarządzanie 
-    żądaniami HTTP oraz wysyłanie odpowiedzi. Parsuje także dane wejściowe za pomocą modeli pydantic i przekazuje je do 
+    żądaniami HTTP oraz wysyłanie odpowiedzi. Parsuje także dane wejściowe za pomocą modeli Pydantic i przekazuje je do 
     odpowiednich serwisów. 
-    \item \textbf{Usług (Services)} -- W tej warstwie znajdują się cała logika aplikacji. Działa ona jako pośrednik 
+    \item \textbf{Usług (Services)} -- W tej warstwie znajduje się cała logika aplikacji. Działa ona jako pośrednik 
     między warstwą tras a repozytoriów, przetwarzając i przekazując dane uzyskane od warstwy tras do repozytoriów. 
     \item \textbf{Repozytoriów (Repositories)} -- Odpowiada za dostęp do danych. Wszystkie dane są przez nią zarządzane 
     pod kątem zapisu i odczytu z warstwy danych.
@@ -272,9 +271,9 @@ odpowiedzialności, co czyni kod czystszym i łatwiejszym w zarządzaniu. Wyró�
 	\caption{Diagram architektury warstwy logiki}
 	\label{rys:backend}
 \end{figure}
-Centralnym mechanizmem łączącym te warstwy jest wzorzec wstrzykiwania zależności (dependency injection). Wzorzec ten, zapewniający luźne powiązania między obiektami (loose coupling), został wykorzystany  
+Centralnym mechanizmem łączącym te warstwy jest wzorzec wstrzykiwania zależności (dependency injection). Wzorzec ten, zapewniający luźne powiązania między obiektami (ang. loose coupling), został wykorzystany  
 do przekazywania instancji serwisów do poszczególnych tras oraz do zarządzania cyklem życia zasobów \cite{seemann_di}. Dzięki temu połączenie do bazy danych 
-jest automatycznie tworzone dla przychodzącego zapytania i zamykane po wysłaniu odpowiedzi do klienta. 
+jest automatycznie pobierane z puli połączeń dla przychodzącego zapytania i zwracane do niej po wysłaniu odpowiedzi do klienta. 
 
 Serwer został zaprojektowany jako bezstanowy, co oznacza, że sesja użytkownika jest przechowywana po stronie przeglądarki użytkownika, 
 a nie po stronie serwera. Jest to potrzebne, aby spełnić kluczowe założenie REST API, które wymaga, żeby w każdym żądaniu zostały przesłane 
@@ -285,32 +284,32 @@ Wszystkie dane wejściowe są sanityzowane za pomocą bibliotek nh3 (dane teksto
 za pomocą biblioteki passlib. Proces haszowania polega na dodaniu soli i pieprzu do hasła, a następnie zahaszowaniu go przy pomocy algorytmu argon2, co jest zgodne 
 z obecnymi zaleceniami dotyczącymi bezpieczeństwa aplikacji \cite{owasp_passwords}.
 
-Serwer, aby spełnić kluczowe wymaganie jakościowe dotyczące wysokiej repsonsywności systemu, musi obsługiwać długie operacje wejścia/wyjścia bez blokowania 
+Serwer, aby spełnić kluczowe wymaganie jakościowe dotyczące wysokiej responsywności systemu, musi obsługiwać długie operacje wejścia/wyjścia bez blokowania 
 głównego wątku serwera i aplikacji klienta. W przypadku długotrwałych operacji takich jak np. generowanie tagów przez zewnętrzne API (Gemini) system 
 wykorzystuje mechanizm zadań w tle (background task). Dzięki temu klient od razu otrzymuje odpowiedź o udanym stworzeniu zestawu fiszek, a długotrwała 
-operacja generowania tagów odbywa się asynchroniczne w tle na serwerze.
+operacja generowania tagów odbywa się asynchronicznie w tle na serwerze.
 \subsection{Warstwa danych}
 
 Warstwa danych jest fundamentem każdej aplikacji, jej jedynym zadaniem jest optymalne zarządzanie i przechowywanie danych.
 Ze względu na różnorodność przechowywanych danych i wymagania niefunkcjonalne dotyczące 
-wydajności, system został zaprojektowany według modelu persystencji poliglotycznej (polyglot presistence) \cite{nosql_distilled}. 
+wydajności, system został zaprojektowany według modelu persystencji poliglotycznej (ang. polyglot persistence). 
 Model ten polega na używaniu wielu technologii przechowywania danych, w celu zwiększenia wydajności aplikacji
-poprzez wykorzystywanie rozwiązań zoptymalizowanych pod konkretne zadania. W ramach systemu wyróżniono 3 główne 
+poprzez wykorzystywanie rozwiązań zoptymalizowanych pod konkretne zadania \cite{nosql_distilled}. W ramach systemu wyróżniono 3 główne 
 magazyny danych, z których każdy odgrywa inną rolę:
 \begin{itemize}
     \item \textbf{Relacyjna baza danych (PostgreSQL)} -- Służy do przechowywania danych relacyjnych takich jak np. użytkownicy, 
     fiszki czy materiały.
     \item \textbf{Magazyn obiektów (MinIO)} -- Przechowuje pliki (dane binarne) nieposiadające żadnej struktury, takie jak np. obrazki.
-    \item \textbf{Wyszukiwarkę pełnotekstową (ElasticSearch)} -- Przechowuje dane w formie dokumentów JSON, z których budowane są odwrócone
+    \item \textbf{Wyszukiwarka pełnotekstowa (ElasticSearch)} -- Przechowuje dane w formie dokumentów JSON, z których budowane są odwrócone
      indeksy. Indeksy te pozwalają na szybkie pełnotekstowe wyszukiwanie i ekspresową agregację danych.
 \end{itemize}
 
 \subsection*{Relacyjna baza danych}
 
-PostgreSQL jest głównym magazynem danych aplikacji \cite{postgresql_docs}. Został on wybrany ze względu na jego niezawodność, 
-wsparcie dla różnych typów danych i rozszerzeń. Przechowywane są w nim wszystkie dane użytkowników takie jak:
+PostgreSQL jest głównym magazynem danych aplikacji. Został on wybrany ze względu na jego niezawodność, 
+wsparcie dla różnych typów danych i rozszerzeń \cite{postgresql_docs}. Przechowywane są w nim wszystkie dane użytkowników takie jak:
 dane logowania, materiały, zestawy fiszek itp. Schemat bazy danych jest zarządzany przy użyciu narzędzia Liquibase, 
-co pozwala na łatwe śledzenie i zarządzanie zmian.
+co pozwala na łatwe śledzenie zmian i zarządzanie nimi.
 Schemat bazy danych został zamodelowany na diagramie związków encji (ERD) (Rys. \ref{rys:database_erd_diagram}), 
 a cała architektura relacyjnej bazy danych opiera się na trzech kluczowych konceptach:
 
@@ -322,16 +321,16 @@ a cała architektura relacyjnej bazy danych opiera się na trzech kluczowych kon
 
 \subsubsection*{Materials}
 Punktem centralnym całej bazy danych jest tabela materials. Jej zadaniem jest przechowywanie podstawowych informacji o wszystkich 
-materiałach (nazwa, czas kreacji, folder, w jakim się znajduje i id właściciela). Tabela ta
+materiałach (nazwa, czas kreacji, folder w jakim się znajduje i id właściciela). Tabela ta
 pełni rolę eksploratora plików, ponieważ pozwala na przechowywanie dowolnego zasobu, dzięki wykorzystaniu
-wzorca Single Table Inheritance (STI). W tabeli materials można przechowywać zarówno foldery, jak i zestawy fiszek, 
+wzorca Class Table Inheritance (CTI). W tabeli materials można przechowywać zarówno foldery, jak i zestawy fiszek, 
 a w przypadku dalszego rozwoju aplikacji nowe zasoby takie jak np. quizy. Wszystko to jest możliwe dzięki kolumnie 
-item\_type. Item\_type określa typ zasobu, jaki znajduje się w określonym wierszu (zestaw fiszek lub folder). Encja materials 
-przechowuje podstawowe dane takiego zasobu, o których mowa była wcześniej, a dodatkowe informacje 
+item\_type. Określa ona typ zasobu, jaki znajduje się w danym wierszu (zestaw fiszek lub folder). Encja materials 
+przechowuje podstawowe dane takiego zasobu, a wszystkie dodatkowe informacje 
 takie jak np. opis czy dostępność zestawu fiszek, znajdują się w oddzielnej tabeli połączonej z materials za pomocą klucza obcego
-będącego jednocześnie kluczem głównym. Dzięki temu połączeniu encja materials staje się tabelą nadrzędną, z której dziedziczą 
-tabele podrzędne takie jak np. flashcard\_sets czy w przyszłości quizes. W tabeli materials znajdują się także dwa autoreferencyjne 
-klucze obce (self-referencing foreign keys):
+będącego jednocześnie kluczem głównym. Takie połączenie sprawia, że encja materials staje się tabelą nadrzędną, z której dziedziczą 
+tabele podrzędne takie jak np. flashcard\_sets czy w przyszłości quizzes. W tabeli materials znajdują się także dwa autoreferencyjne 
+klucze obce:
 \begin{itemize}
     \item \textbf{linked\_material\_id} -- Odpowiada za skrót do udostępnionego materiału, przez co zachowane zostaje jedno źródło prawdy, a usunięcie linku
     wskazującego na inny zestaw nie powoduje usunięcia oryginalnego zestawu.
@@ -342,25 +341,25 @@ klucze obce (self-referencing foreign keys):
 \subsubsection*{Comments i Votes}
 Tabela comments oprócz standardowej referencji do rodzica (parent\_comment\_id) wykorzystuje także rozszerzenie PostgreSQL o nazwie ltree \cite{postgresql_docs}. 
 Kolumna path wykorzystuje to rozszerzenie w celu przechowania całej ścieżki drzewa dla każdego komentarza. Pozwala to na 
-pobranie całego drzewa komentarzy w jednym wydajnym zapytaniu unikając powolnego zaptania rekurencyjnego. 
+pobranie całego drzewa komentarzy w jednym wydajnym zapytaniu, unikając powolnego zapytania rekurencyjnego. 
 
 Encja votes tworzy relację polimorficzną przy pomocy kolumn: votable\_id oraz votable\_type. Dzięki temu votes może zostać użyte 
-do przechowywania łapek w górę/dół dla komentarzy i wszystkich materiałow (zestawów fiszek i w przyszłości quizów).
+do przechowywania łapek w górę/dół dla komentarzy i innych materiałów (zestawów fiszek i w przyszłości quizów).
 
 
 \subsubsection*{Material\_shares}
 Encja material\_shares jest ściśle połączona z wcześniej opisanym linked\_material\_id. Material\_shares jest kluczową tabelą pozwalającą 
 na przechowywanie i zarządzanie udostępnieniami. Jest to tabela tworząca relację wiele do wielu pomiędzy tabelami users i materials.
 Nie pełni ona jednak roli prostej tabeli asocjacyjnej, ponieważ przechowuje także informację o statusie udostępnienia i nadanych uprawnieniach. 
-W przypadku zaakceptowania udostępnienia, jego status w material\_shares zostanie zmieniony na zaakceptowany, a w encji materials pojawi się nowy materiał 
-posiadający atrybuty oryginalnego materiału i linked\_material\_id wskazujący na oryginalny materiał.
+W przypadku zaakceptowania udostępnienia, jego status w material\_shares zostanie zmieniony na zaakceptowany, a w encji materials pojawia się nowy wpis 
+posiadający atrybuty oryginalnego zasobu i linked\_material\_id wskazujący na oryginalny materiał.
 
 \subsection*{Magazyn obiektów}
-Przechowywanie dużych plików binarnych (BLOB) w relacyjnej bazie danych jest mało efektywne i niewydajne. Do rozwiązania tego problemu 
+Przechowywanie dużych plików binarnych w relacyjnej bazie danych jest mało efektywne i niewydajne. Do rozwiązania tego problemu 
 zastosowano system magazynowania obiektów MinIO. Serwer, aby przechować obraz, przesyła go do MinIO (który działa jako oddzielny serwis), 
-a ten zapisuje obraz w dedykowanym kubełku (bucket). Link do każdego obrazka jest zapisywany w relacyjnej bazie danych, bezpośrednio 
-w tekście fiszki. Kubełek ma ustawione pubiliczne uprawnienia odczytu więc klient nie potrzebuje żadnych dodatkowych uprawnień do 
-wyświetlenia obrazka co znacznie upraszcza implementacje.
+a ten zapisuje obraz w dedykowanym kontenerze danych (ang. bucket). Link do każdego obrazka jest zapisywany w relacyjnej bazie danych, bezpośrednio 
+w tekście fiszki. Kontener ma ustawione publiczne uprawnienia odczytu, więc klient nie potrzebuje żadnych dodatkowych uprawnień do 
+wyświetlenia obrazka, co znacznie upraszcza implementację.
 
 \subsection*{Wyszukiwanie pełnotekstowe}
 System, aby spełnić wymaganie jakościowe dotyczące czasu odpowiedzi wyszukiwania, implementuje serwis wyszukiwania pełnotekstowego \cite{elasticsearch_guide}. 
