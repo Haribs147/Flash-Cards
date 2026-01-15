@@ -59,12 +59,12 @@ class FlashcardSetService:
 
         comments_data = comment_repository.get_comments_for_set(db, set_id, user_id_for_logs)
         
-        # background_tasks.add_task(
-        #     elastic_repository.log_view_event,
-        #     set_id=set_id,
-        #     user_id=user_id_for_logs,
-        # )
-        elastic_repository.log_view_event(set_id=set_id, user_id=user_id_for_logs)
+        background_tasks.add_task(
+            elastic_repository.log_view_event,
+            set_id=set_id,
+            user_id=user_id_for_logs,
+        )
+        # elastic_repository.log_view_event(set_id=set_id, user_id=user_id_for_logs)
 
         return FlashcardSetOut(
             id = set_id,

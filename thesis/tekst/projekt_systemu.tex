@@ -8,12 +8,11 @@ projektu architektury ułatwiającym późniejszą pracę nad implementacją apl
 
 \section{Wymagania funkcjonalne}
 
-Wymagania funkcjonalne określają funkcje i zachowania, które musi spełniać system, aby w pełni zrealizować określone wymagania użytkowników \cite{sommerville2015}. 
-W ramach stworzenia wymagań funkcjonalnych zdefiniowany został szczegółowy zakres działania aplikacji oraz 
-zidentyfikowane zostały wszystkie niezbędne funkcje systemu. 
-
+Wymagania funkcjonalne określają funkcje i zachowania, które musi spełniać system, aby w pełni zrealizować określone 
+wymagania użytkowników \cite{sommerville2015}. Stworzenie wymagań funkcjonalnych obejmowało zdefiniowanie 
+szczegółowego zakresu działania aplikacji oraz identyfikację wszystkich niezbędnych funkcji systemu. 
 Początkowa lista sprecyzowanych wymagań funkcjonalnych szybko rozrosła się do rozmiarów ciężkich w zarządzaniu. 
-Z tego powodu podjęto decyzję o pogrupowaniu powiązanych ze sobą funkcji w siedem głównych modułów. Taki podział 
+Rozwiązaniem tego problemu było pogrupowanie powiązanych ze sobą funkcji w siedem głównych modułów. Taki podział 
 pozwolił na sensowną separację głównych funkcjonalności systemu, co ułatwiło późniejsze modelowanie architektury.
 
 Poniższy diagram (Rys. \ref{rys:use_case_diagram}) ilustruje powyżej wspomniany podział na siedem wysokopoziomowych modułów:
@@ -40,10 +39,11 @@ Moduł uwierzytelniania i zarządzania kontem definiuje wszystkie operacje zwią
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może zarejestrować się za pomocą adresu e-mail i hasła.
-    \item Użytkownik może zalogować się za pomocą adresu e-mail i hasła.
-    \item Użytkownik może wylogować się z aplikacji, czyszcząc przy tym sesję.
-    \item System zapisuje sesję zalogowanego użytkownika po udanym logowaniu.
+    \item Użytkownik może stworzyć nowe konto poprzez podanie unikalnego adresu e-mail i bezpiecznego hasła.  
+    \item Aplikacja pozwala użytkownikowi na uwierzytelnienie się za pomocą adresu e-mail i hasła, jednocześnie nawiązując bezpieczną sesję.
+    \item Użytkownik ma możliwość bezpiecznego zakończenia sesji poprzez wylogowanie się, co skutkuje natychmiastowym unieważnieniem 
+    tokenów sesyjnych.
+    \item System automatycznie zarządza sesją użytkownika, umożliwiając jej odświeżanie w tle bez konieczności ponownego logowania.
 \end{itemize}
 
 \subsection*{Zarządzanie materiałami}
@@ -52,10 +52,11 @@ Elementem przechowywanym w eksploratorze plików jest materiał reprezentujący 
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może tworzyć, zmieniać nazwę i usuwać materiały.
-    \item Użytkownik może zagnieżdżać foldery, tworząc hierarchiczną strukturę.
-    \item Użytkownik może przenosić materiały między folderami.
-    \item Użytkownik może wyszukiwać materiały w obrębie danego folderu po ich nazwie.
+    \item System pozwala użytkownikowi zarządzać cyklem życia materiałów (tworzenie, usuwanie i edycja nazwy), przy automatycznej 
+    weryfikacji uprawnień do zarządzania.
+    \item Użytkownik może organizować materiały w foldery, tworząc hierarchiczną strukturę.
+    \item System umożliwia przenoszenie fiszek i folderów (razem z ich zawartością) między różnymi folderami w eksploratorze plików użytkownika.
+    \item Użytkownik może przeszukiwać materiały w obrębie danego folderu po części lub całości ich nazwy.
 \end{itemize}
 
 \subsection*{Tworzenie i edycja zestawów fiszek}
@@ -64,10 +65,11 @@ oprócz pojedynczych fiszek zawiera także metadane określające jego atrybuty 
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może tworzyć i usuwać zestawy fiszek.
-    \item Użytkownik może edytować atrybuty zestawu fiszek (nazwa, opis, dostępność).
-    \item Użytkownik może dodawać, usuwać i edytować pojedyncze fiszki w ramach danego zestawu fiszek.
-    \item Użytkownik może formatować styl tekstu zawartego na fiszce poprzez np. kursywę czy pogrubienie.
+    \item Użytkownik może tworzyć zestawy fiszek, definiując ich metadane (nazwę, opis i dostępność).
+    \item System umożliwia użytkownikowi edytowanie atrybutów zestawu fiszek i zarządzanie fiszkami 
+    w zestawie (tworzenie, edycja i usuwanie) oraz zmienianie kolejności fiszek w zestawie.
+    \item Użytkownik może formatować styl tekstu zawartego w fiszce poprzez np. kursywę czy pogrubienie i 
+    wzbogacać treść fiszek o materiały multimedialne przy jednoczesnej możliwości tworzenia ich niestandardowych układów.
 \end{itemize}
 
 \subsection*{Przeglądanie i nauka fiszek}
@@ -76,9 +78,10 @@ Moduł przeglądania określa funkcje systemu, jakie można wykorzystywać podcz
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
     \item Użytkownik może przeglądać dowolną fiszkę z wybranego zestawu fiszek, do którego posiada dostęp.
-    \item Użytkownik może odwrócić fiszkę, żeby zobaczyć jej rewers.
-    \item Użytkownik może potasować fiszki w zestawie, losowo zmieniając ich kolejność.
-    \item Użytkownik może zamienić stronę fiszek (awers/rewers), w jakiej podstawowo się wyświetlają.
+    \item Użytkownik może wchodzić w interakcję z fiszką poprzez jej odwracanie, co pozwala na weryfikację poprawności 
+    zapamiętanej odpowiedzi (aktywne przywołanie).
+    \item System umożliwia tasowanie (randomizację) fiszek w zestawie.
+    \item Użytkownik ma możliwość dostosowania widoku fiszki poprzez stałą zamianę wyświetlania strony fiszki (odwrócenie awersu z rewersem).
 \end{itemize}
 
 \subsection*{Przeglądanie i wyszukiwanie publicznych materiałów}
@@ -87,8 +90,10 @@ publicznych zestawach, takie jak wyszukiwanie lub przeglądanie.
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item System umożliwia wyszukiwanie publicznych zestawów fiszek na podstawie słów kluczowych.
-    \item System prezentuje publiczne zestawy pogrupowane w kategorie (najpopularniejsze, najbardziej lubiane, najnowsze).
+    \item System umożliwia globalne przeszukiwanie publicznych zestawów fiszek na podstawie słów kluczowych.
+    \item System automatycznie generuje słowa kluczowe dla zestawu po jego edycji lub utworzeniu bez ingerencji użytkownika.
+    \item System agreguje dane o aktywności użytkowników, prezentując publiczne zestawy w dynamicznych kategoriach 
+    (najpopularniejsze, najbardziej lubiane, najnowsze).
     \item Użytkownik może filtrować kategorie publicznych zestawów według określonych ram czasowych, np. najpopularniejsze w ostatnim tygodniu. 
 \end{itemize}
 
@@ -98,10 +103,11 @@ Użytkownicy mogą udostępniać swoje prywatne zestawy fiszek innym i zarządza
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może udostępnić swój zestaw fiszek innemu zarejestrowanemu użytkownikowi. 
+    \item Użytkownik może udostępnić swój zestaw fiszek wybranemu zarejestrowanemu użytkownikowi, bez konieczności upubliczniania materiału 
+    dla całej społeczności. 
     \item Użytkownik może zarządzać uprawnieniami użytkowników do udostępnionego materiału (przeglądający/edytujący).
     \item Użytkownik może zaakceptować lub odrzucić zaproszenie do udostępnionego materiału.
-    \item Użytkownik może stworzyć kopię dowolnego zestawu, do którego ma dostęp.
+    \item Użytkownik może stworzyć głęboką kopię dowolnego zestawu, do którego ma dostęp.
 \end{itemize}
 
 \subsection*{Dodawanie komentarzy i ocen}
@@ -110,9 +116,9 @@ między użytkownikami i ocenę komentarzy/zestawów fiszek.
 
 \subsubsection*{Wymagania funkcjonalne:}
 \begin{itemize}
-    \item Użytkownik może dodawać, edytować i usuwać własne komentarze pod zestawami fiszek. 
-    \item System zezwala na zagnieżdżanie komentarzy do najwyżej jednego poziomu.
-    \item Użytkownik może oceniać fiszki i komentarze za pomocą zostawiania łapki w górę/dół.
+    \item Użytkownik może rozpoczynać dyskusje pod zestawami fiszek poprzez dodawanie komentarzy, a także je edytować i usuwać. 
+    \item System zezwala na zagnieżdżanie wypowiedzi, umożliwiając bezpośrednie odpowiadanie na komentarze innych użytkowników.
+    \item Użytkownik może wyrażać opinie o zestawach fiszek i komentarzach poprzez system oceniania (zostawienie łapki w górę/dół).
 \end{itemize}
 
 \section{Wymagania niefunkcjonalne}
@@ -120,55 +126,24 @@ między użytkownikami i ocenę komentarzy/zestawów fiszek.
 
 Wymagania funkcjonalne definiują zakres działania systemu.
 Równie istotne są wymagania niefunkcjonalne, określające parametry jakościowe i ograniczenia techniczne. 
-Wymagania niefunkcjonalne definiują standardy i cechy, 
-jakie system musi spełniać, aby działać skutecznie i wydajnie \cite{sommerville2015}. 
-Sprecyzowanie poniższych wymagań niefunkcjonalnych było
-podstawą późniejszego modelowania architektury systemu.
+Definiują one standardy i cechy, jakie system musi spełniać, aby działać skutecznie i wydajnie \cite{sommerville2015}. 
+Ze względu na charakter projektowanej aplikacji, zrezygnowano ze szczegółowego opisu wymagań niefunkcjonalnych, typowych dla 
+każdej nowoczesnej aplikacji internetowej. Założono, że system musi spełniać podstawowe standardy w zakresie bezpieczeństwa danych 
+(szyfrowanie haseł), skalowalności i niezawodności na poziomie typowym dla rozwiązań komercyjnych. 
 
-\subsection*{Bezpieczeństwo}
-System musi zapewniać ochronę danych użytkowników oraz integralność całej aplikacji.
-
+Główny nacisk w projektowaniu wymagań niefunkcjonalnych położono na aspekty kluczowe dla procesu tworzenia zestawów fiszek oraz 
+ogólnego komfortu użytkownika (User Experience):
 \begin{itemize}
-    \item \textbf{Zarządzanie sesją:} System musi implementować bezpieczny sposób zarządzania sesją minimalizujący ryzyko jej przechwycenia.
-    \item \textbf{Autoryzacja:} System musi kontrolować dostęp użytkowników do zasobów. Użytkownik niebędący właścicielem materiału lub niemający do niego uprawnień nie powinien uzyskać do niego dostępu.
-    \item \textbf{Sanityzacja:} System musi sanityzować wszystkie dane wejściowe, aby uniemożliwić wstrzyknięcie złośliwego oprogramowania.
-    \item \textbf{Przechowywanie haseł:} Dane poufne użytkowników takie jak np. hasła muszą być zahaszowane przy użyciu silnego algorytmu kryptograficznego przed zapisaniem do bazy danych.
-    \item \textbf{Walidacja plików:} System musi walidować wszystkie pliki przesyłane przez użytkowników pod kątem rozmiaru, typu i możliwie zagnieżdżonego złośliwego kodu.
-\end{itemize}
-
-\subsection*{Wydajność}
-System musi zapewniać szybki czas odpowiedzi oraz płynne działanie.
-
-\begin{itemize}
-    \item \textbf{Czas odpowiedzi wyszukiwania:} Czas odpowiedzi wyszukiwania publicznych materiałów powinien średnio wynosić mniej niż dwie sekundy.
-    \item \textbf{Operacje asynchroniczne:} Czasochłonne operacje wejścia/wyjścia (I/O) nie mogą blokować interfejsu użytkownika ani serwera.
-    \item \textbf{Buforowanie danych:} Aplikacja po stronie klienta musi buforować część danych pobieranych z serwera w celu zredukowania liczby zapytań i niepotrzebnego obciążania systemu.
-    \item \textbf{Wydajność zapytań:} System musi efektywnie pobierać złożone hierarchiczne struktury danych, aby nie powodować nadmiernego obciążania bazy danych.
-\end{itemize}
-
-\subsection*{Niezawodność i odporność}
-System musi być stabilny i odporny na błędy.
-
-\begin{itemize}
-    \item \textbf{Monitorowanie i logowanie:} System musi zapewniać monitorowanie stanu aplikacji, wydajności serwera oraz logowanie błędów.
-    \item \textbf{Integralność danych:} System musi gwarantować spójność danych. Usunięcie zasobu nadrzędnego musi powodować usunięcie wszystkich zasobów podrzędnych. 
-\end{itemize}
-
-\subsection*{Użyteczność}
-Interfejs użytkownika musi być intuicyjny i łatwy w użyciu.
-\begin{itemize}
-    \item \textbf{Edytor fiszek:} System musi zapewniać intuicyjny i łatwy w użyciu edytor tekstu (WYSIWYG) do tworzenia fiszek umożliwiający zaawansowane formatowanie tekstu i dodawanie obrazków.
-    \item \textbf{Ochrona przed błędami użytkownika:} System musi chronić użytkowników przed przypadkową utratą danych poprzez wymóg potwierdzenia przed każdą próbą usunięcia zasobu.
-    \item \textbf{Przepływ pracy:} Aplikacja musi wspierać płynny przepływ pracy użytkownika poprzez automatyczne przekierowania np. po udanym zalogowaniu.
-\end{itemize}
-
-\subsection*{Skalowalność i łatwość utrzymania}
-System musi być przygotowany na wzrost liczby aktywnych użytkowników lub gromadzonych danych. 
-
-\begin{itemize}
-    \item \textbf{Skalowalność horyzontalna:} Serwer musi być bezstanowy (ang. stateless), aby umożliwić uruchomienie jego wielu instancji i rozdzielenie ruchu sieciowego (ang. load balancing).
-    \item \textbf{Separacja komponentów:} Kluczowe komponenty (np. logika aplikacji, serwis wyszukiwania) powinny być od siebie oddzielone, aby umożliwić ich niezależne skalowanie w przyszłości.
-    \item \textbf{Wersjonowanie schematu bazy danych:} Zmiany w schemacie bazy danych muszą być zarządzane za pomocą migracji, pozwalających na śledzenie historii zmian.
+    \item \textbf{Ergonomia tworzenia materiałów (WYSIWYG):} Najważniejszym aspektem jakościowym aplikacji jest obniżenie progu wejścia 
+    dla użytkowników chcących tworzyć skomplikowane fiszki. Edytor treści fiszek musi zapewniać podgląd efektu końcowego w czasie rzeczywistym
+    (What You See Is What You Get). Tworzenie treści musi być intuicyjne i nie może wymagać od użytkownika znajomości dodatkowych języków takich 
+    jak HTML czy Markdown.
+    \item \textbf{Responsywność i asynchroniczność przetwarzania:} Długotrwałe operacje wejścia/wyjścia, takie jak integracja z zewnętrznymi 
+    modelami AI czy obsługa dużej liczby multimediów, nie mogą blokować interfejsu użytkownika. Wymaga to zastosowania mechanizmów przetwarzania 
+    w tle oraz specyficznej architektury klienta, aby zapewnić płynność interakcji podczas nauki.
+    \item \textbf{Obserwowalność systemu:} System musi zapewniać wizualizację przepływu danych i komunikacji między poszczególnymi komponentami. 
+    Wymagane jest wdrożenie szczegółowej telemetrii, umożliwiającej śledzenie cyklu życia żądania pomiędzy warstwami aplikacji w celu identyfikacji 
+    wąskich gardeł wydajnościowych.
 \end{itemize}
 
 \section{Architektura systemu}
@@ -190,8 +165,9 @@ Komunikacja między klientem a serwerem odbywa się asynchronicznie przy wykorzy
 przy pomocy obiektów transferu danych (Data Transfer Objects) \cite{fowler2002}, które przed wysyłką są serializowane do formatu JSON.
 
 Warto zauważyć, że poszczególne komponenty aplikacji (klient, serwer itp.) zostały skonteneryzowane 
-przy użyciu platformy Docker \cite{docker_docs}, co pozwala na większe rozdzielenie odpowiedzialności i ułatwia skalowanie aplikacji
-w przyszłości. 
+przy użyciu platformy Docker \cite{docker_docs}. Takie podejście zapewnia spójność środowiska uruchomieniowego 
+i ułatwia przyszłe wdrażanie rozwiązania. Dodatkowo umożliwia to skupienie się na rozwijanym komponencie aplikacji, 
+bez konieczności instalowania i konfigurowania pozostałych części systemu.
 Cała architektura została zamodelowana na diagramie (Rys. \ref{rys:architecture_diagram}) przedstawiającym
 poszczególne komponenty i interakcje między nimi.
 
@@ -244,7 +220,7 @@ tymczasowymi poprzez czasowe buforowanie.
 Najważniejszym elementem interfejsu użytkownika realizującym jedno z kluczowych wymagań funkcjonalnych dotyczących tworzenia fiszek jest edytor WYSIWYG. Istnieje
 wiele gotowych implementacji takich edytorów w internecie, ale niewiele z nich oferowało elastyczność wymaganą do zaimplementowania wszystkich niezbędnych funkcjonalności. 
 Do implementacji takiego edytora wybrano framework TipTap. TipTap to edytor typu 'headless', czyli nie dostarcza żadnego gotowego interfejsu, a jedynie samą logikę obsługi edytora.
-Dzięki temu możliwe było stworzenie niestandardowych rozszerzeń realizujących bardziej skomplikowane operacje. Przykładem takiego niestandardowego rozszerzenia może być np. komponent 'ImageGrid', pozwalający na 
+Dzięki temu możliwe było stworzenie niestandardowych rozszerzeń realizujących bardziej skomplikowane operacje. Przykładem takiego niestandardowego rozszerzenia może być komponent 'ImageGrid', pozwalający na 
 wstawianie wielu obrazków w jednym rzędzie.
 
 \subsection{Warstwa logiki}
@@ -253,7 +229,7 @@ przetwarzanie i bezpieczeństwo danych. Do implementacji serwera wykorzystano fr
 to nowoczesny framework webowy dla języka Python pozwalający na tworzenie wydajnych API w możliwie najkrótszym 
 czasie. FastAPI jest zbudowany na podstawie standardu ASGI (Asynchronous Server Gateway Interface), co pozwala na 
 współbieżne przetwarzanie zapytań klienta i jednoczesną obsługę wielu operacji wejścia/wyjścia (I/O). Dzięki integracji 
-z biblioteką Pydantic FastAPI automatycznie waliduje wszystkie dane przychodzące z żądań HTTP, a także serializuje dane zwracane do klienta.
+z biblioteką Pydantic, FastAPI automatycznie waliduje wszystkie dane przychodzące z żądań HTTP, a także serializuje dane zwracane do klienta.
 
 Backend został zaimplementowany w oparciu o model wielowarstwowy. Takie podejście pozwala na wyraźne rozdzielenie 
 odpowiedzialności, co czyni kod czystszym i łatwiejszym w zarządzaniu. Wyróżnione zostały 3 główne warstwy:
@@ -281,7 +257,7 @@ wszystkie informacje potrzebne do jego obsłużenia. Taka architektura pozwala n
 obsługiwać dowolnego użytkownika. Aplikacja, aby spełnić to założenie, używa tokenów JWT (JSON Web Tokens) do uwierzytelniania użytkowników \cite{rfc7519}, które 
 generowane są na serwerze przy użyciu biblioteki python-jose. Równie istotne z poziomu bezpieczeństwa aplikacji jest sanityzacja danych i zabezpieczenie haseł. 
 Wszystkie dane wejściowe są sanityzowane za pomocą bibliotek nh3 (dane tekstowe) oraz pillow (obrazy), a hasła haszowane 
-za pomocą biblioteki passlib. Proces haszowania polega na dodaniu soli i pieprzu do hasła, a następnie zahaszowaniu go przy pomocy algorytmu argon2, co jest zgodne 
+za pomocą biblioteki passlib. Proces haszowania polega na dodaniu soli i pieprzu do hasła, a następnie zahaszowaniu go przy pomocy algorytmu Argon2, co jest zgodne 
 z obecnymi zaleceniami dotyczącymi bezpieczeństwa aplikacji \cite{owasp_passwords}.
 
 Serwer, aby spełnić kluczowe wymaganie jakościowe dotyczące wysokiej responsywności systemu, musi obsługiwać długie operacje wejścia/wyjścia bez blokowania 
@@ -300,7 +276,7 @@ magazyny danych, z których każdy odgrywa inną rolę:
     \item \textbf{Relacyjna baza danych (PostgreSQL)} -- Służy do przechowywania danych relacyjnych takich jak np. użytkownicy, 
     fiszki czy materiały.
     \item \textbf{Magazyn obiektów (MinIO)} -- Przechowuje pliki (dane binarne) nieposiadające żadnej struktury, takie jak np. obrazki.
-    \item \textbf{Wyszukiwarka pełnotekstowa (ElasticSearch)} -- Przechowuje dane w formie dokumentów JSON, z których budowane są odwrócone
+    \item \textbf{Wyszukiwarka pełnotekstowa (Elasticsearch)} -- Przechowuje dane w formie dokumentów JSON, z których budowane są odwrócone
      indeksy. Indeksy te pozwalają na szybkie pełnotekstowe wyszukiwanie i ekspresową agregację danych.
 \end{itemize}
 
@@ -313,12 +289,6 @@ co pozwala na łatwe śledzenie zmian i zarządzanie nimi.
 Schemat bazy danych został zamodelowany na diagramie związków encji (ERD) (Rys. \ref{rys:database_erd_diagram}), 
 a cała architektura relacyjnej bazy danych opiera się na trzech kluczowych konceptach:
 
-\begin{figure}[h!]
-    \centering \includegraphics[width=1\linewidth]{database_erd_diagram.png} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Diagram związków encji bazy danych}
-	\label{rys:database_erd_diagram}
-\end{figure}
-
 \subsubsection*{Materials}
 Punktem centralnym całej bazy danych jest tabela materials. Jej zadaniem jest przechowywanie podstawowych informacji o wszystkich 
 materiałach (nazwa, czas kreacji, folder w jakim się znajduje i id właściciela). Tabela ta
@@ -326,7 +296,7 @@ pełni rolę eksploratora plików, ponieważ pozwala na przechowywanie dowolnego
 wzorca Class Table Inheritance (CTI). W tabeli materials można przechowywać zarówno foldery, jak i zestawy fiszek, 
 a w przypadku dalszego rozwoju aplikacji nowe zasoby takie jak np. quizy. Wszystko to jest możliwe dzięki kolumnie 
 item\_type. Określa ona typ zasobu, jaki znajduje się w danym wierszu (zestaw fiszek lub folder). Encja materials 
-przechowuje podstawowe dane takiego zasobu, a wszystkie dodatkowe informacje 
+przechowuje podstawowe dane takiego zasobu, a wszystkie dodatkowe informacje, 
 takie jak np. opis czy dostępność zestawu fiszek, znajdują się w oddzielnej tabeli połączonej z materials za pomocą klucza obcego
 będącego jednocześnie kluczem głównym. Takie połączenie sprawia, że encja materials staje się tabelą nadrzędną, z której dziedziczą 
 tabele podrzędne takie jak np. flashcard\_sets czy w przyszłości quizzes. W tabeli materials znajdują się także dwa autoreferencyjne 
@@ -337,6 +307,11 @@ klucze obce:
     \item \textbf{parent\_id} -- Pozwala na tworzenie hierarchicznej struktury materiałów, gdzie każdy materiał ma przypisanego rodzica.
 \end{itemize}
 
+\begin{figure}[h!]
+    \centering \includegraphics[width=1\linewidth]{database_erd_diagram.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Diagram związków encji bazy danych}
+	\label{rys:database_erd_diagram}
+\end{figure}
 
 \subsubsection*{Comments i Votes}
 Tabela comments oprócz standardowej referencji do rodzica (parent\_comment\_id) wykorzystuje także rozszerzenie PostgreSQL o nazwie ltree \cite{postgresql_docs}. 
@@ -351,26 +326,24 @@ do przechowywania łapek w górę/dół dla komentarzy i innych materiałów (ze
 Encja material\_shares jest ściśle połączona z wcześniej opisanym linked\_material\_id. Material\_shares jest kluczową tabelą pozwalającą 
 na przechowywanie i zarządzanie udostępnieniami. Jest to tabela tworząca relację wiele do wielu pomiędzy tabelami users i materials.
 Nie pełni ona jednak roli prostej tabeli asocjacyjnej, ponieważ przechowuje także informację o statusie udostępnienia i nadanych uprawnieniach. 
-W przypadku zaakceptowania udostępnienia, jego status w material\_shares zostanie zmieniony na zaakceptowany, a w encji materials pojawia się nowy wpis 
+W przypadku zaakceptowania udostępnienia, jego status w material\_shares zostaje zmieniony na zaakceptowany, a w encji materials pojawia się nowy wpis 
 posiadający atrybuty oryginalnego zasobu i linked\_material\_id wskazujący na oryginalny materiał.
 
 \subsection*{Magazyn obiektów}
 Przechowywanie dużych plików binarnych w relacyjnej bazie danych jest mało efektywne i niewydajne. Do rozwiązania tego problemu 
 zastosowano system magazynowania obiektów MinIO. Serwer, aby przechować obraz, przesyła go do MinIO (który działa jako oddzielny serwis), 
-a ten zapisuje obraz w dedykowanym kontenerze danych (ang. bucket). Link do każdego obrazka jest zapisywany w relacyjnej bazie danych, bezpośrednio 
-w tekście fiszki. Kontener ma ustawione publiczne uprawnienia odczytu, więc klient nie potrzebuje żadnych dodatkowych uprawnień do 
-wyświetlenia obrazka, co znacznie upraszcza implementację.
+a ten zapisuje obraz w dedykowanym kontenerze danych (ang. bucket). Link do każdego obrazka jest następnie zapisywany w relacyjnej bazie danych, bezpośrednio 
+w tekście fiszki. Takie podejście znacząco upraszcza proces pobierania i wyświetlania całej zawartości fiszki.
 
 \subsection*{Wyszukiwanie pełnotekstowe}
 System, aby spełnić wymaganie jakościowe dotyczące czasu odpowiedzi wyszukiwania, implementuje serwis wyszukiwania pełnotekstowego \cite{elasticsearch_guide}. 
-ElasticSearch został użyty jako silnik wyszukiwania pełnotekstowego, gdyż umożliwia on zarówno przechowywanie danych, jak i tworzenie z nich indeksów odwróconych. 
+Elasticsearch został użyty jako silnik wyszukiwania pełnotekstowego, gdyż umożliwia on zarówno przechowywanie danych, jak i tworzenie z nich indeksów odwróconych. 
 Indeks odwrócony mapuje terminy na listę dokumentów je zawierających, co pozwala na natychmiastowe wyszukiwanie wszystkich dokumentów zawierających dany termin. PostgreSQL 
-także zawiera możliwość zbudowania indeksu odwróconego (np. GIN), jednak zdecydowano się na ElasticSearch z kilku powodów:
+także zawiera możliwość zbudowania indeksu odwróconego (np. GIN), jednak zdecydowano się na Elasticsearch z kilku powodów:
 \begin{itemize}
-    \item \textbf{Skalowalność horyzontalna} -- ElasticSearch został zaprogramowany z myślą o skalowalności. W celu uzyskania większej wydajności można dodać więcej 
-    serwerów do danego klastra, a ElasticSearch automatycznie wydystrybuuje indeksy odwrócone.
+    \item \textbf{Skalowalność horyzontalna} -- Elasticsearch został zaprogramowany z myślą o skalowalności. W celu uzyskania większej wydajności można dodać więcej 
+    serwerów do danego klastra, a Elasticsearch automatycznie wydystrybuuje indeksy odwrócone.
     \item \textbf{Rozdzielenie odpowiedzialności} -- W przypadku zaimplementowania indeksu odwróconego w PostgreSQL, wyszukiwanie pełnotekstowe 
     dzieli te same zasoby co standardowe operacje bazodanowe. Skomplikowane wyszukiwanie pełnotekstowe może doprowadzić do spowolnienia działania bazy danych dla prostych operacji.
-    \item \textbf{Wbudowana agregacja} -- ElasticSearch posiada wbudowany mechanizm agregacji, który pozwala na szybkie i łatwe tworzenie rankingów, bez obciążania głównej bazy danych.  
+    \item \textbf{Wbudowana agregacja} -- Elasticsearch posiada wbudowany mechanizm agregacji, który pozwala na szybkie i łatwe tworzenie rankingów, bez obciążania głównej bazy danych.  
 \end{itemize}   
-

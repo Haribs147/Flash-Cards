@@ -5,8 +5,8 @@ Realizacja systemu, którego architekturę oraz projekt przedstawiono w poprzedn
 ale także właściwych standardów wytwarzania oprogramowania. Niniejszy rozdział opisuje proces implementacji poszczególnych warstw aplikacji, zaczynając 
 od interfejsu użytkownika, poprzez logikę biznesową, kończąc na konteneryzacji i telemetrii. 
 
-Aby umożliwić bezpieczne eksperymentowanie i tworzenie nowych funkcjonalności, wykorzystano system kontroli wersji Git, pozwalający na zachowanie 
-historii zmian. Cały kod źródłowy aplikacji został umieszczony w repozytorium serwisu GitHub. W repozytorium zastosowano strukturę monorepo, co oznacza 
+Wykorzystano system kontroli wersji Git, pozwalający na zachowanie historii zmian, co umożliwiło bezpieczne eksperymentowanie i tworzenie nowych funkcjonalności.
+Cały kod źródłowy aplikacji został umieszczony w repozytorium serwisu GitHub~\cite{githubRepo}. W repozytorium zastosowano strukturę monorepo, co oznacza, 
 że kod aplikacji klienckiej i serwera znajduje się w tym samym repozytorium, ale w oddzielnych folderach. Taka organizacja kodu zapewnia centralizację projektu 
 i w przypadku jednej osoby pracującej nad kodem, znacznie przyśpiesza proces implementacji.
 
@@ -18,13 +18,13 @@ co zostało zrealizowane poprzez trzymanie się zasad czystego kodu \cite{cleanc
 
 \section{Warstwa Prezentacji}
 Zgodnie z założeniami projektowymi warstwa prezentacji została zaimplementowana jako aplikacja 
-typu SPA przy użyciu biblioteki React i języka TypeScript. Na wczesnym etapie implementacji, ważne 
+typu SPA przy użyciu biblioteki React i języka TypeScript. Na wczesnym etapie implementacji ważne 
 było sprawne przełożenie projektu interfejsu użytkownika w Figmie na czytelną i skalowalną strukturę 
 kodu źródłowego (Rys. \ref{fig:frontend_structure}). Aplikacja kliencka została podzielona na dwa główne 
 katalogi:
 \begin{itemize}
     \item \texttt{src/components} -- Katalog zawierający wyłącznie interfejs użytkownika i logikę jego obsługi.
-    W jego obrębie znajdują się podkatalogi (np. Auth lub FlashCardSet) zawierające komponenty React, które 
+    W jego obrębie znajdują się podkatalogi (np. Auth lub FlashcardSet) zawierające komponenty React, które 
     stanowią bezpośrednie odzwierciedlenie projektu w Figmie. Komponenty te odpowiadają za renderowanie interfejsu 
     i obsługę interakcji z użytkownikiem.
     \item \texttt{src/features} -- Katalog skupiający logikę biznesową aplikacji. Znajdują się w nim definicje wycinków stanu
@@ -78,7 +78,7 @@ zarządza dwoma typami danych:
 \begin{itemize} \sloppy
     \item \textbf{Dane sesji} -- Wycinki stanu (ang. slices) takie jak \texttt{authSlice} czy \texttt{materialsSlice} przechowują 
     informacje potrzebne do poprawnego działania interfejsu (np. informacja o statusie zalogowania użytkownika lub 
-    aktualnie otwartym folderze). Interakcje użytkownika z systemem (np. proces logowania czy dodanie folderu), skutkują 
+    aktualnie otwartym folderze). Interakcje użytkownika z systemem (np. proces logowania czy dodanie folderu) skutkują 
     natychmiastową aktualizacją stanu o dane otrzymane w odpowiedzi na zapytanie wysłane do serwera API.
     \item \textbf{Dane edytowalne} -- Szczegóły zestawu fiszek pobierane z API są zapisywane w \texttt{flashcardSetSlice} 
     i traktowane przez aplikację jako kopia robocza danych. Dzięki temu wszystkie modyfikacje stanu 
@@ -150,10 +150,27 @@ function App() {
     }
     ...
 }
-\end{lstlisting} 
+\end{lstlisting}
+
+% \begin{listing}[H]
+
+%     \begin{minted}{tsx}
+% function App() {
+%     const authStatus = useAppSelector((state) => state.auth.status);
+
+%     if (authStatus == "loading" || authStatus == "idle") {
+%         return <div className="App"></div>;
+%     }
+    
+% }
+%     \end{minted}
+
+%     \caption{Mechanizm blokady renderowania aplikacji do czasu ustalenia tożsamości użytkownika}
+%     \label{lst:app_tsx}
+% \end{listing} 
 
 Drugą podstawą hybrydowego modelu jest obsługa danych tylko do odczytu, które są niezależne od kontekstu sesji. 
-Dane te niewymagające dodatkowej logiki biznesowej po stronie klienta, zarządzane są przez bibliotekę 
+Dane te niewymagające dodatkowej logiki biznesowej po stronie klienta zarządzane są przez bibliotekę 
 TanStack Query (React Query). Automatyzuje ona proces pobierania, buforowania i inwalidacji danych. 
 
 React Query został wykorzystany w module publicznym aplikacji, gdzie wyświetlane są różne 
@@ -165,7 +182,7 @@ celu uaktualnienia zbuforowanych danych.
 
 \subsection{Komunikacja z serwerem i uwierzytelnianie}
 Asynchroniczna komunikacja klienta z serwerem stanowi podstawę działania aplikacji typu SPA. Do komunikacji 
-z serwerem API użyto biblioteki Axios. Została ona wybrana zamiast wbudowanego w JavaScript mechanizmu fetch ze względu na 
+z serwerem API użyto biblioteki Axios. Została ona wybrana ponad wbudowany w JavaScript mechanizm fetch ze względu na jej
 możliwości konfiguracji, wbudowaną obsługę formatu JSON oraz zaawansowany mechanizm przechwytywania żądań i odpowiedzi
 (ang. interceptor).
 
@@ -174,8 +191,8 @@ Zgodnie z wymaganiami zdefiniowanymi w rozdziale \ref{ch:projekt_systemu}, komun
 a serwerem opiera się na ciasteczkach sesyjnych. Dzięki ustawieniu parametru \texttt{withCredentials} biblioteki Axios
 na \texttt{true} przeglądarka automatycznie dołącza ciasteczko z tokenem uwierzytelniającym do każdego zapytania wysyłanego do API.
 
-Kluczowym elementem warstwy komunikacji jest zapewnienie bezpieczeństwa użytkowników. Aplikacja aby zabezpieczać przed 
-atakami typu CSRF po udanym logowaniu lub odświeżeniu sesji, otrzymuje token CSRF w odpowiedzi od serwera. Token ten jest 
+Kluczowym elementem warstwy komunikacji jest zapewnienie bezpieczeństwa użytkowników. Aplikacja, aby zabezpieczać przed 
+atakami typu CSRF, po udanym logowaniu lub odświeżeniu sesji, otrzymuje token CSRF w odpowiedzi od serwera. Token ten jest 
 przechowywany w globalnym stanie aplikacji (Redux) i automatycznie dołączany do nagłówka \texttt{X-CSRF-TOKEN} każdego żądania, co 
 pozwala serwerowi na weryfikację poprawności źródła żądania. 
 
@@ -188,15 +205,15 @@ w celu odnowienia tokenu dostępu i ponownego wysłania zapytania. Algorytm inte
 działa następująco:
 \begin{enumerate}
     \item Interceptor monitoruje wszystkie odpowiedzi otrzymane od serwera. W przypadku wystąpienia błędu \texttt{401} wstrzymuje 
-    wyrzucenie błędu do wyższych warstw aplikacji.
-    \item W celu zapobiegnięcia nieskończonym pętlom zapytań aplikacja sprawdza, czy błąd nie wystąpił w zapytaniu do endpointów 
+    propagację błędu do wyższych warstw aplikacji.
+    \item W celu zapobiegnięcia nieskończonym pętlom zapytań aplikacja najpierw sprawdza, czy błąd nie wystąpił w zapytaniu do endpointów 
     obsługujących uwierzytelnianie (\texttt{/login}, \texttt{/register}, \texttt{/logout} czy \texttt{/refresh}). Błędy w tych zapytaniach 
     zwracane są natychmiastowo, bez próby ponownego odświeżenia sesji.
-    \item Jeżeli warunki są spełnione, aplikacja wysyła zapytanie do endpointu \texttt{/refresh}.
+    \item Jeżeli powyższe warunki są spełnione, aplikacja wysyła zapytanie do endpointu \texttt{/refresh}.
     \item W przypadku sukcesu (aktywnego tokenu odświeżania), serwer zwraca w odpowiedzi nowy token CSRF oraz odświeżony 
     token dostępu w ciasteczku HTTP, a oryginalne zapytanie (zakończone kodem 401) jest ponawiane.
     \item Jeżeli odświeżenie tokenu dostępu zakończy się niepowodzeniem (np. token odświeżenia już wygasł), interceptor automatycznie 
-    wylogowuje użytkownika, czyszcząc stan aplikacji.
+    wyloguje użytkownika, czyszcząc stan aplikacji.
 \end{enumerate}
 
 \begin{lstlisting}[language=Python,
@@ -207,11 +224,13 @@ export const setupAxiosInterceptor = (store: AppStore) => {
         (response) => response,
         async (error) => {
             const originalRequest = error.config;
-            ...
+            ... // pobranie informacji o endpoincie 
+                // oryginalnego zapytania
             if (
                 error.response.status === 401 &&
                 !originalRequest._retry &&
-                ...
+                ... // sprawdzenie czy oryginalne zapytanie 
+                    // nie przyszlo z endpointow uwierzytelniajacych 
             ) {
                 originalRequest._retry = true;
                 try {
@@ -232,15 +251,15 @@ export const setupAxiosInterceptor = (store: AppStore) => {
 \end{lstlisting} 
 
 \subsection{Edytor fiszek}
-Centralnym elementem modułu tworzenia i edycji zestawów fiszek jest edytor tekstu typu WYSIWYG 
-(What You See Is What You Get). Zgodnie z projektem systemu, edytor musi umożliwiać nie tylko 
+Centralnym elementem modułu tworzenia i edycji zestawów fiszek jest edytor tekstu typu WYSIWYG. 
+Zgodnie z projektem systemu, edytor musi umożliwiać nie tylko 
 formatowanie tekstu fiszki, ale także wstawianie multimediów i tworzenie złożonych układów.
 Omawiany wcześniej framework TipTap udostępnia edytor headless, co oznacza, że udostępnia on 
 jedynie silnik edycji tekstu, a cały interfejs użytkownika musi zostać zaimplementowany przez 
 programistę. Takie podejście pozwoliło na zaimplementowanie intuicyjnego i łatwego w obsłudze 
 edytora tekstu, zgodnego z projektem w Figmie.
 
-Implementacja edytora opiera się na inicjalizacji instancji silnika TipTap za pomocą wbudowanego haka 
+Implementacja edytora opiera się na inicjalizacji instancji silnika TipTap za pomocą wbudowanego hooka 
 \texttt{useEditor}. Dodatkowo skonfigurowano edytor, przekazując mu tablicę rozszerzeń, 
 które determinują funkcjonalności przetwarzania tekstu. Oprócz standardowego zestawu rozszerzeń 
 \texttt{StarterKit} wykorzystano także moduły \texttt{Underline}, \texttt{Highlight} i \texttt{TextAlign}, 
@@ -249,23 +268,23 @@ które znacznie zwiększają możliwości edycji tekstu przez użytkownika.
 Obsługa edytora przez użytkownika odbywa się za pomocą komponentu \texttt{MenuBar.tsx}. Jako że TipTap 
 nie udostępnia interfejsu użytkownika, MenuBar obsługuje interakcję użytkownika z silnikiem TipTap. 
 Każdy przycisk znajdujący się na pasku narzędzi wywołuje sekwencję metod na obiekcie edytora za pomocą 
-łańcucha poleceń: \texttt{editor.chain().focus().toggleBold().run()}. Dzięki użyciu metody \texttt{focus}, 
+łańcucha poleceń. Przykładem może być pogrubienie tekstu, które wywołuje: \texttt{editor.chain().focus().toggleBold().run()}. 
+Dzięki użyciu metody \texttt{focus}, 
 edytor utrzymuje pole tekstowe jako aktywne, nawet po kliknięciu przycisku formatowania (np. pogrubienia), 
-co znacznie poprawia pracę nad tekstem.
+co znacznie usprawnia pracę użytkownika nad tekstem.
 
 Największym wyzwaniem implementacyjnym w tym module było stworzenie funkcjonalności dodawania obrazów 
 i tworzenia ich niestandardowych układów. TipTap udostępnia rozszerzenie \texttt{Image}, które pozwala na 
-wstawienie obrazu do edytora tekstowego. Pozwala ono jednak tylko na wyświetlanie obrazków na podstawie 
+wstawienie obrazu do edytora tekstowego. Pozwala ono jednak tylko na wyświetlanie multimediów na podstawie 
 podanego adresu URL, nie zapewniając interfejsu do wyboru plików ani procesu przesłania plików na serwer.
 W celu rozwiązania tego problemu stworzono niestandardowe rozszerzenie \texttt{CustomImage}, wykorzystujące 
-mechanizm React Node View. Mechanizm ten pozwala na wstrzyknięcie interaktywnego komponentu React 
-(\texttt{InteractiveImage}) w strukturę widoku dokumentu (DOM), zastępując domyślną, statyczną reprezentację 
-węzła obrazu.
+mechanizm React Node View. Mechanizm ten pozwala na osadzenie interaktywnego komponentu React 
+w strukturze widoku dokumentu (DOM), zastępując domyślną, statyczną reprezentację węzła obrazu.
 
-Komponent \texttt{InteractiveImage} początkowo wyświetla przycisk pozwalający na wstawienie pliku. Po wybraniu 
-obrazu przez użytkownika, plik jest asynchronicznie przesyłany na serwer, który zwraca publiczny adres URL zasobu. 
-Dopiero po otrzymaniu odpowiedzi od serwera atrybut src jest ustawiany na adres URL otrzymany od serwera, 
-co powoduje natychmiastowe wyświetlenie obrazu w miejscu przycisku.
+W strukturę DOM wstrzykiwany jest autorski komponent \texttt{InteractiveImage}, który początkowo wyświetla przycisk pozwalający na wstawienie pliku. 
+Plik wybrany przez użytkownika jest asynchronicznie przesyłany na serwer, który zwraca publiczny adres URL zasobu. 
+Dopiero po otrzymaniu odpowiedzi od serwera atrybut \texttt{src} węzła jest aktualizowany o zwrócony adres, 
+co skutkuje natychmiastowym wyświetleniem właściwego obrazu w miejscu przycisku.
 
 Aby umożliwić użytkownikom tworzenie fiszek o niestandardowym formacie, stworzono niestandardowe rozszerzenie 
 \texttt{ImageGrid}. \texttt{ImageGrid} pozwala na tworzenie rzędu obrazków z możliwością konfiguracji liczby kolumn.
@@ -302,7 +321,7 @@ Dzięki temu zaimplementowany CSS: \texttt{grid-template-columns: repeat(var(--c
 bez konieczności wykonywania dodatkowych obliczeń po stronie JavaScriptu.
 
 \section{Warstwa Logiki}
-Backend zgodnie z projektem systemu, został zaimplementowany w języku Python, przy wykorzystaniu 
+Backend zgodnie z projektem systemu został zaimplementowany w języku Python, przy wykorzystaniu 
 frameworku FastAPI. W przeciwieństwie do projektu systemu, gdzie sformułowano podział logiczny, w niniejszym rozdziale
 opisano organizację kodu, konfigurację serwera i mechanizmy scalające poszczególne komponenty systemu.
 
@@ -321,31 +340,31 @@ Kod źródłowy serwera jest zorganizowany w pakiety, odzwierciedlające podzia�
 \end{itemize}
 Taka separacja pozwala na łatwe testowanie i utrzymanie kodu, ponieważ zmiany 
 w logice biznesowej aplikacji nie wymagają zmian w pakietach routes i repositories.
-Każdy moduł systemu, zobrazowany na diagramie modułów funkcjonalności systemu 
+Każdy moduł systemu, zobrazowany na diagramie funkcjonalności systemu 
 (Rys. \ref{rys:use_case_diagram}), posiada oddzielny router, serwis i repozytorium, 
 co znacznie ułatwia poruszanie się po bazie kodu. 
 
-Aplikacja do przechowywania wrażliwych danych konfiguracyjnych wykorzystuje bibliotekę pydantic-settings. 
+Do przechowywania wrażliwych danych konfiguracyjnych aplikacja wykorzystuje bibliotekę pydantic-settings. 
 Pozwala ona na walidowanie i wczytywanie wrażliwych danych (klucze API, sól itp.) z pliku .env do
 klasy Settings. Dzięki temu aplikacja nie uruchomi się, jeżeli zabraknie któregoś z parametrów konfiguracyjnych 
 w pliku .env.
 
 Punktem wejściowym całego serwera jest plik main.py, w którym tworzony jest obiekt FastAPI. Podczas tworzenia instancji 
 FastAPI, definiowany jest także cykl życia aplikacji. Pozwala on na zainicjalizowanie serwisów przed rozpoczęciem 
-przyjmowania żądań od klienta i uruchomienie kodu czyszczącego po zakończeniu działania serwera. Szczególną rolę w tym procesie 
-odgrywa zarządzanie połączeniami do poszczególnych źródeł danych. Tak jak wspomniano w rozdziale Projekt Systemu, zainicjalizowane 
-zasoby są udostępniane komponentom systemu za pomocą mechanizmu wstrzykiwania zależności (Dependency Injection). W zależności od 
-zasobu, przyjęto odmienne strategie zarządzania jego cyklem życia:
+przyjmowania żądań od klienta i uruchomienie procedury zwalniania zasobów po zakończeniu działania serwera. Szczególną rolę w tym procesie 
+odgrywa zarządzanie połączeniami do poszczególnych źródeł danych. Tak jak wspomniano w rozdziale \ref{ch:projekt_systemu} (Projekt Systemu), zainicjalizowane 
+zasoby są udostępniane komponentom systemu za pomocą mechanizmu wstrzykiwania zależności. W zależności od zasobu 
+przyjęto odmienne strategie zarządzania jego cyklem życia:
 \begin{itemize}
-    \item {\textbf{Relacyjna baza danych}} -- Do zarządzania połączeniem do relacyjnej bazy danych użyto mechanizmu sesji na żądanie 
-    (session per request). Oznacza to, że każde zapytanie do serwera otrzymuje swoje własne połączenie do bazy danych, które wygasa po zwróceniu 
-    wyniku do klienta.
-    \item {\textbf{Wyszukiwarka pełnotekstowa}} -- Wyszukiwarki pełnotekstowe takie jak Elasticsearch posiadają wewnętrznego klienta, 
-    który zarządza jego pulą połączeń HTTP. Do zarządzania jego cyklem życia stosuje się wzorzec Singleton. Oznacza to, że podczas inicjalizacji 
+    \item {\textbf{Relacyjna baza danych}} -- Do zarządzania połączeniem z relacyjną bazą danych zastosowano wzorzec sesji na żądanie 
+    (ang. session per request). Oznacza to, że dla każdego zapytania HTTP tworzona jest nowa sesja bazy danych, która jest zamykana od razu 
+    po zwróceniu wyniku do klienta, a powiązane z nią fizyczne połączenie jest zwracane do puli połączeń w celu ponownego wykorzystania.
+    \item {\textbf{Wyszukiwarka pełnotekstowa}} -- Wykorzystywany w aplikacji klient Elasticsearch posiada wewnętrzne mechanizmy obsługi 
+    puli połączeń HTTP. Do zarządzania jego cyklem życia zastosowano wzorzec Singleton. W rezultacie podczas inicjalizacji 
     aplikacji tworzona jest jedna wspólna instancja klienta Elasticsearch, która jest współdzielona przez wszystkie wątki i żądania. Dzięki temu aplikacja unika 
-    kosztownego narzutu tworzenia nowego klienta dla każdego żądania.
+    kosztownego narzutu tworzenia nowego klienta dla każdego żądania zapewniając efektywne zarządzanie połączeniami do realizacji poszczególnych zapytań.
 \end{itemize}
-Poniższy listing pokazuje implementację obu wyżej omówionych strategii. Funkcja \texttt{get\_db} wykorzystuje block try...finally
+Poniższy listing pokazuje implementację obu wyżej omówionych strategii. Funkcja \texttt{get\_db} wykorzystuje blok try...finally
 do bezpiecznego zamknięcia połączenia niezależnie od wyniku operacji. Z kolei funkcja \texttt{get\_es\_client} zwraca referencję do 
 wcześniej zainicjalizowanego globalnego obiektu.
 
@@ -370,12 +389,11 @@ wcześniej zainicjalizowanego globalnego obiektu.
 \end{lstlisting} 
 
 
-\subsection{Moduł Uwierzytelniania i zarządzania kontem}
+\subsection{Moduł uwierzytelniania i zarządzania kontem}
 Bezpieczeństwo aplikacji jest podstawą każdego systemu. Wszystkie mechanizmy powiązane z uwierzytelnianiem i zarządzaniem kontem 
 znajdują się w serwisie \texttt{AuthService} i pakiecie \texttt{core.security}. W przeciwieństwie do prostych rozwiązań opierających 
-się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów,
-zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów. Proces logowania i utrzymywania sesji 
-opiera się na dwóch tokenach:
+się na przesyłaniu tokenów JWT w nagłówkach HTTP, zaimplementowane rozwiązanie wykorzystuje ciasteczka do przechowywania i przesyłania tokenów uwierzytelniających.
+Proces logowania i utrzymywania sesji opiera się na dwóch kluczowych tokenach:
 \begin{itemize}
     \item \textbf{Access token} -- Krótkoterminowy token dostępu (ważny przez 5 minut) pozwalający na uwierzytelnienie użytkownika.
     \item \textbf{Refresh token} -- Długoterminowy token odświeżania (ważny przez 30 minut) służący do odnawiania sesji użytkownika, bez 
@@ -401,28 +419,28 @@ polega na podpisaniu tokenu zapisanego w ciasteczku CSRF przy użyciu sekretnego
 serwer najpierw sprawdza poprawność podpisu tokena w ciasteczku, a następnie porównuje jego zawartość z tokenem przesłanym w 
 nagłówku HTTP.
 
-W serwerze zostały zaimplementowane dwa sposoby uwierzytelniania użytkownika oparte o mechanizm wstrzykiwania zależności:
+W serwerze zostały zaimplementowane dwa sposoby uwierzytelniania użytkownika oparte na mechanizmie wstrzykiwania zależności:
 \begin{itemize}
     \item \textbf{get\_current\_user} -- Stosowane do uwierzytelnienia użytkownika i uzyskania jego obiektu z bazy danych. 
     Używane w większości tras wymagających autoryzacji (np. tworzenie folderu, edycja materiałów). Weryfikuje on obecność 
     i poprawność access tokenu w ciasteczku przesłanym w żądaniu. W przypadku jego braku lub niezgodności, żądanie jest 
     przerywane błędem 401.
     \item \textbf{get\_optional\_current\_user} -- Stosowane w endpoincie do pobrania zestawu fiszek (\texttt{GET /sets/{id}}) 
-    w celu sprawdzenia czy użytkownik jest zalogowany. W przypadku zalogowanego użytkownika system zwróci dodatkowe informacje, 
+    w celu sprawdzenia, czy użytkownik jest zalogowany. W przypadku zalogowanego użytkownika system zwróci dodatkowe informacje, 
     takie jak np. głos użytkownika (upvote/downvote) i zapisze zestaw fiszek w ostatnio odwiedzanych zestawach. Niezalogowany użytkownik 
-    otrzyma dostęp do zestawu fiszek, bez potrzeby logowania.
+    otrzyma dostęp do zestawu fiszek bez potrzeby logowania.
 \end{itemize}
 
-Największym wyzwaniem w implementacji tego rozwiązania było połączenie asynchronicznej biblioteki walidującej CSRF (fastapi\_csrf\_protect) 
+Największym wyzwaniem w implementacji tego rozwiązania było połączenie asynchronicznej biblioteki walidującej CSRF (\texttt{fastapi\_csrf\_protect}) 
 z synchronicznymi endpointami. Zdefiniowanie punktów końcowych jako asynchroniczne znacznie spowolniłoby działanie aplikacji, ponieważ serwer 
-używa synchronicznego sterownika bazy danych i Elasticsearch'a, co doprowadziłoby do zablokowania  głównej pętli zdarzeń (Event Loop). Problem 
-ten rozwiązano wykorzystując wzorzec wstrzykiwania zależności. Walidację tokenu CSRF wydzielono do asynchronicznej funkcji, która uruchamiana 
-jest asynchroniczne przed właściwą logiką endpointu. FastAPI jest w stanie optymalnie zarządzać kontekstem wykonania: walidacja tokena uruchamia 
+używa synchronicznego sterownika bazy danych i Elasticsearcha, co doprowadziłoby do zablokowania głównej pętli zdarzeń (ang. event loop). Problem 
+ten rozwiązano poprzez wykorzystanie wzorca wstrzykiwania zależności (listing \ref{lst:async_in_sync}). Walidację tokenu CSRF wydzielono do asynchronicznej funkcji, która uruchamiana 
+jest asynchronicznie przed właściwą logiką endpointu. FastAPI jest w stanie optymalnie zarządzać kontekstem wykonania: walidacja tokena uruchamia 
 się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wątków.
 
 \begin{lstlisting}[language=Python,
 	caption={Asynchroniczna zależność w synchronicznym endpoincie},
-	label={lst:cykl_zycia}]
+	label={lst:async_in_sync}]
     # Funkcja pomocnicza
     async def validate_csrf(
         request: Request, 
@@ -449,14 +467,14 @@ się na pętli zdarzeń, a logika endpointu jest delegowana do osobnej puli wąt
  
 \subsection{Zarządzanie materiałami i zestawami fiszek}
 Centralnym elementem aplikacji jest zarządzanie zasobami użytkownika. Na zasoby użytkownika składają się foldery i zestawy fiszek. Ze względu 
-na chierachiczną strukturę danych i różne relacje między zasobami logika została podzielona na dwa współpracujące ze sobą serwisy: 
+na hierarchiczną strukturę danych i różne relacje między zasobami logika została podzielona na dwa współpracujące ze sobą serwisy: 
 \texttt{MaterialService} i \texttt{FlashcardSetService}.
 
 Zgodnie z przyjętym modelem bazy danych każdy materiał (folder/zestaw fiszek) jest reprezentowany przez encję \texttt{Materials}. Serwis 
 \texttt{MaterialService} powstał w celu uniknięcia duplikacji kodu i odpowiada za podstawowe operacje wykonywane na materiałach 
 (przenoszenie między folderami, zmiana nazwy itp.). Jest on warstwą abstrakcyjną nad operacjami wspólnymi dla wszystkich typów materiałów. 
 Kluczowym elementem tego serwisu jest metoda 
-\texttt{check\_permission}, która realizuje autoryzację do poszczególnych materiałow. Przed wykonaniem jakiejkolwiek operacji na zasobie, 
+\texttt{check\_permission}, która realizuje autoryzację do poszczególnych materiałów. Przed wykonaniem jakiejkolwiek operacji na zasobie, 
 system za pomocą tej metody weryfikuje uprawnienia użytkownika w oparciu o:
 \begin{enumerate}
     \item Własność zasobu (czy owner\_id jest taki sam jak id użytkownika)
@@ -471,19 +489,19 @@ Tworzenie zestawu fiszek jest bardziej skomplikowane, ponieważ wymaga zapisu do
 \begin{enumerate}
     \item Repozytorium materiałów jest wywoływane w celu stworzenia nowego materiału o typie \texttt{item\_type="set"}. Dzięki temu 
     nowy zestaw fiszek otrzymuje unikalne id i zostaje osadzony w hierarchicznej strukturze folderów.
-    \item Następnie serwis wykorzystuje id nowo stworzonego materiału do zapisania szczegołów materiału (opis, widoczność) i listy fiszek
+    \item Następnie serwis wykorzystuje id nowo stworzonego materiału do zapisania szczegółów materiału (opis, widoczność) i listy fiszek
     w odpowiednich tabelach.
 \end{enumerate} 
 
 Proces tworzenia zestawu fiszek nie jest jednak najbardziej skomplikowaną operacją w obu tych serwisach. Aktualizacja zestawu fiszek, która 
 jest relacją jeden do wielu (zestaw -- fiszki) często implementowana jest poprzez usunięcie wszystkich starych elementów w bazie danych i 
-wstawieniu nowych, przychodzących z żądania. Nie jest to jednak idealne podejście, gdyż w przypadku małej zmiany w dużym zestawie fiszek (np. zmiana jednej fiszki), 
-musi zostać wykonane N operacji usunięcia i N operacji wstawienia do bazy danych gdzie N to liczba fiszek w zestawie. Z tego powodu zastosowano 
+wstawienie nowych, przychodzących z żądania. Nie jest to jednak idealne podejście, gdyż w przypadku małej zmiany w dużym zestawie fiszek (np. zmiana jednej fiszki), 
+musi zostać wykonane N operacji usunięcia i N operacji wstawienia do bazy danych, gdzie N to liczba fiszek w zestawie. Z tego powodu zastosowano 
 prosty algorytm polegający na pobraniu wszystkich fiszek z bazy danych i porównaniu ich z danymi przychodzącymi z żądania. Fiszki posiadające ID w 
-bazie danych są aktualizowane, nieposiadające ID dodawane, a nieistniejące w bazie danych usuwane. Taki mechanizm minimalizuje liczbę operacji 
+bazie danych są aktualizowane, nieposiadające ID dodawane, a nieistniejące w przesłanych danych usuwane. Taki mechanizm minimalizuje liczbę operacji 
 wykonywanych na bazie danych i zachowuje spójność kluczy głównych fiszek.
 
-Istotnym aspektem opearcji zapisu do bazy danych jest zapewnienie bezpieczeństwa użytkowników, później wyświetlających zapisane dane. 
+Istotnym aspektem operacji zapisu do bazy danych jest zapewnienie bezpieczeństwa użytkowników, później wyświetlających zapisane dane. 
 Jako że aplikacja pozwala na formatowanie tekstu, treść fiszek jest zapisywana i wyświetlana jako HTML, co rodzi ryzyko ataków XSS. 
 Aby temu zapobiec, zaimplementowano mechanizm sanityzacji danych wejściowych oraz wyjściowych przekazywanych użytkownikowi. Proces 
 sanityzacji danych tekstowych został zaimplementowany przy pomocy biblioteki nh3, która pozwala na zdefiniowanie tagów i atrybutów, 
@@ -510,7 +528,7 @@ Zagrożenia bezpieczeństwa systemu nie ograniczają się wyłącznie do danych 
 wstawianie plików graficznych (danych binarnych) do treści fiszek, użytkownicy mogą spróbować osadzić złośliwe oprogramowanie 
 bezpośrednio w zdjęciu (steganografia) lub naruszyć prywatność innych użytkowników poprzez ekstrakcję metadanych obrazu. W 
 celu zapobiegania tym atakom wszystkie przesyłane pliki graficzne podlegają weryfikacji i normalizacji. Każda grafika, zanim 
-zostanie zapisana w magazynie obiektowym MinIO, jest przetwarzania przez bibliotekę \texttt{Pillow}. Proces przetwarzania 
+zostanie zapisana w magazynie obiektowym MinIO, jest przetwarzana przez bibliotekę \texttt{Pillow}. Proces ten 
 składa się z trzech kluczowych etapów:
 \begin{itemize}
     \item \textbf{Weryfikacja formatu i nagłówków} -- Serwer działa z ograniczonym zaufaniem do użytkownika, 
@@ -520,7 +538,7 @@ składa się z trzech kluczowych etapów:
     pixel flood, wszystkie grafiki przekraczające rozdzielczość FULL HD (1920x1080 pikseli) są automatycznie skalowane w dół 
     z zachowaniem oryginalnych proporcji. 
     \item \textbf{Sanityzacja pliku} -- Najważniejszym etapem procesu przetwarzania z punktu widzenia bezpieczeństwa jest 
-    rekonstrukcja pliku. Przy pomocy funkcji \texttt{Image.save()} każdy obraz jest dekodowany do pamięci operacyjnej jako mapa bitowa, a następnie zapisywany do nowego 
+    rekonstrukcja pliku. Przy pomocy funkcji \texttt{Image.save()} z biblioteki \texttt{Pillow} każdy obraz jest dekodowany do pamięci operacyjnej jako mapa bitowa, a następnie zapisywany do nowego 
     strumienia danych. Pozwala to na zachowanie samej zawartości obrazu, bez metadanych (EXIF) i nadmiarowych danych znajdujących 
     się w oryginalnym obrazie, w których mógłby zostać ukryty złośliwy kod.
 \end{itemize}
@@ -528,13 +546,16 @@ składa się z trzech kluczowych etapów:
 Istotnym wyzwaniem implementacyjnym była obsługa pobierania szczegółów zestawu fiszek (metoda \texttt{get\_full\_set\_details}).
 Ze względu na fakt, że wyświetlanie zestawu fiszek jest operacją najczęściej wykonywaną przez użytkowników, proces ten musiał zostać odpowiednio zoptymalizowany. 
 Metoda ta pełni rolę agregatora danych, ponieważ pobiera listę fiszek, komentarze, udostępnienia i agreguje głosy. W pierwszej kolejności serwer 
-weryfikuje typ materiału. W przypadku napotkania skrótu (\texttt{item\_type="link"}) system pobiera wyżej wspomniane dane z materiału źródłowego, przy 
+weryfikuje typ materiału. W przypadku napotkania skrótu (\texttt{item\_type="link"}) pobiera wyżej wspomniane dane z materiału źródłowego, przy 
 jednoczesnym zachowaniu uprawnień użytkownika. Cały proces kończy się logowaniem wyświetlenia zestawu fiszek do indeksu 
 \texttt{view\_events} w Elasticsearch, co pozwala na późniejsze generowanie rankingu fiszek na stronie publicznej bez obciążania relacyjnej bazy danych.
+Kluczowym aspektem optymalizacyjnym w obsłudze tego żądania było oddelegowanie logowania wyświetlenia zestawu fiszek do zadań w tle (\texttt{BackgroundTasks}).
+BackgroundTasks jest wbudowanym mechanizmem FastAPI pozwalającym na wykonanie metody po zwróceniu odpowiedzi HTTP do użytkownika.
+Dzięki temu zapis analityczny zostaje wykonywany po wysłaniu odpowiedzi do klienta, co zapobiega blokowaniu głównego wątku obsługi żądania.
 
-System umożliwia także funkcjonalność kopiowania zestawów fiszek. Operacja ta pozwala użytkownikowi stworzyć głęboką kopię dowolnego zestawu fiszek, do którego 
+System umożliwia także kopiowanie zestawów fiszek. Operacja ta pozwala użytkownikowi stworzyć głęboką kopię dowolnego zestawu fiszek, do którego 
 posiada dostęp. Logika biznesowa tego procesu polega na utworzeniu nowego materiału o typie \texttt{item\_type="set"}, a następnie zduplikowaniu wszystkich 
-powiązanych fiszek z oryginalnego materiału. Dzięki temu użytkownik jest właścicielem zkopiowanego zestawu, co pozwala użytkownikowi na swobodną edycję i nadawanie 
+powiązanych fiszek z oryginalnego materiału do jego kopii. Dzięki temu użytkownik jest właścicielem skopiowanego zestawu, co pozwala mu na swobodną edycję i nadawanie 
 uprawnień bez modyfikacji oryginalnego materiału.
 
 \subsection{Przeglądanie i wyszukiwanie publicznych materiałów}
@@ -543,7 +564,7 @@ W przeciwieństwie do innych modułów (obsługujących prywatne materiały), gd
 na szybkość obsługi zapytań i asynchroniczne przetwarzanie tekstu.
 
 Zaimplementowanie wyszukiwarki pełnotekstowej wymagało zbudowania odwróconego indeksu, aby jak najbardziej zoptymalizować wyszukiwanie. Jednym z kluczowych 
-wyzwań implementacyjnych, był wybór danych, po których działałaby wyszukiwarka. Opieranie mechanizmu wyszukiwania wyłącznie na nazwie i opisie fiszki, mogłoby 
+wyzwań implementacyjnych był wybór danych, po których działałaby wyszukiwarka. Opieranie mechanizmu wyszukiwania wyłącznie na nazwie i opisie zestawu mogłoby 
 prowadzić do katastrofalnych skutków, gdyż użytkownicy mogliby pozostawić te pola puste lub stosować nazwy nieoddające merytoryki zestawu (np. "Sprawdzian angielski").
 Z drugiej strony, podejście polegające na wyszukiwaniu na podstawie treści wszystkich fiszek znajdujących się w zestawie mogłoby prowadzić do nadmiaru danych. Nadmiar 
 danych prowadziłby do szumu informacyjnego, więc serwer zwracałby zestawy fiszek zawierające słowo klucz, ale nietrafione kontekstowo.
@@ -554,7 +575,7 @@ pomocy modelu językowego Google Gemini 2.5 Flash, który analizuje całą treś
 fiszek bez zachowania tagów HTML i plików graficznych. Wstępne przetworzenie tekstu pozwoliło na zminimalizowanie wykorzystywanej liczby tokenów wejściowych, 
 zmniejszenie czasu przetwarzania zapytania przez model i ograniczenia informacji przekazywanych do modelu, które mogłyby rozproszyć model, powodując halucynacje.
 
-Kluczowym elementem było stworzenie jasnego zapytania dla modelu, tak aby ten zwrócił jak najbardziej deterministyczną i najtrafniejszą odpowiedź (prompt engeenering). 
+Kluczowym elementem było stworzenie jasnego zapytania dla modelu (listing \ref{lst:model_prompt}), tak aby ten zwrócił jak najbardziej deterministyczną i najtrafniejszą odpowiedź (prompt engineering). 
 Prompt składa się z trzech sekcji:
 \begin{itemize}
     \item \textbf{Definicja roli i zadania} -- Nadaje modelowi odpowiedni kontekst, pozwalający na lepsze dopasowanie odpowiedzi.
@@ -563,8 +584,8 @@ Prompt składa się z trzech sekcji:
 \end{itemize}
 
 \begin{lstlisting}[language=Python,
-	caption={Asynchroniczna zależność w synchronicznym endpoincie},
-	label={lst:cykl_zycia}]
+	caption={Zapytanie dla modelu Google Gemini 2.5 Flash},
+	label={lst:model_prompt}]
     prompt = f"""
     You are an expert educational content analyzer and tagging assistant. 
     Your goal is to generate metadata for flashcards to improve searchability.
@@ -593,71 +614,71 @@ przekazanych w prompcie, zdefiniowano schemat danych wyjściowych przy pomocy mo
 Przekazanie tego schematu do konfiguracji modelu wymusza na nim zwrócenie odpowiedzi w odpowiednim, poprawnym formacie JSON. Skonfigurowano 
 także filtry bezpieczeństwa o wysokim progu blokowania (\texttt{BLOCK\_ONLY\_HIGH}), aby zapobiec błędnej klasyfikacji zestawów 
 fiszek o tematyce edukacyjnej podobnej do filtrów (np. z zakresu historii wojen czy anatomii człowieka). Obniżono 
-temperaturę modelu do 0.2 co ogranicza losowość i czyni jego odpowiedzi bardziej konkretnymi oraz deterministycznymi. Jako dodatkowe 
-zabezpieczenie, ograniczono zużycie modelu do 500 tokenów, aby nie zużył on dużej ilości tokenów w przypadku błędnego zinterpretowania 
+temperaturę modelu do 0,2, co ogranicza losowość i czyni jego odpowiedzi bardziej konkretnymi oraz deterministycznymi. Jako dodatkowe 
+zabezpieczenie, ograniczono zużycie modelu do 500 tokenów, aby nie zużył on zbyt dużej liczby tokenów w przypadku błędnego zinterpretowania 
 promptu.
 
 Integracja z zewnętrznymi modelami LLM wiąże się z nieprzewidywalnym czasem odpowiedzi, zależnym od 
 rodzaju modelu, informacji mu przekazywanych i długości jego odpowiedzi. Synchroniczne generowanie tagów drastycznie 
 zmniejszałoby responsywność aplikacji, blokując główny wątek przetwarzający żądanie HTTP. Aby temu zapobiec, proces 
-generowania tagów jest wykonywany przy pomocy zadań w tle (background task). BackgroundTasks jest wbudowanym mechanizmem 
-FastAPI pozwalającym na wykonanie metody po zwróceniu odpowiedzi HTTP do użytkownika. Proces generowania tagów jest inicjowany 
-przy każdym utworzeniu lub edycji zestawu fiszek. Serwer po otrzymaniu żądania zapisuje zmiany w relacyjnej bazie danych, a następnie 
-tuż przed zwróceniem odpowiedzi dodaje zadanie do kolejki w celu wygenerowania i zaindeksowania nowych tagów.
+generowania tagów realizowany jest w tle (przy użyciu \texttt{BackgroundTasks}), a samo zadanie uruchamiane jest automatycznie  
+przy każdym utworzeniu lub edycji zestawu fiszek. Po zatwierdzeniu zmian w bazie danych, zlecenie generowania tagów tafia do 
+kolejki zadań, dzięki czemu serwer jest w stanie natychmiastowo zakończyć obsługę żądania HTTP, zwracając klientowi odpowiedź o udanym 
+obsłużeniu zapytania.
 
 Do implementacji wyszukiwania wykorzystano zapytanie Elasticsearch typu \texttt{multi\_match}, który pozwala na 
-przeszukiwanie wielu pól jednocześnie. W podstawowej konfiguracji multi\_match zwraca zestaw o polu posiadającym największy wynik, 
-ignorując pozostałe. Aby w pełni wykorzystać zgromadzone dane, rozszerzono konfigurację multi\_match o dwa dodatkowe mechanizmy 
+przeszukiwanie wielu pól jednocześnie. W podstawowej konfiguracji \texttt{multi\_match} zwraca zestaw o polu posiadającym największy wynik, 
+ignorując pozostałe. Aby w pełni wykorzystać zgromadzone dane, rozszerzono konfigurację \texttt{multi\_match} o dwa dodatkowe mechanizmy 
 rankingowania:
 \begin{itemize}
     \item \textbf{System wag} -- Zastosowany został system wag dla wszystkich pól wyszukiwania. Nazwa zestawu posiada najwyższą wagę (x3),
     wygenerowane tagi średnią (x2), a opis zestawu fiszek najmniejszą (x1).
     \item \textbf{Tie\_breaker} -- Tie breaker pozwala na zsumowanie wyników wyszukiwania ze wszystkich pól, co oznacza, że zestaw fiszek pasujący 
-    w nazwie i opisie, nie będzie miał tyle samo punktów co zestaw pasujący tylko w nazwie. Został on ustawiony na wartość 0.3 co powoduje, że do 
-    wyniku z najbardziej dopasowanego pola dodawane są wyniki z innych pól pomnożone o wartość tie\_breaker'a.
+    w nazwie i opisie, nie będzie miał tyle samo punktów co zestaw pasujący tylko w nazwie. Został on ustawiony na wartość 0,3 co powoduje, że do 
+    wyniku z najbardziej dopasowanego pola dodawane są wyniki z innych pól pomnożone przez wartość tie\_breakera.
 \end{itemize}
-Dodatkowo ustawiony parametr \texttt{fuzziness="AUTO"}, chroni wyszukiwarkę przed literówkami popełnianymi przez użytkowników.
+Dodatkowo ustawiony parametr \texttt{fuzziness="AUTO"} chroni wyszukiwarkę przed literówkami popełnianymi przez użytkowników.
 
 \subsection{Interakcje społecznościowe: Komentarze i Oceny}
 Moduł komentarzy został zaimplementowany w celu umożliwienia użytkownikom interakcji między sobą i wymiany informacji/opinii na temat danego 
-zestawu fiszek. W początkowej fazie projektowania wymagań funkcjonalnych rozważano implementację modelu komenatrzy, pozwalającego na 
+zestawu fiszek. W początkowej fazie projektowania wymagań funkcjonalnych rozważano implementację modelu komentarzy, pozwalającego na 
 zagnieżdżanie komentarzy aż do 10 poziomów. Niestety ze względu na ograniczenia czasowe i większą priorytetyzację innych kluczowych 
-funkcjonalności (np. wcześniej wspomniana strona publiczna), zdecydowano się na uproszczenie logiki biznesowej modułu komentarzy do 
+funkcjonalności (np. wcześniej wspomniana wyszukiwarka publicznych zestawów), zdecydowano się na uproszczenie logiki biznesowej modułu komentarzy do 
 jednego poziomu zagnieżdżania. Takie podejście dalej zapewni możliwość dyskusji na dane tematy, znacząco upraszczając implementację.
 
 Pomimo zdecydowania się na uproszczony model modułu komentarzy, rozszerzenie funkcjonalności dalej pozostawało planem na przyszły 
-rozwój aplikacji. Z tego powodu zaimplementowano hybrydowe podejście łączące mechanizm listy sąsiedztwa (adjacency list) z 
-mechanizmem zmaterializowanej ścieżki (materialized path) opartym na rozszerzeniu PostgreSQL ltree. % \cite{13}
+rozwój aplikacji. Z tego powodu zaimplementowano hybrydowe podejście łączące mechanizm listy sąsiedztwa (ang. adjacency list) z 
+mechanizmem zmaterializowanej ścieżki (ang. materialized path) opartym na rozszerzeniu PostgreSQL ltree. 
 Zastosowanie tego rozwiązania przyniosło wiele korzyści:
 
 \begin{itemize}
     \item \textbf{Odporność na zmianę wymagań} -- W przypadku powrotu do oryginalnych wymagań (zagnieżdżanie komentarzy do 10 poziomów),
     warstwa danych nie będzie wymagała żadnych modyfikacji ani migracji. Istniejące już zapytania do bazy danych wykorzystujące \texttt{path}
     będą działały tak samo wydajnie niezależnie od głębokości drzewa komentarzy. Takie podejście pozwala na uniknięcie długu technicznego 
-    spowodowanego implementacją mniej wydajnych zapytań rekurencyjnych (Recursive CTE), które byłyby niezbędne przy zastosowaniu podejścia 
+    spowodowanego implementacją mniej wydajnych zapytań rekurencyjnych (ang. Recursive CTE), które byłyby niezbędne przy zastosowaniu podejścia 
     samej listy sąsiedztwa.
-    \item \textbf{Optymalizacja usuwania komentarzy} -- Niezależnie od ilości poziomów zagnieżdżenia usunięcie rodzica zawsze musi skutkować 
-    usunięciem wszystkich dzieci. Ltree pozwala na optymalizację tej operacji, poprzez wykonanie jednego zapytania SQL przy użyciu 
-    \texttt{descendant\_of}. Eliminuje to konieczność rekursywnego usuwania całej chierarchicznej struktury drzewa, znacznie optymalizując 
+    \item \textbf{Optymalizacja usuwania komentarzy} -- Niezależnie od liczby poziomów zagnieżdżenia usunięcie rodzica zawsze musi skutkować 
+    usunięciem wszystkich dzieci. Ltree pozwala na optymalizację tej operacji, poprzez wykonanie jednego zapytania SQL przy użyciu mechanizmu 
+    \texttt{descendant\_of}. Eliminuje to konieczność rekursywnego usuwania całej hierarchicznej struktury drzewa, znacznie optymalizując 
     wydajność serwera dla dużych ilości danych.
     \item \textbf{Pobieranie komentarzy} -- Proces pobierania komentarzy zakończony jest operacją \texttt{ORDER\_BY path}, co pozwala  na 
     oddelegowanie odpowiedzialności sortowania komentarzy do bazy danych. Mechanizm ten jest bardziej niezawodny niż sortowanie
-    po dacie oraz zachowuje oryginalną chierarchię drzewa, co znacznie ułatwia stworzenie i wysłanie odpowiedzi do klienta.
+    po dacie oraz zachowuje oryginalną hierarchię drzewa, co znacznie ułatwia stworzenie i wysłanie odpowiedzi do klienta.
 \end{itemize}
 
 Kluczowym wyzwaniem w hybrydowych modelach jest zachowanie synchronizacji między obiema strukturami przechowującymi dane 
 (\texttt{parent\_comment\_id} i \texttt{path}). Mimo możliwości rozwiązania problemu w warstwie logiki biznesowej poprzez 
-użycie transakcji SQL zdecydowano się oddelegować proces tworzenia i aktualizacji ścieżki bezpośrednio do warstwy danych.
-Relacyjna baza danych posiada mechanizm wyzwalacza (trigger), który pozwala na łatwe utrzymanie integralności danych. 
+użycie transakcji SQL, zdecydowano się oddelegować proces tworzenia i aktualizacji ścieżki bezpośrednio do warstwy danych.
+Relacyjna baza danych posiada mechanizm wyzwalacza (\texttt{trigger}), który pozwala na łatwe utrzymanie integralności danych. 
 Zastosowanie wyzwalacza niesie ze sobą dwie kluczowe korzyści:
 \begin{itemize}
-    \item \textbf{Minimalizacja zapytań do bazy danych (Round trip reduction)} -- Do wyliczenia ścieżki w systemach używających 
+    \item \textbf{Minimalizacja zapytań do bazy danych} -- Do wyliczenia ścieżki w systemach używających 
     mapowania ORM oraz kluczy autoinkrementowanych, potrzeba id nowego rekordu, który nadawany jest przez bazę danych. Realizacja 
     tego procesu po stronie serwera, wymaga dwóch zapytań do bazy danych. Najpierw wykonywany jest \texttt{INSERT} (w celu uzyskania ID), 
     a następnie \texttt{UPDATE} (w celu zapisania ścieżki). Dzięki zaimplementowaniu wyzwalacza nie trzeba wtórnie wykonywać aktualizacji 
     z poziomu aplikacji, enkapsulując całą logikę obliczania ścieżki w jednej operacji wstawienia danych.
-    \item \textbf{Zapewnienie integralności danych} -- Wykorzystanie triggera pozwala na globalizacje procesu. Oznacza to, że niezależnie 
-    od tego, czy dane wprowadzone zostały przez API serwera, migracje czy zapytania SQL, zmienna \texttt{path} zawsze będzie zaaktualizowana.
+    \item \textbf{Zapewnienie integralności danych} -- Wykorzystanie triggera pozwala na globalizację procesu. Oznacza to, że niezależnie 
+    od tego, czy dane wprowadzone zostały przez API serwera, migracje czy bezpośrednie zapytania SQL, zmienna \texttt{path} zawsze będzie zaktualizowana.
     Takie scentralizowanie znacząco poprawia czystość i przejrzystość kodu. 
 \end{itemize} 
 
@@ -706,23 +727,17 @@ interfejs użytkownika, logika biznesowa implementuje trzy scenariusze:
 
 Ostatnim, lecz kluczowym etapem było przygotowanie środowiska wykonawczego i monitorowania aplikacji. 
 Z uwagi na złożoność architektury, składającej się z dużej liczby komunikujących się ze sobą usług 
-(baza danych, silnik wyszukiwania, magazyn plików itp.) postanowiono całkowicie skonteneryzować rozwiązanie i 
+(baza danych, silnik wyszukiwania, magazyn plików i serwer), postanowiono całkowicie skonteneryzować rozwiązanie i 
 wdrożyć zaawansowaną telemetrię.
 
 \subsection{Konteneryzacja środowiska}
 Skonteneryzowanie zapewnia zachowanie spójności środowiska uruchomieniowego oraz znacznie ułatwia późniejszą 
-skalowalność horyzontalną. Do zarządzania kontenerami wykorzystano platformę Docker \cite{docker_docs} i 
+skalowalność horyzontalną systemu. Do zarządzania kontenerami wykorzystano platformę Docker \cite{docker_docs} oraz 
 narzędzie Docker Compose do ich definiowania oraz uruchamiania. Plik konfiguracyjny (\texttt{docker-compose.yml}) 
 definiuje pełny stos aplikacji, zgodny z zaprojektowaną architekturą przedstawioną na rysunku \ref{rys:architecture_diagram}.
 
 Poprawność konfiguracji i uruchomienia wszystkich serwisów zweryfikowano przy użyciu aplikacji Docker Desktop, co 
 przedstawia rysunek \ref{rys:docker_desktop}.
-
-\begin{figure}
-    \centering \includegraphics[width=0.85\linewidth]{docker_desktop.png} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Uruchomione kontenery systemu w Docker Desktop}
-	\label{rys:docker_desktop}
-\end{figure}
 
 Widoczne na rysunku \ref{rys:docker_desktop} kontenery odpowiadają poszczególnym warstwom systemu:
 \begin{itemize}
@@ -736,11 +751,17 @@ Widoczne na rysunku \ref{rys:docker_desktop} kontenery odpowiadają poszczególn
     aplikacji, a Kibana udostępnia interfejs graficzny do ich wizualizacji.
 \end{itemize}
 
+\begin{figure}[h]
+    \centering \includegraphics[width=0.85\linewidth]{docker_desktop.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Uruchomione kontenery systemu w Docker Desktop}
+	\label{rys:docker_desktop}
+\end{figure}
+
 Wykorzystanie Docker Compose znacznie ułatwiło testowanie i wdrażanie aplikacji. Dzięki niemu komunikacja 
 sieciowa między kontenerami odbywa się automatycznie po nazwach serwisów, co eliminuje konieczność ręcznej konfiguracji adresów IP.
 
 \subsection{Telemetria}
-Podstawą skutecznego działania złożonych systemów jest możliwość prostego diagnozowanie błędów oraz problemów wydajnościowych.
+Podstawą skutecznego działania złożonych systemów jest możliwość prostego diagnozowania błędów oraz problemów wydajnościowych.
 Logowanie samych zdarzeń często okazuje się niewystarczające, 
 dlatego zdecydowano się na wprowadzenie mechanizmu dokładnego monitorowania aplikacji.
 Aby to zapewnić, zaimplementowano mechanizm telemetrii oparty na standardzie OpenTelemetry. Pozwala on na generowanie, zbieranie 
@@ -791,13 +812,13 @@ Zaimplementowanie tak szczegółowego monitorowania serwera pozwoliło na
 łatwe zweryfikowanie wydajności aplikacji. Rysunek \ref{rys:telemetry_post_set} 
 przedstawia ślad zapytania odpowiedzialnego za utworzenie nowego zestawu 
 fiszek (\texttt{POST /sets}). Wykres ten 
-przedstawia sekwencję operacji na relacyjnej bazie danych PostgreSQL, które łącznie zajmują 
+wizualizuje sekwencję operacji na relacyjnej bazie danych PostgreSQL, które łącznie zajmują 
 około 71 ms, co odpowiada całkowitemu czasowi obsługi zapytania. 
 
-Co istotne, możemy zaobserwować, iż po wysłaniu 
-odpowiedzi do klienta rozpoczął się proces generowania tagów dla zestawu fiszek.
-Potwierdza to poprawność implementacji asynchronicznego przetwarzania tagów, gdzie proces ten 
-wykonywany jest przy pomocy zadań w tle. Polega on na:
+Warto zauważyć, że dopiero po wysłaniu 
+odpowiedzi do klienta serwer rozpoczął proces generowania tagów dla zestawu fiszek.
+Potwierdza to poprawność implementacji asynchronicznego przetwarzania tagów, 
+realizowanego przy pomocy zadań w tle. Polega on na:
 \begin{enumerate}
     \item Pobraniu zawartości zestawu fiszek (Pierwszy SELECT od razu po odesłaniu odpowiedzi do klienta).
     \item Wysłaniu zapytania do zewnętrznego API Google Gemini w celu wygenerowania tagów.
@@ -805,31 +826,44 @@ wykonywany jest przy pomocy zadań w tle. Polega on na:
     \item Zapisaniu danych w Elasticsearch.
 \end{enumerate}
 Dzięki przeniesieniu tego procesu do zadań w tle czas oczekiwania użytkownika na odpowiedź został skrócony 
-o około 2.51 sekundy. Zgodnie z oczekiwaniami, najbardziej czasochłonną operacją 
-w procesie generowania tagów było zapytanie do modelu Google Gemini, które zajęło aż 99.56 procent całej operacji.
+o około 2,51 sekundy. Zgodnie z oczekiwaniami, najbardziej czasochłonną operacją 
+w procesie generowania tagów było zapytanie do modelu Google Gemini, które zajęło aż 99,56 procent całej operacji.
  
-\begin{figure}
+\begin{figure}[h]
     \centering \includegraphics[width=1\linewidth]{telemetry_post_set_with_gemini.png} % 0.618 to złoty podział, bardzo dobra szerokość
 	\caption{Ślad procesu tworzenia zestawu fiszek}
 	\label{rys:telemetry_post_set}
 \end{figure}
 
-OpenTelemetry oprócz automatycznej instrumentacji pozwala na tworzenie własnych zakresów pomiarowych (ang. \texttt{custom spans}). 
+OpenTelemetry oprócz automatycznej instrumentacji pozwala także na tworzenie własnych zakresów pomiarowych (ang. \texttt{custom spans}). 
 Dzięki nim możemy w łatwy sposób uzyskać informacje o czasie wykonywania zapytań do zewnętrznych API, co zostało przedstawione 
 na rysunku \ref{rys:telemetry_post_set} (ślad \texttt{gemini\_generate\_tags}). Niestandardowe ślady przydatne są 
 także w przypadku serwisów, które nie mają zaimplementowanej automatycznej instrumentacji lub operacji obciążających procesor (CPU-bound).
 Zostały one także zastosowane w module obsługi multimediów \texttt{MediaService}, odpowiedzialnym za przesyłanie i przetwarzanie 
 obrazów użytkownika. 
 
-Proces przesłania składa się z dwóch mierzalnych operacji:
+Do zaimplementowania niestandardowych śladów widocznych na rysunku \ref{rys:telemetry_post_set} i \ref{rys:telemetry_upload_file} wykorzystano 
+obiekt \texttt{tracer} z biblioteki OpenTelemetry. Umożliwił on zaimplementowanie ręcznej instrumentacji polegającej na prostym objęciu kluczowych 
+bloków logiki biznesowej menedżerem kontekstu \texttt{start\_as\_current\_span}. Dodatkowo do śladu \texttt{pil\_image\_processing} dodano atrybut \texttt{image.size\_bytes}, który pozwala na łatwą 
+analizę korelacji wielkości pliku z czasem jego przetwarzania. 
+
+Proces przesyłania multimediów składa się z dwóch mierzalnych operacji:
 \begin{enumerate}
-    \item Przetworzenie obrazu przy pomocy biblioteki PIL (operacja CPU-bound).
+    \item Przetworzenie obrazu przy pomocy biblioteki \texttt{Pillow} (operacja CPU-bound).
     \item Wysłanie przetworzonego pliku do magazynu danych Minio (operacja I/O-bound).
 \end{enumerate}
 
-Do zaimplementowania niestandardowych śladów widocznych na rysunku \ref{rys:telemetry_post_set} i \ref{rys:telemetry_upload_file} wykorzystano 
-obiekt \texttt{tracer}. Dodatkowo do śladu \texttt{pil\_image\_processing} dodano atrybut \texttt{image.size\_bytes}, który pozwala na łatwą 
-analizę korelacji wielkości pliku z czasem jego przetwarzania. 
+Całkowity czas obsługi zapytania \texttt{POST /upload-image} widocznego na rysunku \ref{rys:telemetry_upload_file} wynosi zaledwie 12 ms.
+Wykres wyraźnie ukazuje dysproporcję między czasem operacji CPU-bound (span \texttt{pil\_image\_processing} -- około 1,1 ms) oraz I/O-bound
+(span \texttt{upload\_to\_minio} -- około 5,8 ms). Dzięki temu można stwierdzić, że większa optymalizacja kodu Python nie przyniesie dużych korzyści, a potencjalne 
+udoskonalenia powinny być kierowane w stronę sieciowej infrastruktury.
+
+\begin{figure}[h]
+    \centering \includegraphics[width=1\linewidth]{telemetry_upload_file.png} % 0.618 to złoty podział, bardzo dobra szerokość
+	\caption{Ślad procesu obsługi multimediów}
+	\label{rys:telemetry_upload_file}
+\end{figure}
+
 % Implementację manulanych spanów wraz z dodaniem atrybytu \texttt{image.size\_bytes} przedstawia listing \ref{lst:manual_instrumentation}.
 
 % \begin{lstlisting}[language=python, 
@@ -863,32 +897,3 @@ analizę korelacji wielkości pliku z czasem jego przetwarzania.
         
 %         return {"url": image_url}
 % \end{lstlisting}
-
-Całkowity czas obsługi zapytania \texttt{POST/upload-image} wynosi zaledwie 12 ms.
-Wykres wyraźnie ukazuje dysproporcję między czasem operacji CPU-bound (span \texttt{pil\_image\_processing} -- około 1.1 ms) oraz I/O-bound
-(span \texttt{upload\_to\_minio} -- około 5.8 ms). Dzięki temu można stwierdzić, że większa optymalizacja kodu Python, nie przyniesie dużych korzyści, a potencjalne 
-udoskolanienia powinny być kierowane w stronę sieciowej infrastruktury.
-
-\begin{figure}
-    \centering \includegraphics[width=1\linewidth]{telemetry_upload_file.png} % 0.618 to złoty podział, bardzo dobra szerokość
-	\caption{Ślad procesu obsługi multimediów}
-	\label{rys:telemetry_upload_file}
-\end{figure}
-% \begin{figure}
-%     \centering \includegraphics[width=1\linewidth]{telemetry_main_page.png} % 0.618 to złoty podział, bardzo dobra szerokość
-% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
-% 	\label{rys:docker_desktop}
-% \end{figure}
-
-% \begin{figure}
-%     \centering \includegraphics[width=1\linewidth]{telemetry_get_set2.png} % 0.618 to złoty podział, bardzo dobra szerokość
-% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
-% 	\label{rys:docker_desktop}
-% \end{figure}
-
-% \begin{figure}
-%     \centering \includegraphics[width=1\linewidth]{telemetry_get_set_better.png} % 0.618 to złoty podział, bardzo dobra szerokość
-% 	\caption{Uruchomione kontenery systemu w Docker Desktop}
-% 	\label{rys:docker_desktop}
-% \end{figure}
-

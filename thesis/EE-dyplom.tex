@@ -22,6 +22,7 @@
 %	ee,
 %	wip
 %	]
+\usepackage[cache=false]{minted}
 \usepackage{placeins}
 \usepackage{dirtree}
 \usepackage{tabularx}
@@ -34,6 +35,18 @@
 \definecolor{ac-gray}{rgb}{0.5,0.5,0.5}  % Comments
 \definecolor{ac-black}{rgb}{0,0,0}       % Standard text
 
+\setminted{
+    frame=single, %lines
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    linenos,
+    breaklines=true,       % <--- KLUCZOWE: łamanie zbyt długich linii
+    breakanywhere=false,   % false łamie tylko na spacjach/zn. specjalnych (czytelniej)
+    tabsize=2              % TypeScript/JS zwykle używa wcięcia 2 spacji, a LaTeX domyślnie 8
+}
+
+% \usemintedstyle{vs}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Konfiguracja - do personalizacji
@@ -55,21 +68,60 @@
 % In case of thesis in English swap the order - English version goes first.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \streszczeniepracy{
-To jest streszczenie. To jest trochę za krótkie, jako że powinno zająć całą stronę.
+Przedmiotem niniejszej pracy inżynierskiej jest zaprojektowanie i zaimplementowanie nowoczesnej aplikacji wspomagającej proces 
+aktywnego uczenia się poprzez system fiszek. Aplikacja usprawnia tworzenie zestawów fiszek względem istniejących rozwiązań, 
+takich jak Anki czy Quizlet, oraz skutecznie eliminuje ograniczenia tradycyjnych, fizycznych nośników wiedzy. System zawiera zaawansowany edytor WYSIWYG 
+oraz rozbudowany moduł zarządzania materiałami, dodatkowo oferując użytkownikom intuicyjny interfejs i szerokie funkcje społecznościowe.
 
-Streszczenie to nie to samo co wstęp. Streszczenie przedstawia informacje o tym, co się znajduje w tekście poszczególnych rozdziałów danej pracy podczas gdy ,,Wstęp'' służy przedstawieniu zagadnienia podjętego w~pracy. Streszczenie prezentuje aktualny stan pracy dyplomowej, której pisanie zostało zakończone a~więc należy w~nim posługiwać się czasem teraźniejszym.
+Praca zawiera analizę porównawczą konkurencyjnych rozwiązań, pozwalającą na precyzyjne zdefiniowanie wymagań funkcjonalnych i niefunkcjonalnych. 
+Zaprojektowany system opiera się na architekturze klient-serwer w modelu headless, zrealizowanej w strukturze trójwarstwowej 
+(prezentacja, logika i dane). 
 
+Warstwę prezentacji stanowi aplikacja typu SPA, zrealizowana przy użyciu biblioteki React, języka Typescript i biblioteki Redux 
+do hybrydowego zarządzania stanem. Podstawowym elementem interfejsu użytkownika jest autorska implementacja zaawansowanego 
+edytora WYSIWYG opartego na silniku TipTap. Stworzony edytor umożliwia bogate formatowanie tekstu, wstawianie 
+multimediów do fiszek oraz tworzenie ich niestandardowych układów.
+Warstwa logiki biznesowej jest zaimplementowana jako REST API w języku Python z wykorzystaniem nowoczesnego frameworka FastAPI. Zastosowany 
+mechanizm zadań w tle umożliwia efektywną integrację z zewnętrznym modelem sztucznej inteligencji Google Gemini. Model ten służy do
+automatycznego generowania tagów semantycznych dla zestawów fiszek, usprawniając ich wyszukiwanie.
+Warstwa danych realizuje model persystencji poliglotycznej, integrując w systemie trzy niezależne magazyny danych. Dane strukturalne 
+przechowywane są w relacyjnej bazie PostgreSQL, a duże pliki binarne (obrazy) w magazynie obiektowym MinIO. System dopełnia Elasticsearch, 
+w którym tworzone są odwrócone indeksy umożliwiające szybkie wyszukiwanie pełnotekstowe.
+
+Aplikacja zapewnia wysoki poziom bezpieczeństwa dzięki mechanizmom ochrony przed atakami CSRF i XSS oraz weryfikacji wszystkich plików graficznych 
+przesyłanych przez użytkowników. Rozwiązanie jest w pełni skonteneryzowane przy użyciu platformy Docker, a wdrożona zaawansowana telemetria, 
+oparta na standardzie OpenTelemetry, umożliwia monitorowanie wydajności systemu i diagnozowanie wąskich gardeł.
 } % koniec streszczenia
 
-\slowakluczowe{A, B, C}
+\slowakluczowe{Aplikacja internetowa, fiszki, SPA, persystencja poliglotyczna, OpenTelemetry}
 
 \thesisabstract{
-This is abstract. This one is a little too short as it should occupy the whole page.
+The subject of this thesis is the design and implementation of a modern application supporting the active learning process through 
+a flashcard system. The application streamlines the creation of flashcard sets compared to existing solutions such as Anki or Quizlet, 
+and effectively eliminates the limitations of traditional, physical study materials. The system includes an advanced WYSIWYG editor 
+and an extensive materials management module, offering users an intuitive interface and broad social features. 
 
-An abstract is not the same as an introduction. The abstract provides information about what is contained in the text of specific chapters of a given work, whereas the introduction serves to present the topic addressed in the work. The abstract presents the current state of the diploma thesis, the writing of which has been completed, and therefore it should be written in the present tense.
+The thesis contains a comparative analysis of competing solutions, enabling the precise definition of functional and non-functional 
+requirements. The designed system is based on a client-server architecture in a headless model, implemented in a three-tier structure 
+(presentation, logic, and data).
+
+The presentation layer is implemented as a Single Page Application (SPA), built using the React library, TypeScript language and Redux library 
+for hybrid state management. A primary element of the user interface is a custom implementation of an advanced WYSIWYG editor based on 
+the TipTap engine. The created editor enables rich text formatting, insertion of multimedia into flashcards, and the creation of custom layouts.
+The business logic layer is implemented as a REST API in Python using the modern FastAPI framework. The applied background task mechanism enables 
+effective integration with the external Google Gemini artificial intelligence model. This model serves to automatically generate semantic tags 
+for flashcard sets, improving their searchability.
+The data layer implements a polyglot persistence model, integrating three independent data stores within the system. Structured data 
+is stored in a relational PostgreSQL database, while large binary files (images) are stored in the MinIO object storage. The system 
+is complemented by Elasticsearch, where inverted indexes are created to enable fast full-text searching.
+
+The application ensures a high level of security through protection mechanisms against CSRF and XSS attacks, as well as the 
+verification of all image files uploaded by users. The solution is fully containerized using the Docker platform, and the 
+implemented advanced telemetry, based on the OpenTelemetry standard, enables system performance monitoring and the diagnosis 
+of bottlenecks.
 } % end of abstract
 
-\thesiskeywords{X, Y, Z}
+\thesiskeywords{Web application, flashcards, single page application, polyglot persistence, OpenTelemetry}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Tu zaczyna się dokument
@@ -195,11 +247,11 @@ An abstract is not the same as an introduction. The abstract provides informatio
     \input{tekst/wstep}
     \input{tekst/projekt_systemu}
     \input{tekst/implementacja_systemu}
+    \input{tekst/podsumowanie}
 
 
 	% \input{tekst/analiza}
 	% \input{tekst/realizacja}
-	% \input{tekst/podsumowanie}
 
     % Bibliografia - musi być, jest w pliku EE-dyplom.bib
     % Bibliography - must exist, is in the file EE-dyplom.bib
@@ -209,9 +261,9 @@ An abstract is not the same as an introduction. The abstract provides informatio
     % Additional pages - comment out if not needed
     
     % Wykaz symboli i skrótów - patrz opis w tekście przykładowym
-    \acronymslist
+    % \acronymslist
     % Spis rysunków
-    \listoffigures
+    % \listoffigures
     % Spis tabel
     % \listoftables
     % % Załączniki (plik appendices.tex)

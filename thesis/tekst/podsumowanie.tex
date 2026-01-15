@@ -1,16 +1,36 @@
 \chapter{Podsumowanie}
 \label{ch:podsumowanie}
+Celem niniejszej pracy inżynierskiej było zaprojektowanie i zaimplementowanie nowoczesnej aplikacji 
+internetowej do zarządzania zestawami fiszek, która eliminowałaby ograniczenia fizycznych zestawów
+oraz wady istniejących rozwiązań na rynku.
+Realizacja systemu objęła pełny cykl wytwarzania oprogramowania (End-to-End), począwszy od analizy wymagań, 
+poprzez projekt architektury, aż po implementację i wdrożenie środowiska uruchomieniowego. Wstępne założenia pracy 
+zostały pomyślnie spełnione, a zaimplementowany system zawiera w sobie wszystkie zdefiniowane wcześniej funkcjonalności.
+Pozwala on użytkownikom na zaawansowane edytowanie fiszek za pomocą intuicyjnego edytora WYSIWYG i zarządzanie 
+strukturą materiałów poprzez prosty w obsłudze eksplorator plików. Warto wspomnieć także o możliwości dzielenia się wiedzą 
+między użytkownikami i zaawansowanym systemie wyszukiwania znacząco ułatwiającym znajdowanie ciekawych, przydatnych zestawów.
 
-Podsumowanie zazwyczaj nie potrzebuje podrozdziałów. Jednak gdyby osiągnęło około 5 stron, to można już zacząć planować jakiś podział tego rozdziału. Ponieważ podsumowanie odnosi się do zrealizowanej pracy i~uzyskanych wyników, to sensownym wydaje się napisać je w~czasie przeszłym. Poniżej sugestie odnośnie tego, co w~podsumowaniu powinno się znaleźć.
+Istotnym elementem wyróżniającym aplikację na tle konkurencji jest zaawansowany edytor oparty na silniku TipTap. 
+Umożliwia on tworzenie niestandardowych układów obrazów i udostępnia szeroką gamę narzędzi do formatowania tekstu. 
+Warto również podkreślić integrację z modelem językowym Google Gemini, który automatyzuje proces tagowania zestawów, 
+znacząco usprawniając ich wyszukiwanie. Wdrożona została zaawansowana telemetria oparta na OpenTelemetry, która pozwoliła 
+na analizę wydajności systemu i zidentyfikowanie wąskich gardeł.
 
-Akapit przypomnienia celu i~głównych założeń pracy. Jeśli w~trakcie realizacji pracy dyplomowej pewne wstępne cele szczegółowe lub założenia uległy weryfikacji i~być może subtelnym zmianom, to warto o~tym szczerze i~otwarcie napisać. Realizację pracy dyplomowej można sobie wyobrażać jako wyprawę do ściśle określonego celu ale po trasie, którą w~trakcie trwania podróży trzeba jednak urealniać, ze względu na napotkane warunki.
+Stworzony system stanowi ciekawą alternatywę dla obecnych rozwiązań na rynku, takich jak Anki czy Quizlet. 
+Anki umożliwia naukę za pomocą zaawansowanych algorytmów, ale zmaga się z przestarzałym, ciężkim w obsłudze interfejsem, a 
+Quizlet znacząco ogranicza kluczowe funkcjonalności systemu w darmowej wersji oraz nie posiada zaawansowanego edytora fiszek. 
+Niniejsza praca udowadnia, że możliwe jest stworzenie własnego systemu, który rozwiązuje problemy istniejących rozwiązań.
 
-Podsumowanie i~dyskusja uzyskanych efektów. Nie powinno być to powtórzenie analizy rezultatów z~rozdziału poprzedniego a~raczej przedstawienie wniosków końcowych i~zwrócenie uwagi czytelnika na szczególnie ciekawe wyniki.
+Podczas realizacji projektu podjęto szereg decyzji projektowych wynikających z przyjętych ram czasowych. 
+Natrafiono na problemy powiązane ze złożonością struktur danych, co skutkowało ograniczeniem funkcjonalności modułu komentarzy 
+do jednego poziomu zagnieżdżenia. Warto jednak zaznaczyć, że warstwa danych została zaprojektowana z myślą o przyszłym rozwoju, 
+wykorzystując mechanizmy gotowe na obsługę bardziej złożonych struktur w przyszłości, bez konieczności migracji bazy danych.
 
-Odniesienie uzyskanych rezultatów do \underline{aktualnego} stanu wiedzy. Najlepiej, gdyby to odniesienie zostało poparte porównaniem konkretnych wyników uzyskanych w~toku realizacji pracy dyplomowej z~danymi prezentowanymi w~aktualnej literaturze -- wystarczy choćby jeden artykuł. Nie oznacza to, że trzeba uzyskać wyniki lepsze, niż prezentowane w~publikacjach naukowych.
-
-Przedstawienie możliwości dalszego rozwoju podjętych działań i~badań. Te perspektywy można opisać w~kontekście trudności lub nawet niepowodzeń napotkanych podczas realizacji pracy dyplomowej. W~pracy magisterskiej można nieco ambitniej przedyskutować otwarte zagadnienia badawcze i~to, jak niniejsza praca dyplomowa może pomóc podjąć te wyzwania.
-
-Można dodać akapit bardziej osobisty, dotyczący nowego doświadczenia zdobytego podczas realizacji pracy.
-
-Jedno, końcowe zdanie subiektywnej oceny, w~jakim stopniu udało się zrealizować założony cel pracy i~spełnić postawione we wstępie wymagania (np.: częściowo, w~dużym stopniu, całkowicie).
+Zaimplementowany system ma szerokie możliwości dalszego rozwoju. Zaprojektowana struktura bazy danych pozwala na łatwe 
+wdrożenie nowych typów materiałów, takich jak interaktywne quizy. Możliwe jest także rozszerzenie modułu komentarzy o 
+pełne, wielopoziomowe zagnieżdżanie, tak aby użytkownicy mieli możliwość prowadzenia złożonych dyskusji na wybrane tematy. Ponadto 
+w planach jest dalsze rozszerzanie funkcjonalności systemu o zaawansowane algorytmy powtórek (np. SRS) w celu zwiększenia efektywności nauki. 
+Istotnym rozwinięciem aplikacji będzie również zwiększenie poziomu bezpieczeństwa poprzez implementację mechanizmu autoryzowanych, 
+czasowych linków do multimediów. Należy jednak podkreślić, że mimo dużego potencjału do dalszego rozwoju, cel pracy został zrealizowany całkowicie. 
+Powstała aplikacja jest w pełni funkcjonalna i wspiera proces edukacji użytkowników, oferując nowoczesne i bezpieczne środowisko 
+do przechowywania danych i nauki z zestawów fiszek.
