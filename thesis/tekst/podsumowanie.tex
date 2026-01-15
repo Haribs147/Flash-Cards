@@ -1,36 +1,36 @@
 \chapter{Podsumowanie}
 \label{ch:podsumowanie}
-Celem niniejszej pracy inżynierskiej było zaprojektowanie i~zaimplementowanie nowoczesnej aplikacji 
+Celem niniejszej pracy inżynierskiej było zaprojektowanie i zaimplementowanie nowoczesnej aplikacji 
 internetowej do zarządzania zestawami fiszek, która eliminowałaby ograniczenia fizycznych zestawów
 oraz wady istniejących rozwiązań na rynku.
 Realizacja systemu objęła pełny cykl wytwarzania oprogramowania (End-to-End), począwszy od analizy wymagań, 
-poprzez projekt architektury, aż po implementację i~wdrożenie środowiska uruchomieniowego. Wstępne założenia pracy 
-zostały pomyślnie spełnione, a~zaimplementowany system zawiera w~sobie wszystkie zdefiniowane wcześniej funkcjonalności.
-Pozwala on użytkownikom na zaawansowane edytowanie fiszek za pomocą intuicyjnego edytora WYSIWYG i~zarządzanie 
-strukturą materiałów poprzez prosty w~obsłudze eksplorator plików. Warto wspomnieć także o~możliwości dzielenia się wiedzą 
-między użytkownikami i~zaawansowanym systemie wyszukiwania znacząco ułatwiającym znajdowanie ciekawych, przydatnych zestawów.
+poprzez projekt architektury, aż po implementację i wdrożenie środowiska uruchomieniowego. Wstępne założenia pracy 
+zostały pomyślnie spełnione, a zaimplementowany system zawiera w sobie wszystkie zdefiniowane wcześniej funkcjonalności.
+Pozwala on użytkownikom na zaawansowane edytowanie fiszek za pomocą intuicyjnego edytora WYSIWYG i zarządzanie 
+strukturą materiałów poprzez prosty w obsłudze eksplorator plików. Warto wspomnieć także o możliwości dzielenia się wiedzą 
+między użytkownikami i zaawansowanym systemie wyszukiwania znacząco ułatwiającym znajdowanie ciekawych, przydatnych zestawów.
 
 Istotnym elementem wyróżniającym aplikację na tle konkurencji jest zaawansowany edytor oparty na silniku TipTap. 
-Umożliwia on tworzenie niestandardowych układów obrazów i~udostępnia szeroką gamę narzędzi do formatowania tekstu. 
-Warto również podkreślić integrację z~modelem językowym Google Gemini, który automatyzuje proces tagowania zestawów, 
+Umożliwia on tworzenie niestandardowych układów obrazów i udostępnia szeroką gamę narzędzi do formatowania tekstu. 
+Warto również podkreślić integrację z modelem językowym Google Gemini, który automatyzuje proces tagowania zestawów, 
 znacząco usprawniając ich wyszukiwanie. Wdrożona została zaawansowana telemetria oparta na OpenTelemetry, która pozwoliła 
-na analizę wydajności systemu i~zidentyfikowanie wąskich gardeł.
+na analizę wydajności systemu i zidentyfikowanie wąskich gardeł.
 
 Stworzony system stanowi ciekawą alternatywę dla obecnych rozwiązań na rynku, takich jak Anki czy Quizlet. 
-Anki umożliwia naukę za pomocą zaawansowanych algorytmów, ale zmaga się z~przestarzałym, ciężkim w~obsłudze interfejsem, a~
-Quizlet znacząco ogranicza kluczowe funkcjonalności systemu w~darmowej wersji oraz nie posiada zaawansowanego edytora fiszek. 
+Anki umożliwia naukę za pomocą zaawansowanych algorytmów, ale zmaga się z przestarzałym, ciężkim w obsłudze interfejsem, a 
+Quizlet znacząco ogranicza kluczowe funkcjonalności systemu w darmowej wersji oraz nie posiada zaawansowanego edytora fiszek. 
 Niniejsza praca udowadnia, że możliwe jest stworzenie własnego systemu, który rozwiązuje problemy istniejących rozwiązań.
 
-Podczas realizacji projektu podjęto szereg decyzji projektowych wynikających z~przyjętych ram czasowych. 
+Podczas realizacji projektu podjęto szereg decyzji projektowych wynikających z przyjętych ram czasowych. 
 Natrafiono na problemy powiązane ze złożonością struktur danych, co skutkowało ograniczeniem funkcjonalności modułu komentarzy 
-do jednego poziomu zagnieżdżenia. Warto jednak zaznaczyć, że warstwa danych została zaprojektowana z~myślą o~przyszłym rozwoju, 
-wykorzystując mechanizmy gotowe na obsługę bardziej złożonych struktur w~przyszłości, bez konieczności migracji bazy danych.
+do jednego poziomu zagnieżdżenia. Warto jednak zaznaczyć, że warstwa danych została zaprojektowana z myślą o przyszłym rozwoju, 
+wykorzystując mechanizmy gotowe na obsługę bardziej złożonych struktur w przyszłości, bez konieczności migracji bazy danych.
 
 Zaimplementowany system ma szerokie możliwości dalszego rozwoju. Zaprojektowana struktura bazy danych pozwala na łatwe 
-wdrożenie nowych typów materiałów, takich jak interaktywne quizy. Możliwe jest także rozszerzenie modułu komentarzy o~
+wdrożenie nowych typów materiałów, takich jak interaktywne quizy. Możliwe jest także rozszerzenie modułu komentarzy o 
 pełne, wielopoziomowe zagnieżdżanie, tak aby użytkownicy mieli możliwość prowadzenia złożonych dyskusji na wybrane tematy. Ponadto 
-w planach jest dalsze rozszerzanie funkcjonalności systemu o~zaawansowane algorytmy powtórek (np. SRS) w~celu zwiększenia efektywności nauki. 
+w planach jest dalsze rozszerzanie funkcjonalności systemu o zaawansowane algorytmy powtórek (np. SRS) w celu zwiększenia efektywności nauki. 
 Istotnym rozwinięciem aplikacji będzie również zwiększenie poziomu bezpieczeństwa poprzez implementację mechanizmu autoryzowanych, 
 czasowych linków do multimediów. Należy jednak podkreślić, że mimo dużego potencjału do dalszego rozwoju, cel pracy został zrealizowany całkowicie. 
-Powstała aplikacja jest w~pełni funkcjonalna i~wspiera proces edukacji użytkowników, oferując nowoczesne i~bezpieczne środowisko 
-do przechowywania danych i~nauki z~zestawów fiszek.
+Powstała aplikacja jest w pełni funkcjonalna i wspiera proces edukacji użytkowników, oferując nowoczesne i bezpieczne środowisko 
+do przechowywania danych i nauki z zestawów fiszek.
