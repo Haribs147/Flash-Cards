@@ -16,7 +16,7 @@ Aby zachować spójność i~jakość kodu, skonfigurowano w~środowisku automaty
 Kluczowym aspektem podczas tworzenia oprogramowania jest zapewnienie czytelności i~łatwości utrzymania aplikacji, 
 co zostało zrealizowane poprzez trzymanie się zasad czystego kodu \cite{cleancode}.
 
-\section{Warstwa Prezentacji}
+\section{Warstwa prezentacji}
 Zgodnie z~założeniami projektowymi warstwa prezentacji została zaimplementowana jako aplikacja 
 typu SPA przy użyciu biblioteki React i~języka TypeScript. Na wczesnym etapie implementacji ważne 
 było sprawne przełożenie projektu interfejsu użytkownika w~Figmie na czytelną i~skalowalną strukturę 
@@ -320,7 +320,7 @@ Kluczowym elementem implementacji jest metoda \texttt{renderHTML}, która dynami
 Dzięki temu zaimplementowany CSS: \texttt{grid-template-columns: repeat(var(--cols), 1fr)} automatycznie dostosowuje układ siatki 
 bez konieczności wykonywania dodatkowych obliczeń po stronie JavaScriptu.
 
-\section{Warstwa Logiki}
+\section{Warstwa logiki}
 Backend zgodnie z~projektem systemu został zaimplementowany w~języku Python, przy wykorzystaniu 
 frameworku FastAPI. W~przeciwieństwie do projektu systemu, gdzie sformułowano podział logiczny, w~niniejszym rozdziale
 opisano organizację kodu, konfigurację serwera i~mechanizmy scalające poszczególne komponenty systemu.
@@ -622,7 +622,7 @@ Integracja z~zewnętrznymi modelami LLM wiąże się z~nieprzewidywalnym czasem 
 rodzaju modelu, informacji mu przekazywanych i~długości jego odpowiedzi. Synchroniczne generowanie tagów drastycznie 
 zmniejszałoby responsywność aplikacji, blokując główny wątek przetwarzający żądanie HTTP. Aby temu zapobiec, proces 
 generowania tagów realizowany jest w~tle (przy użyciu \texttt{BackgroundTasks}), a~samo zadanie uruchamiane jest automatycznie  
-przy każdym utworzeniu lub edycji zestawu fiszek. Po zatwierdzeniu zmian w~bazie danych, zlecenie generowania tagów tafia do 
+przy każdym utworzeniu lub edycji zestawu fiszek. Po zatwierdzeniu zmian w~bazie danych, zlecenie generowania tagów trafia do 
 kolejki zadań, dzięki czemu serwer jest w~stanie natychmiastowo zakończyć obsługę żądania HTTP, zwracając klientowi odpowiedź o~udanym 
 obsłużeniu zapytania.
 
@@ -639,7 +639,7 @@ rankingowania:
 \end{itemize}
 Dodatkowo ustawiony parametr \texttt{fuzziness="AUTO"} chroni wyszukiwarkę przed literówkami popełnianymi przez użytkowników.
 
-\subsection{Interakcje społecznościowe: Komentarze i~Oceny}
+\subsection{Interakcje społecznościowe: komentarze i~oceny}
 Moduł komentarzy został zaimplementowany w~celu umożliwienia użytkownikom interakcji między sobą i~wymiany informacji/opinii na temat danego 
 zestawu fiszek. W~początkowej fazie projektowania wymagań funkcjonalnych rozważano implementację modelu komentarzy, pozwalającego na 
 zagnieżdżanie komentarzy aż do 10 poziomów. Niestety ze względu na ograniczenia czasowe i~większą priorytetyzację innych kluczowych 
